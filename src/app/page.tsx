@@ -19,7 +19,7 @@ export default function Home() {
     <div className="flex flex-col items-center text-center px-2">
       {/* Hero */}
       <div className="mt-8 mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold text-[#FF6B00]">
+        <h1 className="text-3xl sm:text-4xl font-bold" style={{ color: "#FF6B00" }}>
           सांगली रोजगार
         </h1>
         <p className="text-lg sm:text-xl text-gray-700 mt-3">
@@ -30,10 +30,10 @@ export default function Home() {
       {/* Value props */}
       <div className="bg-white border border-orange-100 rounded-xl p-5 w-full max-w-md mb-8 shadow-sm">
         <p className="text-lg text-gray-800 leading-relaxed">
-          कामगार हवेत? <span className="font-semibold text-[#FF6B00]">2 मिनिटांत</span> मोफत जाहिरात द्या.
+          कामगार हवेत? <span className="font-semibold" style={{ color: "#FF6B00" }}>2 मिनिटांत</span> मोफत जाहिरात द्या.
         </p>
         <p className="text-lg text-gray-800 leading-relaxed mt-2">
-          काम हवंय? नोकऱ्या पहा आणि <span className="font-semibold text-[#FF6B00]">लगेच फोन करा</span>.
+          काम हवंय? नोकऱ्या पहा आणि <span className="font-semibold" style={{ color: "#FF6B00" }}>लगेच फोन करा</span>.
         </p>
         <p className="text-base text-gray-700 mt-3 font-medium">
           रजिस्ट्रेशन नाही. लॉगिन नाही. पूर्णपणे मोफत.
@@ -44,13 +44,15 @@ export default function Home() {
       <div className="flex flex-col gap-4 w-full max-w-xs">
         <Link
           href="/jobs"
-          className="bg-[#FF6B00] text-white text-lg font-semibold py-4 rounded-lg text-center hover:bg-[#E05E00] active:bg-[#E05E00] transition"
+          className="text-lg font-semibold py-4 rounded-lg text-center transition"
+          style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           नोकऱ्या पहा
         </Link>
         <Link
           href="/job/new"
-          className="bg-white border-2 border-[#FF6B00] text-[#FF6B00] text-lg font-semibold py-4 rounded-lg text-center hover:bg-orange-50 active:bg-orange-50 transition"
+          className="text-lg font-semibold py-4 rounded-lg text-center border-2 transition"
+          style={{ backgroundColor: "#ffffff", borderColor: "#FF6B00", color: "#FF6B00" }}
         >
           मोफत जाहिरात द्या
         </Link>
@@ -79,7 +81,8 @@ export default function Home() {
         {!showPhoneInput ? (
           <button
             onClick={() => setShowPhoneInput(true)}
-            className="text-[#FF6B00] border border-[#FF6B00] rounded-lg px-6 py-3 text-base w-full hover:bg-orange-50 active:bg-orange-50 transition"
+            className="border rounded-lg px-6 py-3 text-base w-full transition"
+            style={{ color: "#FF6B00", borderColor: "#FF6B00", backgroundColor: "#ffffff" }}
           >
             माझ्या जाहिराती पहा
           </button>
@@ -106,7 +109,8 @@ export default function Home() {
             <button
               type="submit"
               disabled={phone.length !== 10}
-              className="bg-[#FF6B00] text-white px-6 py-3 rounded-lg disabled:opacity-50 text-base w-full font-medium hover:bg-[#E05E00] active:bg-[#E05E00] transition"
+              className="px-6 py-3 rounded-lg disabled:opacity-50 text-base w-full font-medium transition"
+              style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
             >
               माझ्या जाहिराती पहा
             </button>

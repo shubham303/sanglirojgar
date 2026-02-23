@@ -110,12 +110,13 @@ export default function EditJob() {
   if (success) {
     return (
       <div className="text-center py-12">
-        <p className="text-xl font-semibold text-green-700 mb-6">
+        <p className="text-xl font-semibold mb-6" style={{ color: "#15803d" }}>
           बदल यशस्वीरीत्या जतन केले!
         </p>
         <Link
           href={`/employer/${form.phone}`}
-          className="text-[#FF6B00] underline text-lg"
+          className="underline text-lg"
+          style={{ color: "#FF6B00" }}
         >
           माझ्या जाहिराती
         </Link>
@@ -219,7 +220,8 @@ export default function EditJob() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-[#FF6B00] text-white text-lg font-semibold py-4 rounded-lg hover:bg-[#E05E00] active:bg-[#E05E00] transition disabled:opacity-50"
+          className="w-full text-lg font-semibold py-4 rounded-lg transition disabled:opacity-50"
+          style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           {submitting ? "जतन होत आहे..." : "बदल जतन करा"}
         </button>

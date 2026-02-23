@@ -81,17 +81,18 @@ export default function PostJob() {
   if (success) {
     return (
       <div className="text-center py-12">
-        <p className="text-xl font-semibold text-green-700 mb-6">
+        <p className="text-xl font-semibold mb-6" style={{ color: "#15803d" }}>
           तुमची जाहिरात यशस्वीरीत्या नोंदवली गेली!
         </p>
         <div className="flex flex-col gap-3 items-center">
           <Link
             href={`/employer/${form.phone}`}
-            className="text-[#FF6B00] underline text-lg"
+            className="underline text-lg"
+            style={{ color: "#FF6B00" }}
           >
             माझ्या जाहिराती पहा
           </Link>
-          <Link href="/" className="text-gray-600 underline text-base">
+          <Link href="/" className="underline text-base" style={{ color: "#4b5563" }}>
             मुख्य पानावर जा
           </Link>
         </div>

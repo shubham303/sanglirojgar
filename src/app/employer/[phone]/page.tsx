@@ -85,7 +85,8 @@ export default function EmployerJobs() {
         <button
           type="submit"
           disabled={phone.length !== 10}
-          className="bg-[#FF6B00] text-white px-5 py-3 rounded-lg text-lg font-medium disabled:opacity-50 hover:bg-[#E05E00] active:bg-[#E05E00] transition shrink-0"
+          className="px-5 py-3 rounded-lg text-lg font-medium disabled:opacity-50 transition shrink-0"
+          style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           शोधा
         </button>
@@ -106,7 +107,7 @@ export default function EmployerJobs() {
               key={job.id}
               className="bg-white border border-orange-100 rounded-lg p-4 shadow-sm"
             >
-              <h2 className="text-xl font-bold text-[#FF6B00]">
+              <h2 className="text-xl font-bold" style={{ color: "#FF6B00" }}>
                 {job.job_type}
               </h2>
               <div className="mt-2 space-y-1 text-base text-gray-700">
@@ -135,7 +136,8 @@ export default function EmployerJobs() {
               <div className="flex flex-wrap gap-2 mt-3">
                 <Link
                   href={`/job/${job.id}/edit`}
-                  className="bg-[#FF6B00] text-white px-4 py-2 rounded-lg text-base hover:bg-[#E05E00] active:bg-[#E05E00] transition"
+                  className="px-4 py-2 rounded-lg text-base transition"
+                  style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
                 >
                   बदल करा
                 </Link>
@@ -149,7 +151,8 @@ export default function EmployerJobs() {
                       <button
                         onClick={() => handleDelete(job.id)}
                         disabled={deletingId === job.id}
-                        className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm"
+                        className="px-4 py-2 rounded-lg text-sm"
+                        style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
                       >
                         हो
                       </button>
@@ -164,7 +167,8 @@ export default function EmployerJobs() {
                 ) : (
                   <button
                     onClick={() => setConfirmDeleteId(job.id)}
-                    className="bg-red-100 text-red-700 px-4 py-2 rounded-lg text-base hover:bg-red-200 active:bg-red-200 transition"
+                    className="px-4 py-2 rounded-lg text-base transition"
+                    style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }}
                   >
                     काढून टाका
                   </button>

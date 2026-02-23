@@ -64,7 +64,7 @@ export default function BrowseJobs() {
               key={job.id}
               className="bg-white border border-orange-100 rounded-lg p-4 shadow-sm"
             >
-              <h2 className="text-xl font-bold text-[#FF6B00]">
+              <h2 className="text-xl font-bold" style={{ color: "#FF6B00" }}>
                 {job.job_type}
               </h2>
               <div className="mt-2 space-y-1 text-base text-gray-700">
@@ -88,7 +88,8 @@ export default function BrowseJobs() {
               </div>
               <a
                 href={`tel:${job.phone}`}
-                className="inline-block mt-3 bg-green-600 text-white text-lg font-semibold px-6 py-3 rounded-lg hover:bg-green-700 active:bg-green-700 transition"
+                className="inline-block mt-3 text-lg font-semibold px-6 py-3 rounded-lg transition"
+                style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
               >
                 फोन करा: {job.phone}
               </a>
