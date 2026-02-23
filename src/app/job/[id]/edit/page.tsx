@@ -1,0 +1,249 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { JOB_TYPES, TALUKAS } from "@/lib/constants";
+
+interface FormErrors {
+  employer_name?: string;
+  phone?: string;
+  job_type?: string;
+  taluka?: string;
+  salary?: string;
+  description?: string;
+  workers_needed?: string;
+}
+
+export default function EditJob() {
+  const params = useParams();
+  const id = params.id as string;
+
+  const [form, setForm] = useState({
+    employer_name: "",
+    phone: "",
+    job_type: "",
+    taluka: "",
+    salary: "",
+    description: "",
+    workers_needed: "",
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/jobs/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setForm({
+          employer_name: data.employer_name || "",
+          phone: data.phone || "",
+          job_type: data.job_type || "",
+          taluka: data.taluka || "",
+          salary: data.salary || "",
+          description: data.description || "",
+          workers_needed: String(data.workers_needed || ""),
+        });
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  const validate = (): FormErrors => {
+    const errs: FormErrors = {};
+    if (!form.employer_name || form.employer_name.trim().length < 2) {
+      errs.employer_name = "नाव किमान 2 अक्षरे असणे आवश्यक आहे";
+    }
+    if (!form.phone || form.phone.length !== 10) {
+      errs.phone = "फोन नंबर 10 अंकी असणे आवश्यक आहे";
+    }
+    if (!form.job_type) {
+      errs.job_type = "हे क्षेत्र रिकामे ठेवता येणार नाही";
+    }
+    if (!form.taluka) {
+      errs.taluka = "हे क्षेत्र रिकामे ठेवता येणार नाही";
+    }
+    if (!form.salary || !form.salary.trim()) {
+      errs.salary = "हे क्षेत्र रिकामे ठेवता येणार नाही";
+    }
+    const wn = parseInt(form.workers_needed);
+    if (!form.workers_needed || isNaN(wn) || wn < 1) {
+      errs.workers_needed = "किमान 1 कामगार आवश्यक आहे";
+    }
+    return errs;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validate();
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/jobs/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          workers_needed: parseInt(form.workers_needed),
+        }),
+      });
+      if (res.ok) {
+        setSuccess(true);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <p className="text-center text-gray-500 text-lg py-8">लोड होत आहे...</p>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-xl font-semibold text-green-700 mb-6">
+          बदल यशस्वीरीत्या जतन केले!
+        </p>
+        <Link
+          href={`/employer/${form.phone}`}
+          className="text-[--color-saffron] underline text-lg"
+        >
+          माझ्या जाहिराती
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">जाहिरात बदला</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <Field label="नोकरी देणाऱ्याचे नाव" error={errors.employer_name}>
+          <input
+            type="text"
+            value={form.employer_name}
+            onChange={(e) =>
+              setForm({ ...form, employer_name: e.target.value })
+            }
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+          />
+        </Field>
+
+        <Field label="फोन नंबर" error={errors.phone}>
+          <input
+            type="tel"
+            inputMode="numeric"
+            value={form.phone}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, "");
+              if (val.length <= 10) setForm({ ...form, phone: val });
+            }}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+          />
+        </Field>
+
+        <Field label="कामाचा प्रकार" error={errors.job_type}>
+          <select
+            value={form.job_type}
+            onChange={(e) => setForm({ ...form, job_type: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+          >
+            <option value="">-- निवडा --</option>
+            {JOB_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="तालुका" error={errors.taluka}>
+          <select
+            value={form.taluka}
+            onChange={(e) => setForm({ ...form, taluka: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+          >
+            <option value="">-- निवडा --</option>
+            {TALUKAS.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="कामाचे स्वरूप" error={errors.description}>
+          <textarea
+            value={form.description}
+            onChange={(e) =>
+              setForm({ ...form, description: e.target.value })
+            }
+            placeholder="कामाबद्दल थोडक्यात माहिती लिहा (ऐच्छिक)"
+            rows={3}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron] resize-vertical"
+          />
+        </Field>
+
+        <Field label="पगार / मजुरी" error={errors.salary}>
+          <input
+            type="text"
+            value={form.salary}
+            onChange={(e) => setForm({ ...form, salary: e.target.value })}
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+          />
+        </Field>
+
+        <Field label="किती कामगार हवे" error={errors.workers_needed}>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={form.workers_needed}
+            onChange={(e) =>
+              setForm({ ...form, workers_needed: e.target.value })
+            }
+            min="1"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+          />
+        </Field>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full bg-[--color-saffron] text-white text-lg font-semibold py-4 rounded-lg hover:bg-[--color-saffron-dark] active:bg-[--color-saffron-dark] transition disabled:opacity-50"
+        >
+          {submitting ? "जतन होत आहे..." : "बदल जतन करा"}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-lg font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      {children}
+      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+    </div>
+  );
+}
