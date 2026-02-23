@@ -80,12 +80,12 @@ export default function EmployerJobs() {
             if (val.length <= 10) setPhone(val);
           }}
           placeholder="10 अंकी फोन नंबर"
-          className="flex-1 min-w-0 border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+          className="flex-1 min-w-0 border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
         />
         <button
           type="submit"
           disabled={phone.length !== 10}
-          className="bg-[--color-saffron] text-white px-5 py-3 rounded-lg text-lg font-medium disabled:opacity-50 hover:bg-[--color-saffron-dark] active:bg-[--color-saffron-dark] transition shrink-0"
+          className="bg-[#FF6B00] text-white px-5 py-3 rounded-lg text-lg font-medium disabled:opacity-50 hover:bg-[#E05E00] active:bg-[#E05E00] transition shrink-0"
         >
           शोधा
         </button>
@@ -106,7 +106,7 @@ export default function EmployerJobs() {
               key={job.id}
               className="bg-white border border-orange-100 rounded-lg p-4 shadow-sm"
             >
-              <h2 className="text-xl font-bold text-[--color-saffron]">
+              <h2 className="text-xl font-bold text-[#FF6B00]">
                 {job.job_type}
               </h2>
               <div className="mt-2 space-y-1 text-base text-gray-700">
@@ -135,7 +135,7 @@ export default function EmployerJobs() {
               <div className="flex flex-wrap gap-2 mt-3">
                 <Link
                   href={`/job/${job.id}/edit`}
-                  className="bg-[--color-saffron] text-white px-4 py-2 rounded-lg text-base hover:bg-[--color-saffron-dark] active:bg-[--color-saffron-dark] transition"
+                  className="bg-[#FF6B00] text-white px-4 py-2 rounded-lg text-base hover:bg-[#E05E00] active:bg-[#E05E00] transition"
                 >
                   बदल करा
                 </Link>

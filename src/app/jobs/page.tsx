@@ -36,7 +36,7 @@ export default function BrowseJobs() {
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
         >
           <option value="सर्व प्रकार">सर्व प्रकार</option>
           {JOB_TYPES.map((type) => (
@@ -64,7 +64,7 @@ export default function BrowseJobs() {
               key={job.id}
               className="bg-white border border-orange-100 rounded-lg p-4 shadow-sm"
             >
-              <h2 className="text-xl font-bold text-[--color-saffron]">
+              <h2 className="text-xl font-bold text-[#FF6B00]">
                 {job.job_type}
               </h2>
               <div className="mt-2 space-y-1 text-base text-gray-700">

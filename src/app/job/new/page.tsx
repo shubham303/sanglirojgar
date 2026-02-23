@@ -87,7 +87,7 @@ export default function PostJob() {
         <div className="flex flex-col gap-3 items-center">
           <Link
             href={`/employer/${form.phone}`}
-            className="text-[--color-saffron] underline text-lg"
+            className="text-[#FF6B00] underline text-lg"
           >
             माझ्या जाहिराती पहा
           </Link>
@@ -105,7 +105,7 @@ export default function PostJob() {
         नोकरी जाहिरात द्या
       </h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-5 pb-24">
         <Field label="नोकरी देणाऱ्याचे नाव" error={errors.employer_name}>
           <input
             type="text"
@@ -114,7 +114,7 @@ export default function PostJob() {
               setForm({ ...form, employer_name: e.target.value })
             }
             placeholder="तुमचे नाव किंवा व्यवसायाचे नाव"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -128,7 +128,7 @@ export default function PostJob() {
               if (val.length <= 10) setForm({ ...form, phone: val });
             }}
             placeholder="10 अंकी फोन नंबर"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -136,7 +136,7 @@ export default function PostJob() {
           <select
             value={form.job_type}
             onChange={(e) => setForm({ ...form, job_type: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
             {JOB_TYPES.map((type) => (
@@ -151,7 +151,7 @@ export default function PostJob() {
           <select
             value={form.taluka}
             onChange={(e) => setForm({ ...form, taluka: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
             {TALUKAS.map((t) => (
@@ -170,7 +170,7 @@ export default function PostJob() {
             }
             placeholder="कामाबद्दल थोडक्यात माहिती लिहा (ऐच्छिक)"
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron] resize-vertical"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00] resize-vertical"
           />
         </Field>
 
@@ -180,7 +180,7 @@ export default function PostJob() {
             value={form.salary}
             onChange={(e) => setForm({ ...form, salary: e.target.value })}
             placeholder="उदा. 500 रुपये प्रतिदिन"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -194,17 +194,22 @@ export default function PostJob() {
             }
             min="1"
             placeholder="किमान 1"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-[--color-saffron] text-white text-lg font-semibold py-4 rounded-lg hover:bg-[--color-saffron-dark] active:bg-[--color-saffron-dark] transition disabled:opacity-50"
-        >
-          {submitting ? "नोंदवत आहे..." : "जाहिरात नोंदवा"}
-        </button>
+        <div className="fixed bottom-0 left-0 right-0 border-t border-orange-100 px-4 py-3" style={{ backgroundColor: "#FFF9F2" }}>
+          <div className="max-w-3xl mx-auto">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full text-lg font-semibold py-4 rounded-lg transition disabled:opacity-50"
+              style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
+            >
+              {submitting ? "नोंदवत आहे..." : "जाहिरात नोंदवा"}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );

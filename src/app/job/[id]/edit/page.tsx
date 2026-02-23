@@ -115,7 +115,7 @@ export default function EditJob() {
         </p>
         <Link
           href={`/employer/${form.phone}`}
-          className="text-[--color-saffron] underline text-lg"
+          className="text-[#FF6B00] underline text-lg"
         >
           माझ्या जाहिराती
         </Link>
@@ -135,7 +135,7 @@ export default function EditJob() {
             onChange={(e) =>
               setForm({ ...form, employer_name: e.target.value })
             }
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -148,7 +148,7 @@ export default function EditJob() {
               const val = e.target.value.replace(/\D/g, "");
               if (val.length <= 10) setForm({ ...form, phone: val });
             }}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -156,7 +156,7 @@ export default function EditJob() {
           <select
             value={form.job_type}
             onChange={(e) => setForm({ ...form, job_type: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
             {JOB_TYPES.map((type) => (
@@ -171,7 +171,7 @@ export default function EditJob() {
           <select
             value={form.taluka}
             onChange={(e) => setForm({ ...form, taluka: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
             {TALUKAS.map((t) => (
@@ -190,7 +190,7 @@ export default function EditJob() {
             }
             placeholder="कामाबद्दल थोडक्यात माहिती लिहा (ऐच्छिक)"
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron] resize-vertical"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00] resize-vertical"
           />
         </Field>
 
@@ -199,7 +199,7 @@ export default function EditJob() {
             type="text"
             value={form.salary}
             onChange={(e) => setForm({ ...form, salary: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -212,14 +212,14 @@ export default function EditJob() {
               setForm({ ...form, workers_needed: e.target.value })
             }
             min="1"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[--color-saffron]"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-[--color-saffron] text-white text-lg font-semibold py-4 rounded-lg hover:bg-[--color-saffron-dark] active:bg-[--color-saffron-dark] transition disabled:opacity-50"
+          className="w-full bg-[#FF6B00] text-white text-lg font-semibold py-4 rounded-lg hover:bg-[#E05E00] active:bg-[#E05E00] transition disabled:opacity-50"
         >
           {submitting ? "जतन होत आहे..." : "बदल जतन करा"}
         </button>
