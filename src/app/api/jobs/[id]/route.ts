@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -8,17 +8,13 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = getSupabase();
+  const db = getDb();
   const { id } = await params;
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data, error } = await db.getJobById(id);
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 404 });
+  if (error || !data) {
+    return NextResponse.json({ error: error || "Not found" }, { status: 404 });
   }
 
   return NextResponse.json(data);
@@ -29,7 +25,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = getSupabase();
+  const db = getDb();
   const { id } = await params;
   const body = await request.json();
 
@@ -56,23 +52,18 @@ export async function PUT(
     );
   }
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .update({
-      employer_name: employer_name.trim(),
-      phone,
-      job_type,
-      taluka,
-      salary: salary.trim(),
-      description: description ? description.trim() : "",
-      workers_needed,
-    })
-    .eq("id", id)
-    .select()
-    .single();
+  const { data, error } = await db.updateJob(id, {
+    employer_name: employer_name.trim(),
+    phone,
+    job_type,
+    taluka,
+    salary: salary.trim(),
+    description: description ? description.trim() : "",
+    workers_needed,
+  });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json(data);
@@ -83,16 +74,13 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = getSupabase();
+  const db = getDb();
   const { id } = await params;
 
-  const { error } = await supabase
-    .from("jobs")
-    .update({ is_active: false })
-    .eq("id", id);
+  const { error } = await db.softDeleteJob(id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

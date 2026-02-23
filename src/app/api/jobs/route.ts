@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/jobs — Fetch all active jobs
 export async function GET() {
-  const supabase = getSupabase();
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  const db = getDb();
+  const { data, error } = await db.getActiveJobs();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json(data);
@@ -21,7 +17,7 @@ export async function GET() {
 
 // POST /api/jobs — Create a new job posting
 export async function POST(request: NextRequest) {
-  const supabase = getSupabase();
+  const db = getDb();
   const body = await request.json();
 
   const {
@@ -72,23 +68,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .insert({
-      employer_name: employer_name.trim(),
-      phone,
-      job_type,
-      taluka,
-      salary: salary.trim(),
-      description: description ? description.trim() : "",
-      workers_needed,
-      is_active: true,
-    })
-    .select()
-    .single();
+  const { data, error } = await db.createJob({
+    employer_name: employer_name.trim(),
+    phone,
+    job_type,
+    taluka,
+    salary: salary.trim(),
+    description: description ? description.trim() : "",
+    workers_needed,
+    is_active: true,
+  });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json(data, { status: 201 });

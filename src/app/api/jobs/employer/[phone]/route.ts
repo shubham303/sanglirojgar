@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +8,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ phone: string }> }
 ) {
-  const supabase = getSupabase();
+  const db = getDb();
   const { phone } = await params;
 
   if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
@@ -18,15 +18,10 @@ export async function GET(
     );
   }
 
-  const { data, error } = await supabase
-    .from("jobs")
-    .select("*")
-    .eq("phone", phone)
-    .eq("is_active", true)
-    .order("created_at", { ascending: false });
+  const { data, error } = await db.getActiveJobsByPhone(phone);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json(data);
