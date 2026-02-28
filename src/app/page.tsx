@@ -18,40 +18,43 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center text-center px-2">
       {/* Hero */}
-      <div className="mt-8 mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold" style={{ color: "#FF6B00" }}>
+      <div className="mt-6 mb-5">
+        <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: "#FF6B00" }}>
           सांगली रोजगार
         </h1>
-        <p className="text-lg sm:text-xl text-gray-700 mt-3">
+        <p className="text-base sm:text-lg text-gray-500 mt-2">
           सांगली जिल्ह्यातील नोकऱ्या — थेट फोन करा
         </p>
       </div>
 
       {/* Value props */}
-      <div className="bg-white border border-orange-100 rounded-xl p-5 w-full max-w-md mb-8 shadow-sm">
-        <p className="text-lg text-gray-800 leading-relaxed">
+      <div
+        className="bg-white rounded-xl p-4 w-full max-w-md mb-6"
+        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+      >
+        <p className="text-base text-gray-700 leading-relaxed">
           कामगार हवेत? <span className="font-semibold" style={{ color: "#FF6B00" }}>2 मिनिटांत</span> मोफत जाहिरात द्या.
         </p>
-        <p className="text-lg text-gray-800 leading-relaxed mt-2">
+        <p className="text-base text-gray-700 leading-relaxed mt-1.5">
           काम हवंय? नोकऱ्या पहा आणि <span className="font-semibold" style={{ color: "#FF6B00" }}>लगेच फोन करा</span>.
         </p>
-        <p className="text-base text-gray-700 mt-3 font-medium">
+        <p className="text-sm text-gray-500 mt-2.5 font-medium">
           रजिस्ट्रेशन नाही. लॉगिन नाही. पूर्णपणे मोफत.
         </p>
       </div>
 
       {/* Main CTAs */}
-      <div className="flex flex-col gap-4 w-full max-w-xs">
+      <div className="flex flex-col gap-3 w-full max-w-xs">
         <Link
           href="/jobs"
-          className="text-lg font-semibold py-4 rounded-lg text-center transition"
+          className="text-base font-semibold py-3.5 rounded-xl text-center transition"
           style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           नोकऱ्या पहा
         </Link>
         <Link
           href="/job/new"
-          className="text-lg font-semibold py-4 rounded-lg text-center border-2 transition"
+          className="text-base font-semibold py-3.5 rounded-xl text-center border transition"
           style={{ backgroundColor: "#ffffff", borderColor: "#FF6B00", color: "#FF6B00" }}
         >
           मोफत जाहिरात द्या
@@ -59,17 +62,23 @@ export default function Home() {
       </div>
 
       {/* Who is this for */}
-      <div className="w-full max-w-md mt-10 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-orange-50 rounded-lg p-4 text-left">
-            <p className="font-semibold text-gray-800 text-lg mb-1">कामगारांसाठी</p>
-            <p className="text-base text-gray-700">
+      <div className="w-full max-w-md mt-8 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div
+            className="bg-white rounded-xl p-4 text-left"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+          >
+            <p className="font-semibold text-gray-800 text-base mb-1">कामगारांसाठी</p>
+            <p className="text-sm text-gray-500 leading-relaxed">
               ड्रायव्हर, सुतार, प्लंबर, इलेक्ट्रिशियन, वेल्डर, शेती काम — सर्व प्रकारच्या नोकऱ्या एकाच ठिकाणी
             </p>
           </div>
-          <div className="bg-orange-50 rounded-lg p-4 text-left">
-            <p className="font-semibold text-gray-800 text-lg mb-1">मालकांसाठी</p>
-            <p className="text-base text-gray-700">
+          <div
+            className="bg-white rounded-xl p-4 text-left"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+          >
+            <p className="font-semibold text-gray-800 text-base mb-1">मालकांसाठी</p>
+            <p className="text-sm text-gray-500 leading-relaxed">
               तुमच्या दुकान, कारखाना, शेत किंवा व्यवसायासाठी कामगार शोधा — सांगली जिल्ह्यातील सर्व तालुक्यांमध्ये
             </p>
           </div>
@@ -77,11 +86,11 @@ export default function Home() {
       </div>
 
       {/* My Ads section */}
-      <div className="mt-4 mb-10 w-full max-w-xs">
+      <div className="mt-3 mb-8 w-full max-w-xs">
         {!showPhoneInput ? (
           <button
             onClick={() => setShowPhoneInput(true)}
-            className="border rounded-lg px-6 py-3 text-base w-full transition"
+            className="border rounded-xl px-5 py-3 text-sm w-full transition font-medium"
             style={{ color: "#FF6B00", borderColor: "#FF6B00", backgroundColor: "#ffffff" }}
           >
             माझ्या जाहिराती पहा
@@ -92,7 +101,7 @@ export default function Home() {
               e.preventDefault();
               handleMyAds();
             }}
-            className="flex flex-col gap-2 items-center w-full"
+            className="flex flex-col gap-2.5 items-center w-full"
           >
             <input
               type="tel"
@@ -103,13 +112,13 @@ export default function Home() {
                 if (val.length <= 10) setPhone(val);
               }}
               placeholder="तुमचा 10 अंकी फोन नंबर"
-              className="border border-gray-300 rounded-lg px-4 py-3 text-lg text-center w-full focus:outline-none focus:border-[#FF6B00]"
+              className="border border-gray-200 rounded-xl px-4 py-3 text-base text-center w-full focus:outline-none focus:border-[#FF6B00]"
               autoFocus
             />
             <button
               type="submit"
               disabled={phone.length !== 10}
-              className="px-6 py-3 rounded-lg disabled:opacity-50 text-base w-full font-medium transition"
+              className="py-3 rounded-xl disabled:opacity-50 text-sm w-full font-semibold transition"
               style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
             >
               माझ्या जाहिराती पहा

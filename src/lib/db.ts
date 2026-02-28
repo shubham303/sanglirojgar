@@ -1,12 +1,28 @@
-import { Job } from "./types";
+import { Job, JobType } from "./types";
 
 export interface DbResult<T> {
   data: T | null;
   error: string | null;
 }
 
+export interface JobFilters {
+  page: number;
+  limit: number;
+  job_type?: string;
+  taluka?: string;
+  search?: string;
+}
+
+export interface PaginatedJobs {
+  jobs: Job[];
+  total: number;
+  page: number;
+  limit: number;
+  hasMore: boolean;
+}
+
 export interface DbClient {
-  getActiveJobs(): Promise<DbResult<Job[]>>;
+  getActiveJobsPaginated(filters: JobFilters): Promise<DbResult<PaginatedJobs>>;
   getJobById(id: string): Promise<DbResult<Job>>;
   createJob(
     job: Omit<Job, "id" | "created_at">
@@ -14,6 +30,9 @@ export interface DbClient {
   updateJob(id: string, job: Partial<Job>): Promise<DbResult<Job>>;
   softDeleteJob(id: string): Promise<{ error: string | null }>;
   getActiveJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
+  getJobTypes(): Promise<DbResult<JobType[]>>;
+  addJobType(name: string): Promise<DbResult<JobType>>;
+  deleteJobType(id: string): Promise<{ error: string | null }>;
 }
 
 let _db: DbClient | null = null;

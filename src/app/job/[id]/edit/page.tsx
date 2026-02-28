@@ -3,17 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { JOB_TYPES, TALUKAS } from "@/lib/constants";
-
-interface FormErrors {
-  employer_name?: string;
-  phone?: string;
-  job_type?: string;
-  taluka?: string;
-  salary?: string;
-  description?: string;
-  workers_needed?: string;
-}
+import { TALUKAS } from "@/lib/constants";
+import { validateJobForm, JobFormErrors } from "@/lib/validation";
 
 export default function EditJob() {
   const params = useParams();
@@ -28,15 +19,18 @@ export default function EditJob() {
     description: "",
     workers_needed: "",
   });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<JobFormErrors>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [jobTypes, setJobTypes] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch(`/api/jobs/${id}`)
-      .then((res) => res.json())
-      .then((data) => {
+    Promise.all([
+      fetch(`/api/jobs/${id}`).then((res) => res.json()),
+      fetch("/api/job-types").then((res) => res.json()),
+    ])
+      .then(([data, typesData]) => {
         setForm({
           employer_name: data.employer_name || "",
           phone: data.phone || "",
@@ -46,38 +40,15 @@ export default function EditJob() {
           description: data.description || "",
           workers_needed: String(data.workers_needed || ""),
         });
+        setJobTypes(Array.isArray(typesData) ? typesData : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [id]);
 
-  const validate = (): FormErrors => {
-    const errs: FormErrors = {};
-    if (!form.employer_name || form.employer_name.trim().length < 2) {
-      errs.employer_name = "नाव किमान 2 अक्षरे असणे आवश्यक आहे";
-    }
-    if (!form.phone || form.phone.length !== 10) {
-      errs.phone = "फोन नंबर 10 अंकी असणे आवश्यक आहे";
-    }
-    if (!form.job_type) {
-      errs.job_type = "हे क्षेत्र रिकामे ठेवता येणार नाही";
-    }
-    if (!form.taluka) {
-      errs.taluka = "हे क्षेत्र रिकामे ठेवता येणार नाही";
-    }
-    if (!form.salary || !form.salary.trim()) {
-      errs.salary = "हे क्षेत्र रिकामे ठेवता येणार नाही";
-    }
-    const wn = parseInt(form.workers_needed);
-    if (!form.workers_needed || isNaN(wn) || wn < 1) {
-      errs.workers_needed = "किमान 1 कामगार आवश्यक आहे";
-    }
-    return errs;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const errs = validate();
+    const errs = validateJobForm(form);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
@@ -110,25 +81,30 @@ export default function EditJob() {
   if (success) {
     return (
       <div className="text-center py-12">
-        <p className="text-xl font-semibold mb-6" style={{ color: "#15803d" }}>
-          बदल यशस्वीरीत्या जतन केले!
-        </p>
-        <Link
-          href={`/employer/${form.phone}`}
-          className="underline text-lg"
-          style={{ color: "#FF6B00" }}
+        <div
+          className="bg-white rounded-xl p-6 max-w-sm mx-auto"
+          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
         >
-          माझ्या जाहिराती
-        </Link>
+          <p className="text-lg font-semibold mb-5" style={{ color: "#15803d" }}>
+            बदल यशस्वीरीत्या जतन केले!
+          </p>
+          <Link
+            href={`/employer/${form.phone}`}
+            className="text-sm font-semibold py-3 rounded-xl text-center transition block"
+            style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
+          >
+            माझ्या जाहिराती
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">जाहिरात बदला</h1>
+      <h1 className="text-xl font-bold text-gray-800 mb-4">जाहिरात बदला</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="नोकरी देणाऱ्याचे नाव" error={errors.employer_name}>
           <input
             type="text"
@@ -136,7 +112,7 @@ export default function EditJob() {
             onChange={(e) =>
               setForm({ ...form, employer_name: e.target.value })
             }
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -149,7 +125,7 @@ export default function EditJob() {
               const val = e.target.value.replace(/\D/g, "");
               if (val.length <= 10) setForm({ ...form, phone: val });
             }}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -157,10 +133,10 @@ export default function EditJob() {
           <select
             value={form.job_type}
             onChange={(e) => setForm({ ...form, job_type: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
-            {JOB_TYPES.map((type) => (
+            {jobTypes.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -172,7 +148,7 @@ export default function EditJob() {
           <select
             value={form.taluka}
             onChange={(e) => setForm({ ...form, taluka: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg bg-white focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
             {TALUKAS.map((t) => (
@@ -191,7 +167,7 @@ export default function EditJob() {
             }
             placeholder="कामाबद्दल थोडक्यात माहिती लिहा (ऐच्छिक)"
             rows={3}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00] resize-vertical"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00] resize-vertical"
           />
         </Field>
 
@@ -200,7 +176,7 @@ export default function EditJob() {
             type="text"
             value={form.salary}
             onChange={(e) => setForm({ ...form, salary: e.target.value })}
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
@@ -213,14 +189,14 @@ export default function EditJob() {
               setForm({ ...form, workers_needed: e.target.value })
             }
             min="1"
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full text-lg font-semibold py-4 rounded-lg transition disabled:opacity-50"
+          className="w-full text-base font-semibold py-3.5 rounded-xl transition disabled:opacity-50"
           style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           {submitting ? "जतन होत आहे..." : "बदल जतन करा"}
@@ -241,11 +217,11 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-lg font-medium text-gray-700 mb-1">
+      <label className="block text-sm font-medium text-gray-500 mb-1">
         {label}
       </label>
       {children}
-      {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
   );
 }

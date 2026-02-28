@@ -60,7 +60,7 @@ export default function EmployerJobs() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">
+      <h1 className="text-xl font-bold text-gray-800 mb-3">
         माझ्या जाहिराती
       </h1>
 
@@ -69,7 +69,7 @@ export default function EmployerJobs() {
           e.preventDefault();
           handleSearch();
         }}
-        className="flex gap-2 mb-6"
+        className="flex gap-2 mb-5"
       >
         <input
           type="tel"
@@ -80,12 +80,12 @@ export default function EmployerJobs() {
             if (val.length <= 10) setPhone(val);
           }}
           placeholder="10 अंकी फोन नंबर"
-          className="flex-1 min-w-0 border border-gray-300 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#FF6B00]"
+          className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
         />
         <button
           type="submit"
           disabled={phone.length !== 10}
-          className="px-5 py-3 rounded-lg text-lg font-medium disabled:opacity-50 transition shrink-0"
+          className="px-4 py-2.5 rounded-xl text-base font-medium disabled:opacity-50 transition shrink-0"
           style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           शोधा
@@ -93,82 +93,78 @@ export default function EmployerJobs() {
       </form>
 
       {loading ? (
-        <p className="text-center text-gray-500 text-lg py-8">
+        <p className="text-center text-gray-400 text-base py-8">
           लोड होत आहे...
         </p>
       ) : searched && jobs.length === 0 ? (
-        <p className="text-center text-gray-500 text-lg py-8">
+        <p className="text-center text-gray-400 text-base py-8">
           या नंबरवर कोणतीही जाहिरात नोंदवलेली नाही
         </p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           {jobs.map((job) => (
             <div
               key={job.id}
-              className="bg-white border border-orange-100 rounded-lg p-4 shadow-sm"
+              className="bg-white rounded-xl p-4"
+              style={{ borderLeft: "4px solid #FF6B00", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
             >
-              <h2 className="text-xl font-bold" style={{ color: "#FF6B00" }}>
-                {job.job_type}
-              </h2>
-              <div className="mt-2 space-y-1 text-base text-gray-700">
+              <div className="flex items-start justify-between gap-2">
+                <h2 className="text-base font-bold" style={{ color: "#FF6B00" }}>
+                  {job.job_type}
+                </h2>
+                <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
+                  {formatDateMarathi(job.created_at)}
+                </span>
+              </div>
+              <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
                 <p>
-                  <span className="font-medium">तालुका:</span> {job.taluka}
+                  <span className="font-medium text-gray-500">तालुका:</span> {job.taluka}
                 </p>
                 {job.description && (
-                  <p>
-                    <span className="font-medium">कामाचे स्वरूप:</span>{" "}
-                    {job.description}
-                  </p>
+                  <p className="text-gray-500">{job.description}</p>
                 )}
-                <p>
-                  <span className="font-medium">पगार / मजुरी:</span>{" "}
-                  {job.salary}
+                <p className="font-semibold text-gray-800">
+                  ₹ {job.salary}
                 </p>
-                <p>
-                  <span className="font-medium">किती कामगार हवे:</span>{" "}
-                  {job.workers_needed}
+                <p className="text-xs text-gray-400">
+                  कामगार हवे: {job.workers_needed}
                 </p>
               </div>
-              <p className="text-sm text-gray-400 mt-2">
-                {formatDateMarathi(job.created_at)}
-              </p>
 
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-2 mt-3 pt-3" style={{ borderTop: "1px solid #f3f4f6" }}>
                 <Link
                   href={`/job/${job.id}/edit`}
-                  className="px-4 py-2 rounded-lg text-base transition"
+                  className="px-3.5 py-1.5 rounded-lg text-sm font-medium transition"
                   style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
                 >
                   बदल करा
                 </Link>
 
                 {confirmDeleteId === job.id ? (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full sm:w-auto">
-                    <span className="text-sm text-gray-600">
-                      हे पोस्टिंग काढायचे आहे का?
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">
+                      काढायचे?
                     </span>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDelete(job.id)}
-                        disabled={deletingId === job.id}
-                        className="px-4 py-2 rounded-lg text-sm"
-                        style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
-                      >
-                        हो
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm"
-                      >
-                        नाही
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleDelete(job.id)}
+                      disabled={deletingId === job.id}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium"
+                      style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
+                    >
+                      हो
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-medium"
+                    >
+                      नाही
+                    </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => setConfirmDeleteId(job.id)}
-                    className="px-4 py-2 rounded-lg text-base transition"
-                    style={{ backgroundColor: "#fee2e2", color: "#b91c1c" }}
+                    className="px-3.5 py-1.5 rounded-lg text-sm font-medium transition"
+                    style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
                   >
                     काढून टाका
                   </button>

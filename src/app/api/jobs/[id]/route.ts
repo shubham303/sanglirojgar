@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getFirstValidationError } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -29,28 +30,12 @@ export async function PUT(
   const { id } = await params;
   const body = await request.json();
 
-  const {
-    employer_name,
-    phone,
-    job_type,
-    taluka,
-    salary,
-    description,
-    workers_needed,
-  } = body;
+  const validationError = getFirstValidationError(body);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
+  }
 
-  if (!employer_name || employer_name.trim().length < 2) {
-    return NextResponse.json(
-      { error: "नाव किमान 2 अक्षरे असणे आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-  if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
-    return NextResponse.json(
-      { error: "फोन नंबर 10 अंकी असणे आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
+  const { employer_name, phone, job_type, taluka, salary, description, workers_needed } = body;
 
   const { data, error } = await db.updateJob(id, {
     employer_name: employer_name.trim(),
@@ -59,7 +44,7 @@ export async function PUT(
     taluka,
     salary: salary.trim(),
     description: description ? description.trim() : "",
-    workers_needed,
+    workers_needed: typeof workers_needed === "string" ? parseInt(workers_needed) : workers_needed,
   });
 
   if (error) {

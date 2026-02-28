@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getFirstValidationError } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/jobs — Fetch all active jobs
-export async function GET() {
+// GET /api/jobs — Fetch active jobs with pagination and filters
+export async function GET(request: NextRequest) {
   const db = getDb();
-  const { data, error } = await db.getActiveJobs();
+  const { searchParams } = new URL(request.url);
+
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+  const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")));
+  const job_type = searchParams.get("job_type") || undefined;
+  const taluka = searchParams.get("taluka") || undefined;
+  const search = searchParams.get("search") || undefined;
+
+  const { data, error } = await db.getActiveJobsPaginated({
+    page,
+    limit,
+    job_type,
+    taluka,
+    search,
+  });
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
@@ -20,53 +35,12 @@ export async function POST(request: NextRequest) {
   const db = getDb();
   const body = await request.json();
 
-  const {
-    employer_name,
-    phone,
-    job_type,
-    taluka,
-    salary,
-    description,
-    workers_needed,
-  } = body;
+  const validationError = getFirstValidationError(body);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
+  }
 
-  // Server-side validation
-  if (!employer_name || employer_name.trim().length < 2) {
-    return NextResponse.json(
-      { error: "नाव किमान 2 अक्षरे असणे आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-  if (!phone || phone.length !== 10 || !/^\d{10}$/.test(phone)) {
-    return NextResponse.json(
-      { error: "फोन नंबर 10 अंकी असणे आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-  if (!job_type) {
-    return NextResponse.json(
-      { error: "कामाचा प्रकार आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-  if (!taluka) {
-    return NextResponse.json(
-      { error: "तालुका आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-  if (!salary || !salary.trim()) {
-    return NextResponse.json(
-      { error: "पगार / मजुरी आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-  if (!workers_needed || workers_needed < 1) {
-    return NextResponse.json(
-      { error: "किमान 1 कामगार आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
+  const { employer_name, phone, job_type, taluka, salary, description, workers_needed } = body;
 
   const { data, error } = await db.createJob({
     employer_name: employer_name.trim(),
@@ -75,7 +49,7 @@ export async function POST(request: NextRequest) {
     taluka,
     salary: salary.trim(),
     description: description ? description.trim() : "",
-    workers_needed,
+    workers_needed: typeof workers_needed === "string" ? parseInt(workers_needed) : workers_needed,
     is_active: true,
   });
 

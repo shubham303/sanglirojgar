@@ -21,36 +21,46 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="mr" data-theme="light" style={{ colorScheme: "light" }}>
-      <body className="antialiased" style={{ backgroundColor: "#FFF9F2", color: "#1a1a1a" }}>
-        <nav className="bg-white border-b border-orange-200 px-4 py-3">
-          <div className="max-w-3xl mx-auto flex items-center justify-between flex-wrap gap-2">
+      <body className="antialiased" style={{ backgroundColor: "#f5f5f5", color: "#1a1a1a" }}>
+        <nav
+          className="bg-white border-b border-orange-200 px-4 py-2.5"
+          style={{ position: "sticky", top: 0, zIndex: 40, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+        >
+          <div className="max-w-3xl mx-auto flex items-center justify-between">
             <Link
               href="/"
-              className="font-bold text-xl"
+              className="font-bold text-lg shrink-0"
               style={{ color: "#FF6B00" }}
             >
               सांगली रोजगार
             </Link>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Link
                 href="/jobs"
-                className="text-base px-3 py-2 rounded-lg"
+                className="text-sm px-2.5 py-2 rounded-lg font-medium"
                 style={{ color: "#374151" }}
               >
-                नोकऱ्या पहा
+                नोकऱ्या
               </Link>
               <Link
                 href="/job/new"
-                className="text-base px-3 py-2 rounded-lg"
+                className="text-sm px-2.5 py-2 rounded-lg font-medium"
                 style={{ color: "#374151" }}
               >
                 जाहिरात द्या
               </Link>
+              <Link
+                href="/my-ads"
+                className="text-sm px-2.5 py-2 rounded-lg font-medium"
+                style={{ color: "#374151" }}
+              >
+                माझ्या जाहिराती
+              </Link>
             </div>
           </div>
         </nav>
-        <main className="max-w-3xl mx-auto px-4 py-6">{children}</main>
-        <footer className="text-center text-gray-400 text-sm py-6">
+        <main className="max-w-3xl mx-auto px-4 py-5">{children}</main>
+        <footer className="text-center text-gray-400 text-xs py-6 pb-8">
           सांगली रोजगार
         </footer>
       </body>
