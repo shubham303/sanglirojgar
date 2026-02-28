@@ -12,10 +12,39 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "सांगली रोजगार — सांगली मधील नोकऱ्या",
+  metadataBase: new URL("https://sanglirojgar.vercel.app"),
+  title: {
+    default: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या | Jobs in Sangli Maharashtra",
+    template: "%s | सांगली रोजगार",
+  },
   description:
-    "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा जाहिरात द्या. थेट फोन करा.",
+    "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर — थेट फोन करा. Jobs in Sangli, Miraj, Tasgaon, Kupwad, Maharashtra.",
+  keywords: [
+    "सांगली नोकरी", "sangli jobs", "jobs in sangli", "sangli rojgar",
+    "maharashtra jobs", "miraj jobs", "सांगली रोजगार",
+    "नोकरी सांगली", "कामगार हवे सांगली", "sangli district jobs",
+    "sangli job vacancy", "work in sangli", "jobs near sangli",
+    "तासगाव नोकरी", "कुपवाड नोकरी", "मिरज नोकरी",
+    "driver job sangli", "electrician job sangli", "plumber job sangli",
+  ],
   manifest: "/manifest.json",
+  alternates: {
+    canonical: "https://sanglirojgar.vercel.app",
+  },
+  openGraph: {
+    type: "website",
+    locale: "mr_IN",
+    siteName: "सांगली रोजगार",
+    title: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या",
+    description: "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
+    url: "https://sanglirojgar.vercel.app",
+    images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
+  },
+  twitter: {
+    card: "summary",
+    title: "सांगली रोजगार — Jobs in Sangli",
+    description: "सांगली जिल्ह्यातील नोकऱ्या शोधा. ड्रायव्हर, सेल्समन, प्लंबर — थेट फोन करा.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -27,6 +56,7 @@ export const metadata: Metadata = {
   ],
   other: {
     "mobile-web-app-capable": "yes",
+    "google-site-verification": "",
   },
 };
 
