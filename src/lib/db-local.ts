@@ -1,6 +1,6 @@
 import { Pool } from "pg";
 import { randomUUID } from "crypto";
-import { DbClient, JobFilters, PaginatedJobs } from "./db";
+import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
 import { JOB_TYPES } from "./constants";
 
@@ -91,6 +91,70 @@ export function createLocalDb(): DbClient {
         }
 
         const where = conditions.join(" AND ");
+
+        const countResult = await pool.query(
+          `SELECT COUNT(*) as cnt FROM jobs WHERE ${where}`,
+          values
+        );
+        const total = parseInt(countResult.rows[0].cnt);
+
+        const offset = (filters.page - 1) * filters.limit;
+        const dataValues = [...values, filters.limit, offset];
+        const { rows } = await pool.query(
+          `SELECT * FROM jobs WHERE ${where} ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          dataValues
+        );
+
+        const result: PaginatedJobs = {
+          jobs: rows as Job[],
+          total,
+          page: filters.page,
+          limit: filters.limit,
+          hasMore: offset + rows.length < total,
+        };
+        return { data: result, error: null };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
+      }
+    },
+
+    async getAllJobsPaginated(filters: AdminJobFilters) {
+      try {
+        await ensureTablesExist();
+        const pool = getPool();
+        const conditions: string[] = [];
+        const values: unknown[] = [];
+        let paramIdx = 1;
+
+        if (filters.is_active !== undefined) {
+          conditions.push(`is_active = $${paramIdx}`);
+          values.push(filters.is_active);
+          paramIdx++;
+        }
+        if (filters.phone) {
+          conditions.push(`phone = $${paramIdx}`);
+          values.push(filters.phone);
+          paramIdx++;
+        }
+        if (filters.job_type) {
+          conditions.push(`job_type = $${paramIdx}`);
+          values.push(filters.job_type);
+          paramIdx++;
+        }
+        if (filters.taluka) {
+          conditions.push(`taluka = $${paramIdx}`);
+          values.push(filters.taluka);
+          paramIdx++;
+        }
+        if (filters.search) {
+          conditions.push(
+            `(employer_name ILIKE $${paramIdx} OR description ILIKE $${paramIdx} OR job_type ILIKE $${paramIdx} OR phone ILIKE $${paramIdx})`
+          );
+          values.push(`%${filters.search}%`);
+          paramIdx++;
+        }
+
+        const where = conditions.length > 0 ? conditions.join(" AND ") : "TRUE";
 
         const countResult = await pool.query(
           `SELECT COUNT(*) as cnt FROM jobs WHERE ${where}`,

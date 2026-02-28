@@ -1,5 +1,5 @@
 import { getSupabase } from "./supabase";
-import { DbClient, JobFilters, PaginatedJobs } from "./db";
+import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job } from "./types";
 
 export function createSupabaseDb(): DbClient {
@@ -21,6 +21,51 @@ export function createSupabaseDb(): DbClient {
       if (filters.search) {
         query = query.or(
           `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,job_type.ilike.%${filters.search}%`
+        );
+      }
+
+      const offset = (filters.page - 1) * filters.limit;
+      query = query
+        .order("created_at", { ascending: false })
+        .range(offset, offset + filters.limit - 1);
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        return { data: null, error: error.message };
+      }
+
+      const total = count ?? 0;
+      const result: PaginatedJobs = {
+        jobs: (data as Job[]) ?? [],
+        total,
+        page: filters.page,
+        limit: filters.limit,
+        hasMore: offset + (data?.length ?? 0) < total,
+      };
+      return { data: result, error: null };
+    },
+
+    async getAllJobsPaginated(filters: AdminJobFilters) {
+      let query = supabase
+        .from("jobs")
+        .select("*", { count: "exact" });
+
+      if (filters.is_active !== undefined) {
+        query = query.eq("is_active", filters.is_active);
+      }
+      if (filters.phone) {
+        query = query.eq("phone", filters.phone);
+      }
+      if (filters.job_type) {
+        query = query.eq("job_type", filters.job_type);
+      }
+      if (filters.taluka) {
+        query = query.eq("taluka", filters.taluka);
+      }
+      if (filters.search) {
+        query = query.or(
+          `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,job_type.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`
         );
       }
 

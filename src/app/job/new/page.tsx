@@ -20,6 +20,7 @@ export default function PostJob() {
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [jobTypes, setJobTypes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function PostJob() {
     if (Object.keys(errs).length > 0) return;
 
     setSubmitting(true);
+    setSubmitError("");
     try {
       const res = await fetch("/api/jobs", {
         method: "POST",
@@ -47,9 +49,12 @@ export default function PostJob() {
       });
       if (res.ok) {
         setSuccess(true);
+      } else {
+        const data = await res.json().catch(() => null);
+        setSubmitError(data?.error || "जाहिरात नोंदवता आली नाही. कृपया पुन्हा प्रयत्न करा.");
       }
     } catch {
-      // ignore
+      setSubmitError("सर्व्हरशी संपर्क होऊ शकला नाही. कृपया पुन्हा प्रयत्न करा.");
     } finally {
       setSubmitting(false);
     }
@@ -208,6 +213,12 @@ export default function PostJob() {
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
+
+        {submitError && (
+          <p className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+            {submitError}
+          </p>
+        )}
 
         <div
           className="fixed bottom-0 left-0 right-0 px-4 py-3"

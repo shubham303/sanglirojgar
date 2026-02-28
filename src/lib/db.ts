@@ -21,8 +21,14 @@ export interface PaginatedJobs {
   hasMore: boolean;
 }
 
+export interface AdminJobFilters extends JobFilters {
+  phone?: string;
+  is_active?: boolean;
+}
+
 export interface DbClient {
   getActiveJobsPaginated(filters: JobFilters): Promise<DbResult<PaginatedJobs>>;
+  getAllJobsPaginated(filters: AdminJobFilters): Promise<DbResult<PaginatedJobs>>;
   getJobById(id: string): Promise<DbResult<Job>>;
   createJob(
     job: Omit<Job, "id" | "created_at" | "call_count" | "whatsapp_count">
