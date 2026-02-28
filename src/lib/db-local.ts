@@ -27,6 +27,8 @@ async function ensureTablesExist() {
       employer_name TEXT NOT NULL,
       phone TEXT NOT NULL,
       job_type TEXT NOT NULL,
+      state TEXT NOT NULL DEFAULT 'महाराष्ट्र',
+      district TEXT NOT NULL DEFAULT 'सांगली',
       taluka TEXT NOT NULL,
       salary TEXT NOT NULL,
       description TEXT DEFAULT '',
@@ -201,13 +203,15 @@ export function createLocalDb(): DbClient {
         const id = randomUUID();
         const now = new Date().toISOString();
         await getPool().query(
-          `INSERT INTO jobs (id, employer_name, phone, job_type, taluka, salary, description, minimum_education, experience_years, workers_needed, created_at, is_active)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          `INSERT INTO jobs (id, employer_name, phone, job_type, state, district, taluka, salary, description, minimum_education, experience_years, workers_needed, created_at, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
           [
             id,
             job.employer_name,
             job.phone,
             job.job_type,
+            job.state,
+            job.district,
             job.taluka,
             job.salary,
             job.description || "",

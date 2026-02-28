@@ -1,0 +1,24 @@
+{
+  "name": "सांगली रोजगार — सांगली मधील नोकऱ्या",
+  "short_name": "रोजगार",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#FF6B00",
+  "background_color": "#FFF9F2",
+  "lang": "mr",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

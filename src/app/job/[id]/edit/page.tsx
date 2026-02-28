@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { TALUKAS } from "@/lib/constants";
+import { TALUKAS, DISTRICTS } from "@/lib/constants";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 
 export default function EditJob() {
@@ -14,6 +14,7 @@ export default function EditJob() {
     employer_name: "",
     phone: "",
     job_type: "",
+    district: "सांगली",
     taluka: "",
     salary: "",
     description: "",
@@ -38,6 +39,7 @@ export default function EditJob() {
           employer_name: data.employer_name || "",
           phone: data.phone || "",
           job_type: data.job_type || "",
+          district: data.district || "सांगली",
           taluka: data.taluka || "",
           salary: data.salary || "",
           description: data.description || "",
@@ -148,6 +150,29 @@ export default function EditJob() {
             {jobTypes.map((type) => (
               <option key={type} value={type}>
                 {type}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="राज्य">
+          <input
+            type="text"
+            value="महाराष्ट्र"
+            readOnly
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-gray-50 text-gray-500 cursor-not-allowed"
+          />
+        </Field>
+
+        <Field label="जिल्हा" error={errors.district}>
+          <select
+            value={form.district}
+            onChange={(e) => setForm({ ...form, district: e.target.value })}
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
+          >
+            {DISTRICTS.map((d) => (
+              <option key={d} value={d}>
+                {d}
               </option>
             ))}
           </select>

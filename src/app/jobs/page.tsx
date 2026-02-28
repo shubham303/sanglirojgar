@@ -309,44 +309,93 @@ export default function BrowseJobs() {
                 boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03)",
               }}
             >
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="text-base font-bold" style={{ color: "#FF6B00" }}>
-                  {job.job_type}
-                </h2>
-                <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-                  {formatDateMarathi(job.created_at)}
-                </span>
-              </div>
-              <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
-                <p>
-                  <span className="font-medium text-gray-500">तालुका:</span> {job.taluka}
-                </p>
-                {job.description && (
-                  <p
-                    className="overflow-hidden text-gray-500"
-                    style={{
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
+              <div className="flex gap-3">
+                {/* Job info — left side */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h2 className="text-base font-bold" style={{ color: "#FF6B00" }}>
+                      {job.job_type}
+                    </h2>
+                    <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
+                      {formatDateMarathi(job.created_at)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
+                    <p>
+                      <span className="font-medium text-gray-500">ठिकाण:</span> {job.taluka}, {job.district || "सांगली"}
+                    </p>
+                    {job.description && (
+                      <p
+                        className="overflow-hidden text-gray-500"
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                        }}
+                      >
+                        {job.description}
+                      </p>
+                    )}
+                    {(job.minimum_education || job.experience_years) && (
+                      <p className="text-xs text-gray-500">
+                        {[
+                          job.minimum_education,
+                          job.experience_years && (job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे अनुभव`),
+                        ].filter(Boolean).join(" · ")}
+                      </p>
+                    )}
+                    <p className="font-semibold text-gray-800">
+                      ₹ {job.salary}
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      {job.employer_name}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Call button — right side */}
+                <div className="flex flex-col items-center justify-center shrink-0 gap-1.5 pl-2 border-l border-gray-100">
+                  <span
+                    role="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fetch(`/api/jobs/${job.id}/click`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ type: "call" }),
+                      });
+                      window.location.href = `tel:${job.phone}`;
                     }}
+                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    style={{ backgroundColor: "#f0fdf4" }}
                   >
-                    {job.description}
-                  </p>
-                )}
-                {(job.minimum_education || job.experience_years) && (
-                  <p className="text-xs text-gray-500">
-                    {[
-                      job.minimum_education,
-                      job.experience_years && (job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे अनुभव`),
-                    ].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-                <p className="font-semibold text-gray-800">
-                  ₹ {job.salary}
-                </p>
-                <p className="text-gray-400 text-xs">
-                  {job.employer_name}
-                </p>
+                    <span style={{ fontSize: "22px", lineHeight: 1 }}>📞</span>
+                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#16a34a" }}>
+                      कॉल
+                    </span>
+                  </span>
+                  <span
+                    role="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      fetch(`/api/jobs/${job.id}/click`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ type: "whatsapp" }),
+                      });
+                      window.open(`https://wa.me/91${job.phone}`, "_blank");
+                    }}
+                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    style={{ backgroundColor: "#f0fdf4" }}
+                  >
+                    <span style={{ fontSize: "22px", lineHeight: 1 }}>💬</span>
+                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#25D366" }}>
+                      WA
+                    </span>
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

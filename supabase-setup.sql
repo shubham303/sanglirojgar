@@ -5,6 +5,8 @@ CREATE TABLE jobs (
   employer_name text NOT NULL,
   phone text NOT NULL,
   job_type text NOT NULL,
+  state text NOT NULL DEFAULT 'महाराष्ट्र',
+  district text NOT NULL DEFAULT 'सांगली',
   taluka text NOT NULL,
   salary text NOT NULL,
   description text DEFAULT '',

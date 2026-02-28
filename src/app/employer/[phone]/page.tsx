@@ -162,7 +162,7 @@ export default function EmployerJobs() {
               </div>
               <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
                 <p>
-                  <span className="font-medium text-gray-500">तालुका:</span> {job.taluka}
+                  <span className="font-medium text-gray-500">ठिकाण:</span> {job.taluka}, {job.district || "सांगली"}
                 </p>
                 {job.description && (
                   <p className="text-gray-500">{job.description}</p>

@@ -2,6 +2,7 @@ export interface JobFormData {
   employer_name: string;
   phone: string;
   job_type: string;
+  district: string;
   taluka: string;
   salary: string;
   description?: string;
@@ -14,6 +15,7 @@ export interface JobFormErrors {
   employer_name?: string;
   phone?: string;
   job_type?: string;
+  district?: string;
   taluka?: string;
   salary?: string;
   description?: string;
@@ -35,6 +37,10 @@ export function validateJobForm(form: JobFormData): JobFormErrors {
 
   if (!form.job_type) {
     errs.job_type = "हे क्षेत्र रिकामे ठेवता येणार नाही";
+  }
+
+  if (!form.district) {
+    errs.district = "हे क्षेत्र रिकामे ठेवता येणार नाही";
   }
 
   if (!form.taluka) {

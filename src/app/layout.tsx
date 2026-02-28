@@ -1,17 +1,33 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import "./globals.css";
+import RegisterSW from "./components/RegisterSW";
+import InstallBanner from "./components/InstallBanner";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  themeColor: "#FF6B00",
 };
 
 export const metadata: Metadata = {
   title: "सांगली रोजगार — सांगली मधील नोकऱ्या",
   description:
     "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा जाहिरात द्या. थेट फोन करा.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "रोजगार",
+  },
+  icons: [
+    { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+  ],
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
@@ -63,6 +79,8 @@ export default function RootLayout({
         <footer className="text-center text-gray-400 text-xs py-6 pb-8">
           सांगली रोजगार
         </footer>
+        <RegisterSW />
+        <InstallBanner />
       </body>
     </html>
   );

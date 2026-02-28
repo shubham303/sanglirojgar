@@ -40,12 +40,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const { employer_name, phone, job_type, taluka, salary, description, minimum_education, experience_years, workers_needed } = body;
+  const { employer_name, phone, job_type, district, taluka, salary, description, minimum_education, experience_years, workers_needed } = body;
 
   const { data, error } = await db.createJob({
     employer_name: employer_name.trim(),
     phone,
     job_type,
+    state: "महाराष्ट्र",
+    district: district || "सांगली",
     taluka,
     salary: salary.trim(),
     description: description ? description.trim() : "",

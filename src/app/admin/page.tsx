@@ -510,7 +510,7 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex items-center gap-3 text-[11px] text-gray-500 flex-wrap">
-                    <span>{job.taluka}</span>
+                    <span>{job.taluka}, {job.district || "सांगली"}</span>
                     <span>{job.salary}</span>
                     <span>{formatDateMarathi(job.created_at)}</span>
                   </div>

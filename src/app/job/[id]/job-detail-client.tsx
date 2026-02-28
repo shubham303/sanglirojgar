@@ -82,6 +82,16 @@ export default function JobDetail() {
 
         <div className="mt-3 space-y-2.5 text-sm text-gray-700">
           <div className="flex items-baseline gap-2">
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">राज्य</span>
+            <p className="text-base">{job.state || "महाराष्ट्र"}</p>
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">जिल्हा</span>
+            <p className="text-base">{job.district || "सांगली"}</p>
+          </div>
+
+          <div className="flex items-baseline gap-2">
             <span className="font-medium text-gray-400 text-xs w-24 shrink-0">तालुका</span>
             <p className="text-base">{job.taluka}</p>
           </div>

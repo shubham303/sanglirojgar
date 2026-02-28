@@ -3,6 +3,8 @@ export interface Job {
   employer_name: string;
   phone: string;
   job_type: string;
+  state: string;
+  district: string;
   taluka: string;
   salary: string;
   description: string;
