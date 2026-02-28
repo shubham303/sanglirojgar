@@ -44,17 +44,17 @@ export default function Home() {
       </div>
 
       {/* Main CTAs */}
-      <div className="flex flex-col gap-3 w-full max-w-xs">
+      <div className="flex flex-col gap-2.5 w-full max-w-xs">
         <Link
           href="/jobs"
-          className="text-base font-semibold py-3.5 rounded-xl text-center transition"
+          className="text-sm font-semibold py-3 rounded-xl text-center transition"
           style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           नोकऱ्या पहा
         </Link>
         <Link
           href="/job/new"
-          className="text-base font-semibold py-3.5 rounded-xl text-center border transition"
+          className="text-sm font-semibold py-3 rounded-xl text-center border transition"
           style={{ backgroundColor: "#ffffff", borderColor: "#FF6B00", color: "#FF6B00" }}
         >
           मोफत जाहिरात द्या

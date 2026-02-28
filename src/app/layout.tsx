@@ -34,24 +34,24 @@ export default function RootLayout({
             >
               सांगली रोजगार
             </Link>
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               <Link
                 href="/jobs"
-                className="text-sm px-2.5 py-2 rounded-lg font-medium"
+                className="text-xs px-2 py-2 rounded-lg font-medium whitespace-nowrap"
                 style={{ color: "#374151" }}
               >
                 नोकऱ्या
               </Link>
               <Link
                 href="/job/new"
-                className="text-sm px-2.5 py-2 rounded-lg font-medium"
+                className="text-xs px-2 py-2 rounded-lg font-medium whitespace-nowrap"
                 style={{ color: "#374151" }}
               >
                 जाहिरात द्या
               </Link>
               <Link
                 href="/my-ads"
-                className="text-sm px-2.5 py-2 rounded-lg font-medium"
+                className="text-xs px-2 py-2 rounded-lg font-medium whitespace-nowrap"
                 style={{ color: "#374151" }}
               >
                 माझ्या जाहिराती
