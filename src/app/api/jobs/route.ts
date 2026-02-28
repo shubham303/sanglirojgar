@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const { employer_name, phone, job_type, taluka, salary, description, workers_needed } = body;
+  const { employer_name, phone, job_type, taluka, salary, description, minimum_education, experience_years, workers_needed } = body;
 
   const { data, error } = await db.createJob({
     employer_name: employer_name.trim(),
@@ -49,6 +49,8 @@ export async function POST(request: NextRequest) {
     taluka,
     salary: salary.trim(),
     description: description ? description.trim() : "",
+    minimum_education: minimum_education || null,
+    experience_years: experience_years || null,
     workers_needed: typeof workers_needed === "string" ? parseInt(workers_needed) : workers_needed,
     is_active: true,
   });

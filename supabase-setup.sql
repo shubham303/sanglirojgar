@@ -8,7 +8,11 @@ CREATE TABLE jobs (
   taluka text NOT NULL,
   salary text NOT NULL,
   description text DEFAULT '',
+  minimum_education text DEFAULT NULL,
+  experience_years text DEFAULT NULL,
   workers_needed integer NOT NULL DEFAULT 1,
+  call_count integer NOT NULL DEFAULT 0,
+  whatsapp_count integer NOT NULL DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
   is_active boolean DEFAULT true
 );

@@ -93,6 +93,20 @@ export default function JobDetail() {
             </div>
           )}
 
+          {job.minimum_education && (
+            <div className="flex items-baseline gap-2">
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">किमान शिक्षण</span>
+              <p className="text-base">{job.minimum_education}</p>
+            </div>
+          )}
+
+          {job.experience_years && (
+            <div className="flex items-baseline gap-2">
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">अनुभव</span>
+              <p className="text-base">{job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे`}</p>
+            </div>
+          )}
+
           <div className="flex items-baseline gap-2">
             <span className="font-medium text-gray-400 text-xs w-24 shrink-0">पगार / मजुरी</span>
             <p className="text-base font-semibold text-gray-800">₹ {job.salary}</p>
@@ -112,6 +126,13 @@ export default function JobDetail() {
         <div className="mt-5 flex flex-col gap-2.5">
           <a
             href={`tel:${job.phone}`}
+            onClick={() => {
+              fetch(`/api/jobs/${id}/click`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "call" }),
+              });
+            }}
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
           >
@@ -121,6 +142,13 @@ export default function JobDetail() {
             href={`https://wa.me/91${job.phone}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              fetch(`/api/jobs/${id}/click`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type: "whatsapp" }),
+              });
+            }}
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#25D366", color: "#ffffff" }}
           >

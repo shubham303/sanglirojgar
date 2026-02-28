@@ -82,12 +82,30 @@ export function createSupabaseDb(): DbClient {
       return { error: error?.message ?? null };
     },
 
+    async hardDeleteJob(id: string) {
+      const { error } = await supabase
+        .from("jobs")
+        .delete()
+        .eq("id", id);
+      return { error: error?.message ?? null };
+    },
+
     async getActiveJobsByPhone(phone: string) {
       const { data, error } = await supabase
         .from("jobs")
         .select("*")
         .eq("phone", phone)
         .eq("is_active", true)
+        .order("created_at", { ascending: false });
+      return { data: data as Job[] | null, error: error?.message ?? null };
+    },
+
+    async getAllJobsByPhone(phone: string) {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("phone", phone)
+        .order("is_active", { ascending: false })
         .order("created_at", { ascending: false });
       return { data: data as Job[] | null, error: error?.message ?? null };
     },
@@ -113,6 +131,26 @@ export function createSupabaseDb(): DbClient {
         data: data as import("./types").JobType | null,
         error: error?.message ?? null,
       };
+    },
+
+    async incrementJobClick(id: string, field: "call_count" | "whatsapp_count") {
+      const { data: job, error: fetchErr } = await supabase
+        .from("jobs")
+        .select(field)
+        .eq("id", id)
+        .single();
+
+      if (fetchErr || !job) {
+        return { error: fetchErr?.message ?? "Job not found" };
+      }
+
+      const currentValue = (job as Record<string, number>)[field] ?? 0;
+      const { error } = await supabase
+        .from("jobs")
+        .update({ [field]: currentValue + 1 })
+        .eq("id", id);
+
+      return { error: error?.message ?? null };
     },
 
     async deleteJobType(id: string) {

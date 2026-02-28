@@ -5,6 +5,8 @@ export interface JobFormData {
   taluka: string;
   salary: string;
   description?: string;
+  minimum_education: string;
+  experience_years: string;
   workers_needed: string | number;
 }
 
@@ -15,6 +17,8 @@ export interface JobFormErrors {
   taluka?: string;
   salary?: string;
   description?: string;
+  minimum_education?: string;
+  experience_years?: string;
   workers_needed?: string;
 }
 

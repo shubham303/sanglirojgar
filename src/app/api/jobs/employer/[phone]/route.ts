@@ -18,7 +18,7 @@ export async function GET(
     );
   }
 
-  const { data, error } = await db.getActiveJobsByPhone(phone);
+  const { data, error } = await db.getAllJobsByPhone(phone);
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });

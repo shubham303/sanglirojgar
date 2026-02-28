@@ -30,7 +30,11 @@ async function ensureTablesExist() {
       taluka TEXT NOT NULL,
       salary TEXT NOT NULL,
       description TEXT DEFAULT '',
+      minimum_education TEXT DEFAULT NULL,
+      experience_years TEXT DEFAULT NULL,
       workers_needed INTEGER NOT NULL DEFAULT 1,
+      call_count INTEGER NOT NULL DEFAULT 0,
+      whatsapp_count INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       is_active BOOLEAN DEFAULT TRUE
     )
@@ -133,8 +137,8 @@ export function createLocalDb(): DbClient {
         const id = randomUUID();
         const now = new Date().toISOString();
         await getPool().query(
-          `INSERT INTO jobs (id, employer_name, phone, job_type, taluka, salary, description, workers_needed, created_at, is_active)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          `INSERT INTO jobs (id, employer_name, phone, job_type, taluka, salary, description, minimum_education, experience_years, workers_needed, created_at, is_active)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             id,
             job.employer_name,
@@ -143,6 +147,8 @@ export function createLocalDb(): DbClient {
             job.taluka,
             job.salary,
             job.description || "",
+            job.minimum_education || null,
+            job.experience_years || null,
             job.workers_needed,
             now,
             job.is_active,
@@ -203,11 +209,34 @@ export function createLocalDb(): DbClient {
       }
     },
 
+    async hardDeleteJob(id: string) {
+      try {
+        await ensureTablesExist();
+        await getPool().query("DELETE FROM jobs WHERE id = $1", [id]);
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
+      }
+    },
+
     async getActiveJobsByPhone(phone: string) {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
           "SELECT * FROM jobs WHERE phone = $1 AND is_active = TRUE ORDER BY created_at DESC",
+          [phone]
+        );
+        return { data: rows as Job[], error: null };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
+      }
+    },
+
+    async getAllJobsByPhone(phone: string) {
+      try {
+        await ensureTablesExist();
+        const { rows } = await getPool().query(
+          "SELECT * FROM jobs WHERE phone = $1 ORDER BY is_active DESC, created_at DESC",
           [phone]
         );
         return { data: rows as Job[], error: null };
@@ -248,6 +277,19 @@ export function createLocalDb(): DbClient {
           return { data: null, error: "हा कामाचा प्रकार आधीच अस्तित्वात आहे" };
         }
         return { data: null, error: msg };
+      }
+    },
+
+    async incrementJobClick(id: string, field: "call_count" | "whatsapp_count") {
+      try {
+        await ensureTablesExist();
+        await getPool().query(
+          `UPDATE jobs SET ${field} = ${field} + 1 WHERE id = $1`,
+          [id]
+        );
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
       }
     },
 

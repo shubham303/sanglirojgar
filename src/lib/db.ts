@@ -25,14 +25,17 @@ export interface DbClient {
   getActiveJobsPaginated(filters: JobFilters): Promise<DbResult<PaginatedJobs>>;
   getJobById(id: string): Promise<DbResult<Job>>;
   createJob(
-    job: Omit<Job, "id" | "created_at">
+    job: Omit<Job, "id" | "created_at" | "call_count" | "whatsapp_count">
   ): Promise<DbResult<Job>>;
   updateJob(id: string, job: Partial<Job>): Promise<DbResult<Job>>;
   softDeleteJob(id: string): Promise<{ error: string | null }>;
+  hardDeleteJob(id: string): Promise<{ error: string | null }>;
   getActiveJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
+  getAllJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
   getJobTypes(): Promise<DbResult<JobType[]>>;
   addJobType(name: string): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
+  incrementJobClick(id: string, field: "call_count" | "whatsapp_count"): Promise<{ error: string | null }>;
 }
 
 let _db: DbClient | null = null;

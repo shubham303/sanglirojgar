@@ -13,6 +13,8 @@ export default function PostJob() {
     taluka: "",
     salary: "",
     description: "",
+    minimum_education: "12वी",
+    experience_years: "0",
     workers_needed: "",
   });
   const [errors, setErrors] = useState<JobFormErrors>({});
@@ -157,6 +159,30 @@ export default function PostJob() {
             rows={3}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00] resize-vertical"
           />
+        </Field>
+
+        <Field label="किमान शिक्षण" error={errors.minimum_education}>
+          <select
+            value={form.minimum_education}
+            onChange={(e) => setForm({ ...form, minimum_education: e.target.value })}
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
+          >
+            {["10वी", "12वी", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="अनुभव (वर्षे)" error={errors.experience_years}>
+          <select
+            value={form.experience_years}
+            onChange={(e) => setForm({ ...form, experience_years: e.target.value })}
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
+          >
+            {["0", "1", "2", "3", "3+"].map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
         </Field>
 
         <Field label="पगार / मजुरी" error={errors.salary}>

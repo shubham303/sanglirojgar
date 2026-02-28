@@ -333,6 +333,14 @@ export default function BrowseJobs() {
                     {job.description}
                   </p>
                 )}
+                {(job.minimum_education || job.experience_years) && (
+                  <p className="text-xs text-gray-500">
+                    {[
+                      job.minimum_education,
+                      job.experience_years && (job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे अनुभव`),
+                    ].filter(Boolean).join(" · ")}
+                  </p>
+                )}
                 <p className="font-semibold text-gray-800">
                   ₹ {job.salary}
                 </p>
