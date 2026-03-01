@@ -81,25 +81,25 @@ export default function RootLayout({
             >
               सांगली रोजगार
             </Link>
-            <div className="flex gap-0.5">
+            <div className="flex gap-1.5">
               <Link
                 href="/jobs"
-                className="text-xs px-2 py-2 rounded-lg font-medium whitespace-nowrap"
-                style={{ color: "#374151" }}
+                className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap border"
+                style={{ color: "#374151", borderColor: "#d1d5db", backgroundColor: "#f9fafb" }}
               >
                 नोकऱ्या
               </Link>
               <Link
                 href="/job/new"
-                className="text-xs px-2 py-2 rounded-lg font-medium whitespace-nowrap"
-                style={{ color: "#374151" }}
+                className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap border"
+                style={{ color: "#374151", borderColor: "#d1d5db", backgroundColor: "#f9fafb" }}
               >
                 जाहिरात द्या
               </Link>
               <Link
                 href="/my-ads"
-                className="text-xs px-2 py-2 rounded-lg font-medium whitespace-nowrap"
-                style={{ color: "#374151" }}
+                className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap border"
+                style={{ color: "#374151", borderColor: "#d1d5db", backgroundColor: "#f9fafb" }}
               >
                 माझ्या जाहिराती
               </Link>
