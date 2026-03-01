@@ -1,20 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { SITE_DOMAIN } from "@/lib/config";
 
 export default function HomeClient() {
-  const [showPhoneInput, setShowPhoneInput] = useState(false);
-  const [phone, setPhone] = useState("");
-  const router = useRouter();
-
-  const handleMyAds = () => {
-    if (phone.length === 10) {
-      router.push(`/employer/${phone}`);
-    }
-  };
 
   return (
     <div className="flex flex-col items-center text-center px-2">
@@ -116,47 +105,6 @@ export default function HomeClient() {
         </a>
       </div>
 
-      {/* My Ads section */}
-      <div className="mt-3 mb-8 w-full max-w-xs">
-        {!showPhoneInput ? (
-          <button
-            onClick={() => setShowPhoneInput(true)}
-            className="border rounded-xl px-5 py-3 text-sm w-full transition font-medium"
-            style={{ color: "#FF6B00", borderColor: "#FF6B00", backgroundColor: "#ffffff" }}
-          >
-            माझ्या जाहिराती पहा
-          </button>
-        ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleMyAds();
-            }}
-            className="flex flex-col gap-2.5 items-center w-full"
-          >
-            <input
-              type="tel"
-              inputMode="numeric"
-              value={phone}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, "");
-                if (val.length <= 10) setPhone(val);
-              }}
-              placeholder="तुमचा 10 अंकी फोन नंबर"
-              className="border border-gray-200 rounded-xl px-4 py-3 text-base text-center w-full focus:outline-none focus:border-[#FF6B00]"
-              autoFocus
-            />
-            <button
-              type="submit"
-              disabled={phone.length !== 10}
-              className="py-3 rounded-xl disabled:opacity-50 text-sm w-full font-semibold transition"
-              style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-            >
-              माझ्या जाहिराती पहा
-            </button>
-          </form>
-        )}
-      </div>
     </div>
   );
 }
