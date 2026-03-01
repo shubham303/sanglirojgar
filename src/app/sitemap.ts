@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 import { getDb } from "@/lib/db";
+import { SITE_URL } from "@/lib/config";
 
-const BASE_URL = "https://www.mahajob.in";
+const BASE_URL = SITE_URL;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const db = getDb();

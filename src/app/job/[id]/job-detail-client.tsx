@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
 import { formatDateMarathi } from "@/lib/utils";
+import { SITE_URL, SITE_DOMAIN, SITE_TAGLINE } from "@/lib/config";
 
 export default function JobDetail() {
   const params = useParams();
@@ -171,8 +172,8 @@ export default function JobDetail() {
               `💰 पगार: ₹${job.salary}\n` +
               (job.description ? `📋 ${job.description.slice(0, 100)}\n` : "") +
               `👤 ${job.employer_name}\n\n` +
-              `👉 अधिक माहिती व संपर्क:\nhttps://www.mahajob.in/job/${id}\n\n` +
-              `📲 www.mahajob.in — महाराष्ट्रातील नोकऱ्या`
+              `👉 अधिक माहिती व संपर्क:\n${SITE_URL}/job/${id}\n\n` +
+              `📲 ${SITE_DOMAIN} — ${SITE_TAGLINE}`
             )}`}
             target="_blank"
             rel="noopener noreferrer"

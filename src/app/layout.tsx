@@ -3,6 +3,7 @@ import Link from "next/link";
 import "./globals.css";
 import RegisterSW from "./components/RegisterSW";
 import InstallBanner from "./components/InstallBanner";
+import { SITE_URL } from "@/lib/config";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -12,7 +13,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.mahajob.in"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या | Jobs in Sangli Maharashtra",
     template: "%s | सांगली रोजगार",
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   ],
   manifest: "/manifest.json",
   alternates: {
-    canonical: "https://www.mahajob.in",
+    canonical: SITE_URL,
   },
   openGraph: {
     type: "website",
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
     siteName: "सांगली रोजगार",
     title: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या",
     description: "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
-    url: "https://www.mahajob.in",
+    url: SITE_URL,
     images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
   },
   twitter: {

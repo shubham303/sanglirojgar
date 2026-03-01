@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { getDb } from "@/lib/db";
+import { SITE_URL } from "@/lib/config";
 import JobDetailClient from "./job-detail-client";
-
-const BASE_URL = "https://www.mahajob.in";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -28,14 +27,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: {
-      canonical: `${BASE_URL}/job/${id}`,
+      canonical: `${SITE_URL}/job/${id}`,
     },
     openGraph: {
       title,
       description,
       type: "article",
       siteName: "सांगली रोजगार",
-      url: `${BASE_URL}/job/${id}`,
+      url: `${SITE_URL}/job/${id}`,
     },
   };
 }

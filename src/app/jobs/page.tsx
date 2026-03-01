@@ -5,6 +5,7 @@ import Link from "next/link";
 import { TALUKAS } from "@/lib/constants";
 import { Job } from "@/lib/types";
 import { formatDateMarathi } from "@/lib/utils";
+import { SITE_URL, SITE_DOMAIN } from "@/lib/config";
 
 const PAGE_LIMIT = 20;
 const MAX_RETRIES = 3;
@@ -402,7 +403,7 @@ export default function BrowseJobs() {
                       e.stopPropagation();
                       window.open(
                         `https://wa.me/?text=${encodeURIComponent(
-                          `🔶 *नोकरी: ${job.job_type}*\n📍 ${job.taluka}, ${job.district || "सांगली"}\n💰 ₹${job.salary}\n\n👉 https://www.mahajob.in/job/${job.id}\n📲 www.mahajob.in`
+                          `🔶 *नोकरी: ${job.job_type}*\n📍 ${job.taluka}, ${job.district || "सांगली"}\n💰 ₹${job.salary}\n\n👉 ${SITE_URL}/job/${job.id}\n📲 ${SITE_DOMAIN}`
                         )}`,
                         "_blank"
                       );
