@@ -83,6 +83,26 @@ export default function HomeClient() {
         </p>
       </div>
 
+      {/* Contact / Help */}
+      <div
+        className="w-full max-w-md mt-2 mb-5 bg-white rounded-xl p-4 text-center"
+        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+      >
+        <p className="text-sm text-gray-700 mb-2">
+          जाहिरात देताना काही अडचण येत आहे?
+        </p>
+        <a
+          href="https://wa.me/919284408873?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%95%E0%A4%BE%E0%A4%B0%2C%20%E0%A4%AE%E0%A4%B2%E0%A4%BE%20%E0%A4%AE%E0%A4%A6%E0%A4%A4%20%E0%A4%B9%E0%A4%B5%E0%A5%80%20%E0%A4%86%E0%A4%B9%E0%A5%87."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition"
+          style={{ backgroundColor: "#25D366", color: "#ffffff" }}
+        >
+          <span style={{ fontSize: 16 }}>💬</span>
+          आम्हाला WhatsApp करा
+        </a>
+      </div>
+
       {/* Share website */}
       <div className="w-full max-w-xs mt-4 mb-4">
         <a
