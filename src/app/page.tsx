@@ -3,7 +3,7 @@ import HomeClient from "./components/HomeClient";
 import { SITE_URL } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "महाजॉब — महाराष्ट्रातील नोकऱ्या | Jobs in Maharashtra",
+  title: "महा जॉब — महाराष्ट्रातील नोकऱ्या | Jobs in Maharashtra",
   description:
     "महाराष्ट्रातील नोकऱ्या शोधा — सांगली, पुणे, कोल्हापूर, मुंबई, नाशिक. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर. मोफत जाहिरात द्या. थेट फोन करा. Find jobs in Maharashtra.",
   alternates: {
@@ -17,7 +17,7 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "WebSite",
-      name: "महाजॉब",
+      name: "महा जॉब",
       alternateName: "MahaJob",
       url: SITE_URL,
       description:
@@ -26,7 +26,7 @@ const jsonLd = {
     },
     {
       "@type": "Organization",
-      name: "महाजॉब",
+      name: "महा जॉब",
       url: SITE_URL,
       logo: `${SITE_URL}/icons/icon-512x512.png`,
       areaServed: {

@@ -15,13 +15,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "महाजॉब — महाराष्ट्रातील नोकऱ्या | Jobs in Maharashtra",
-    template: "%s | महाजॉब",
+    default: "महा जॉब — महाराष्ट्रातील नोकऱ्या | Jobs in Maharashtra",
+    template: "%s | महा जॉब",
   },
   description:
     "महाराष्ट्रातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर — थेट फोन करा. Jobs in Maharashtra — Sangli, Pune, Kolhapur, Mumbai.",
   keywords: [
-    "महाजॉब", "mahajob", "maharashtra jobs", "maharashtra naukri",
+    "महा जॉब", "mahajob", "maharashtra jobs", "maharashtra naukri",
     "नोकरी महाराष्ट्र", "jobs in maharashtra", "महाराष्ट्र नोकऱ्या",
     "sangli jobs", "pune jobs", "kolhapur jobs", "mumbai jobs",
     "सांगली नोकरी", "पुणे नोकरी", "कोल्हापूर नोकरी",
@@ -35,21 +35,21 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "mr_IN",
-    siteName: "महाजॉब",
-    title: "महाजॉब — महाराष्ट्रातील नोकऱ्या",
+    siteName: "महा जॉब",
+    title: "महा जॉब — महाराष्ट्रातील नोकऱ्या",
     description: "महाराष्ट्रातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
     url: SITE_URL,
     images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
   },
   twitter: {
     card: "summary",
-    title: "महाजॉब — Jobs in Maharashtra",
+    title: "महा जॉब — Jobs in Maharashtra",
     description: "महाराष्ट्रातील नोकऱ्या शोधा. ड्रायव्हर, सेल्समन, प्लंबर — थेट फोन करा.",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "महाजॉब",
+    title: "महा जॉब",
   },
   icons: [
     { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
@@ -79,7 +79,7 @@ export default function RootLayout({
               className="font-bold text-lg shrink-0"
               style={{ color: "#FF6B00" }}
             >
-              महाजॉब
+              महा जॉब
             </Link>
             <div className="flex gap-1.5">
               <Link
@@ -108,7 +108,7 @@ export default function RootLayout({
         </nav>
         <main className="max-w-3xl mx-auto px-4 py-5">{children}</main>
         <footer className="text-center text-gray-400 text-xs py-6 pb-8">
-          महाजॉब
+          महा जॉब
         </footer>
         <RegisterSW />
         <InstallBanner />
