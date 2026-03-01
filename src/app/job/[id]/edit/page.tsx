@@ -211,7 +211,7 @@ export default function EditJob() {
             onChange={(e) => setForm({ ...form, minimum_education: e.target.value })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
-            {["10वी", "12वी", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
+            {["10वी", "12वी", "Graduate (पदवीधर)", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
