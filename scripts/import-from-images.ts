@@ -1,23 +1,22 @@
 /**
- * Script to extract job postings from Facebook ad images using Claude Vision API
+ * Script to extract job postings from Facebook ad images using Gemini Vision API
  * and post them to the mahajob.in API.
  *
  * Usage:
  *   npx tsx scripts/import-from-images.ts <folder-path>
  *
  * Environment:
- *   ANTHROPIC_API_KEY — your Claude API key
+ *   GEMINI_API_KEY — your Google Gemini API key
  *
  * Example:
- *   ANTHROPIC_API_KEY=sk-... npx tsx scripts/import-from-images.ts ./fb-ads
+ *   GEMINI_API_KEY=AIza... npx tsx scripts/import-from-images.ts ./fb-ads
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import fs from "fs";
 import path from "path";
 
 const API_URL = "https://www.mahajob.in/api/jobs";
-const MODEL = "claude-sonnet-4-20250514";
+const GEMINI_MODEL = "gemini-2.0-flash";
 
 const JOB_TYPES = [
   "सेल्समन (Salesman)",
@@ -79,8 +78,8 @@ RULES:
 - If you cannot extract the required fields (employer_name, phone, job_type, district, taluka, salary), return: {"skip": true, "reason": "explanation"}
 - Return ONLY valid JSON, no markdown or explanation.`;
 
-function getMediaType(ext: string): "image/jpeg" | "image/png" | "image/gif" | "image/webp" {
-  const map: Record<string, "image/jpeg" | "image/png" | "image/gif" | "image/webp"> = {
+function getMimeType(ext: string): string {
+  const map: Record<string, string> = {
     ".jpg": "image/jpeg",
     ".jpeg": "image/jpeg",
     ".png": "image/png",
@@ -90,33 +89,41 @@ function getMediaType(ext: string): "image/jpeg" | "image/png" | "image/gif" | "
   return map[ext.toLowerCase()] || "image/jpeg";
 }
 
-async function extractJobData(client: Anthropic, imagePath: string) {
+async function extractJobData(apiKey: string, imagePath: string) {
   const ext = path.extname(imagePath);
   const imageData = fs.readFileSync(imagePath);
   const base64 = imageData.toString("base64");
-  const mediaType = getMediaType(ext);
+  const mimeType = getMimeType(ext);
 
-  const response = await client.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: { type: "base64", media_type: mediaType, data: base64 },
-          },
-          { type: "text", text: EXTRACTION_PROMPT },
-        ],
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { inline_data: { mime_type: mimeType, data: base64 } },
+            { text: EXTRACTION_PROMPT },
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.1,
+        maxOutputTokens: 1024,
       },
-    ],
+    }),
   });
 
-  const text = response.content
-    .filter((b) => b.type === "text")
-    .map((b) => b.text)
-    .join("");
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini API error (${res.status}): ${err}`);
+  }
+
+  const result = await res.json();
+  const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error(`No text in Gemini response: ${JSON.stringify(result)}`);
 
   // Extract JSON from response (handle potential markdown wrapping)
   const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -142,12 +149,12 @@ async function main() {
     process.exit(1);
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("Error: ANTHROPIC_API_KEY environment variable is required");
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error("Error: GEMINI_API_KEY environment variable is required");
     process.exit(1);
   }
 
-  const client = new Anthropic();
   const absFolder = path.resolve(folder);
 
   if (!fs.existsSync(absFolder)) {
@@ -171,7 +178,7 @@ async function main() {
     console.log(`--- Processing: ${file}`);
 
     try {
-      const data = await extractJobData(client, filePath);
+      const data = await extractJobData(apiKey, filePath);
 
       if (data.skip) {
         console.log(`  SKIPPED: ${data.reason}`);
