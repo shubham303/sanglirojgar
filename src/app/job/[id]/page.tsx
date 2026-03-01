@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDb } from "@/lib/db";
 import { SITE_URL } from "@/lib/config";
+import { formatLocation } from "@/lib/utils";
 import JobDetailClient from "./job-detail-client";
 
 interface Props {
@@ -18,10 +19,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const title = `${job.job_type} — ${job.taluka}, ${job.district || "सांगली"} | पगार ₹${job.salary}`;
+  const loc = formatLocation(job.taluka, job.district);
+  const title = `${job.job_type} — ${loc} | पगार ₹${job.salary}`;
   const description = job.description
-    ? `${job.job_type} नोकरी ${job.taluka}, ${job.district || "सांगली"} मध्ये. पगार: ₹${job.salary}. ${job.description.slice(0, 120)}`
-    : `${job.job_type} नोकरी ${job.taluka}, ${job.district || "सांगली"} मध्ये. पगार: ₹${job.salary}. ${job.employer_name} यांच्याकडे. थेट फोन करा.`;
+    ? `${job.job_type} नोकरी ${loc} मध्ये. पगार: ₹${job.salary}. ${job.description.slice(0, 120)}`
+    : `${job.job_type} नोकरी ${loc} मध्ये. पगार: ₹${job.salary}. ${job.employer_name} यांच्याकडे. थेट फोन करा.`;
 
   return {
     title,
@@ -50,7 +52,7 @@ export default async function JobDetailPage({ params }: Props) {
         "@context": "https://schema.org",
         "@type": "JobPosting",
         title: job.job_type,
-        description: job.description || `${job.job_type} — ${job.taluka}, ${job.district || "सांगली"}`,
+        description: job.description || `${job.job_type} — ${formatLocation(job.taluka, job.district)}`,
         datePosted: job.created_at,
         jobLocation: {
           "@type": "Place",

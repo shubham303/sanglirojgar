@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Job, JobType } from "@/lib/types";
-import { TALUKAS, DISTRICTS } from "@/lib/constants";
-import { formatDateMarathi } from "@/lib/utils";
+import { TALUKAS, DISTRICTS, JOB_TYPE_NAMES, getJobTypeLabel } from "@/lib/constants";
+import { formatDateMarathi, formatLocation } from "@/lib/utils";
 
 type AdminTab = "job_types" | "all_jobs";
 
@@ -417,8 +417,8 @@ export default function AdminPage() {
                 className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
               >
                 <option value="">सर्व कामे</option>
-                {jobTypes.map((jt) => (
-                  <option key={jt.id} value={jt.name}>{jt.name}</option>
+                {JOB_TYPE_NAMES.map((name) => (
+                  <option key={name} value={name}>{getJobTypeLabel(name)}</option>
                 ))}
               </select>
 
@@ -510,7 +510,7 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex items-center gap-3 text-[11px] text-gray-500 flex-wrap">
-                    <span>{job.taluka}, {job.district || "सांगली"}</span>
+                    <span>{formatLocation(job.taluka, job.district)}</span>
                     <span>{job.salary}</span>
                     <span>{formatDateMarathi(job.created_at)}</span>
                   </div>

@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { DISTRICTS, DISTRICT_TALUKAS, TALUKAS } from "@/lib/constants";
+import { DISTRICTS, DISTRICT_TALUKAS, TALUKAS, JOB_TYPE_NAMES, getJobTypeLabel } from "@/lib/constants";
 import { Job } from "@/lib/types";
-import { formatDateMarathi } from "@/lib/utils";
+import { formatDateMarathi, formatLocation } from "@/lib/utils";
 
 const PAGE_LIMIT = 20;
 const MAX_RETRIES = 3;
@@ -34,7 +34,6 @@ function SkeletonCard() {
 
 export default function BrowseJobs() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [page, setPage] = useState(1);
@@ -87,18 +86,11 @@ export default function BrowseJobs() {
       setLoading(true);
       setError("");
       try {
-        const [data, typesRes] = await Promise.all([
-          fetchWithRetry(buildUrl(1, "सर्व", "सर्व")),
-          fetch("/api/job-types")
-            .then((r) => r.json())
-            .then((d) => (Array.isArray(d) ? d : []))
-            .catch(() => []),
-        ]);
+        const data = await fetchWithRetry(buildUrl(1, "सर्व", "सर्व"));
         setJobs(data.jobs);
         setTotal(data.total);
         setHasMore(data.hasMore);
         setPage(1);
-        setJobTypes(typesRes);
       } catch (e: unknown) {
         setError((e as Error).message);
       } finally {
@@ -236,9 +228,9 @@ export default function BrowseJobs() {
                 style={{ borderColor: filterJobType !== "सर्व" ? "#FF6B00" : undefined }}
               >
                 <option value="सर्व">सर्व</option>
-                {jobTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
+                {JOB_TYPE_NAMES.map((name) => (
+                  <option key={name} value={name}>
+                    {getJobTypeLabel(name)}
                   </option>
                 ))}
               </select>
@@ -343,7 +335,7 @@ export default function BrowseJobs() {
                   </div>
                   <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
                     <p>
-                      <span className="font-medium text-gray-500">ठिकाण:</span> {job.taluka}, {job.district || "सांगली"}
+                      <span className="font-medium text-gray-500">ठिकाण:</span> {formatLocation(job.taluka, job.district)}
                     </p>
                     {job.description && (
                       <p

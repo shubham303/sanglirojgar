@@ -1,25 +1,22 @@
 import districtTalukasData from "./district-talukas.json";
+import jobTypesData from "./job-types.json";
 
-export const JOB_TYPES = [
-  "सेल्समन (Salesman)",
-  "डिलिव्हरी बॉय (Delivery Boy)",
-  "स्वयंपाकी (Cook)",
-  "वेटर (Waiter)",
-  "सुरक्षा रक्षक (Security Guard)",
-  "ड्रायव्हर (Driver)",
-  "मेकॅनिक (Mechanic)",
-  "इलेक्ट्रिशियन (Electrician)",
-  "प्लंबर (Plumber)",
-  "सुतार (Carpenter)",
-  "वेल्डर (Welder)",
-  "शिपाई (Peon)",
-  "क्लिनर (Cleaner)",
-  "रिसेप्शनिस्ट (Receptionist)",
-  "अकाउंट सहाय्यक (Accounts Assistant)",
-  "दुकान सहाय्यक (Shop Assistant)",
-  "गोडाउन कामगार (Warehouse Worker)",
-  "इतर (Other)",
-];
+// Job types — single source of truth from job-types.json
+export const JOB_TYPES = jobTypesData;
+
+// Marathi-only names (used as form values, filter params, DB values)
+export const JOB_TYPE_NAMES = jobTypesData.map((jt) => jt.marathi);
+
+// Returns bilingual label: "मराठी (English)"
+const jobTypeLabelMap = new Map<string, string>();
+for (const jt of jobTypesData) {
+  jobTypeLabelMap.set(jt.marathi, `${jt.marathi} (${jt.english})`);
+}
+export function getJobTypeLabel(name: string): string {
+  return jobTypeLabelMap.get(name) || name;
+}
+
+export const GENDERS = ["पुरुष (Male)", "महिला (Female)", "दोन्ही (Both)"];
 
 export const DISTRICT_TALUKAS: Record<string, string[]> = districtTalukasData;
 

@@ -1,6 +1,6 @@
 /**
  * Script to extract job postings from Facebook ad images using Gemini Vision API
- * and post them to the mahajob.in API.
+ * and write them to a CSV file for review before uploading.
  *
  * Usage:
  *   npx tsx scripts/import-from-images.ts <folder-path>
@@ -8,12 +8,16 @@
  * Environment:
  *   GEMINI_API_KEY — your Google Gemini API key
  *
+ * Output:
+ *   <folder-path>/jobs-to-review.csv — open in Excel, review, then upload with upload-from-csv.ts
+ *
  * Example:
  *   GEMINI_API_KEY=AIza... npx tsx scripts/import-from-images.ts ./fb-ads
  */
 
 import fs from "fs";
 import path from "path";
+import jobTypesData from "../src/lib/job-types.json";
 
 // Load .env.local
 const envPath = path.resolve(__dirname, "../.env.local");
@@ -26,29 +30,23 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const API_URL = "https://www.mahajob.in/api/jobs";
 const GEMINI_MODEL = "gemini-2.0-flash";
 
-const JOB_TYPES = [
-  "सेल्समन (Salesman)",
-  "डिलिव्हरी बॉय (Delivery Boy)",
-  "स्वयंपाकी (Cook)",
-  "वेटर (Waiter)",
-  "सुरक्षा रक्षक (Security Guard)",
-  "ड्रायव्हर (Driver)",
-  "मेकॅनिक (Mechanic)",
-  "इलेक्ट्रिशियन (Electrician)",
-  "प्लंबर (Plumber)",
-  "सुतार (Carpenter)",
-  "वेल्डर (Welder)",
-  "शिपाई (Peon)",
-  "क्लिनर (Cleaner)",
-  "रिसेप्शनिस्ट (Receptionist)",
-  "अकाउंट सहाय्यक (Accounts Assistant)",
-  "दुकान सहाय्यक (Shop Assistant)",
-  "गोडाउन कामगार (Warehouse Worker)",
-  "इतर (Other)",
-];
+const CSV_COLUMNS = [
+  "employer_name",
+  "phone",
+  "job_type",
+  "district",
+  "taluka",
+  "salary",
+  "description",
+  "minimum_education",
+  "experience_years",
+  "workers_needed",
+  "gender",
+] as const;
+
+const JOB_TYPES = jobTypesData.map((jt) => `${jt.marathi} (${jt.english})`);
 
 const DISTRICTS = [
   "सांगली", "पुणे", "मुंबई", "नागपूर", "नाशिक", "औरंगाबाद", "सोलापूर",
@@ -69,9 +67,10 @@ const EXTRACTION_PROMPT = `You are extracting job posting data from a Facebook a
   "taluka": "Taluka/city name in Marathi (string, required)",
   "salary": "Salary info as mentioned in the ad, e.g. '15000 रुपये महिना' or '500 रुपये प्रतिदिन' (string, required)",
   "description": "Any additional details about the job — work hours, requirements, benefits, address, etc. (string, optional)",
-  "minimum_education": "One of: 10वी, 12वी, Graduate (पदवीधर), BA, BSc, BCom, Engineer. Leave empty if not mentioned. (string, optional)",
+  "minimum_education": "One of: शिक्षण नाही, 10वी, 12वी, ITI, Graduate (पदवीधर), BA, BSc, BCom, Engineer. Leave empty if not mentioned. (string, optional)",
   "experience_years": "One of: 0, 1, 2, 3, 3+. Leave empty if not mentioned. (string, optional)",
-  "workers_needed": "Number of workers needed (number, default 1)"
+  "workers_needed": "Number of workers needed (number, default 1)",
+  "gender": "One of: male, female, both. Use 'female' if ad says महिला/ladies/female only, 'male' if ad says पुरुष/gents/male only, otherwise 'both' (string, default 'both')"
 }
 
 ALLOWED JOB TYPES (pick the closest match):
@@ -143,14 +142,23 @@ async function extractJobData(apiKey: string, imagePath: string) {
   return JSON.parse(jsonMatch[0]);
 }
 
-async function postJob(data: Record<string, unknown>): Promise<{ ok: boolean; status: number; body: unknown }> {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  const body = await res.json();
-  return { ok: res.ok, status: res.status, body };
+function csvEscape(value: unknown): string {
+  const str = String(value ?? "");
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+function appendToCsv(csvPath: string, data: Record<string, unknown>) {
+  const writeHeader = !fs.existsSync(csvPath);
+  const row = CSV_COLUMNS.map((col) => csvEscape(data[col])).join(",");
+
+  if (writeHeader) {
+    fs.writeFileSync(csvPath, CSV_COLUMNS.join(",") + "\n" + row + "\n", "utf-8");
+  } else {
+    fs.appendFileSync(csvPath, row + "\n", "utf-8");
+  }
 }
 
 async function main() {
@@ -173,6 +181,7 @@ async function main() {
     process.exit(1);
   }
 
+  const csvPath = path.join(absFolder, "jobs-to-review.csv");
   const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
   const files = fs.readdirSync(absFolder)
     .filter((f) => imageExtensions.includes(path.extname(f).toLowerCase()))
@@ -180,7 +189,7 @@ async function main() {
 
   console.log(`Found ${files.length} images in ${absFolder}\n`);
 
-  let posted = 0;
+  let extracted = 0;
   let skipped = 0;
   let failed = 0;
 
@@ -197,17 +206,10 @@ async function main() {
         continue;
       }
 
-      // Show extracted data for review
       console.log(`  Extracted: ${data.employer_name} | ${data.job_type} | ${data.phone} | ${data.taluka}, ${data.district} | ₹${data.salary}`);
 
-      const result = await postJob(data);
-      if (result.ok) {
-        console.log(`  POSTED successfully`);
-        posted++;
-      } else {
-        console.log(`  FAILED (${result.status}): ${JSON.stringify(result.body)}`);
-        failed++;
-      }
+      appendToCsv(csvPath, data);
+      extracted++;
     } catch (err) {
       console.log(`  ERROR: ${(err as Error).message}`);
       failed++;
@@ -218,7 +220,11 @@ async function main() {
   }
 
   console.log(`\n=== DONE ===`);
-  console.log(`Posted: ${posted} | Skipped: ${skipped} | Failed: ${failed} | Total: ${files.length}`);
+  console.log(`Extracted: ${extracted} | Skipped: ${skipped} | Failed: ${failed} | Total: ${files.length}`);
+  if (extracted > 0) {
+    console.log(`\nCSV written to: ${csvPath}`);
+    console.log(`Review the file in Excel, then upload with: npx tsx scripts/upload-from-csv.ts ${csvPath}`);
+  }
 }
 
 main();

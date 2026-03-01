@@ -9,6 +9,7 @@ export interface JobFormData {
   minimum_education: string;
   experience_years: string;
   workers_needed: string | number;
+  gender: string;
 }
 
 export interface JobFormErrors {
@@ -22,6 +23,7 @@ export interface JobFormErrors {
   minimum_education?: string;
   experience_years?: string;
   workers_needed?: string;
+  gender?: string;
 }
 
 export function validateJobForm(form: JobFormData): JobFormErrors {

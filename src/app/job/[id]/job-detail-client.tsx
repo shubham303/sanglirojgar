@@ -91,10 +91,12 @@ export default function JobDetail() {
             <p className="text-base">{job.district || "सांगली"}</p>
           </div>
 
-          <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">तालुका</span>
-            <p className="text-base">{job.taluka}</p>
-          </div>
+          {job.taluka && job.taluka !== (job.district || "सांगली") && (
+            <div className="flex items-baseline gap-2">
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">तालुका</span>
+              <p className="text-base">{job.taluka}</p>
+            </div>
+          )}
 
           {job.description && (
             <div className="flex items-baseline gap-2">
@@ -125,6 +127,13 @@ export default function JobDetail() {
           <div className="flex items-baseline gap-2">
             <span className="font-medium text-gray-400 text-xs w-24 shrink-0">कामगार हवे</span>
             <p className="text-base">{job.workers_needed}</p>
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">लिंग</span>
+            <p className="text-base">
+              {job.gender === "male" ? "पुरुष" : job.gender === "female" ? "महिला" : "दोन्ही"}
+            </p>
           </div>
 
           <div className="flex items-baseline gap-2">

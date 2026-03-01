@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
-import { formatDateMarathi } from "@/lib/utils";
+import { formatDateMarathi, formatLocation } from "@/lib/utils";
 
 export default function EmployerJobs() {
   const params = useParams();
@@ -162,7 +162,7 @@ export default function EmployerJobs() {
               </div>
               <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
                 <p>
-                  <span className="font-medium text-gray-500">ठिकाण:</span> {job.taluka}, {job.district || "सांगली"}
+                  <span className="font-medium text-gray-500">ठिकाण:</span> {formatLocation(job.taluka, job.district)}
                 </p>
                 {job.description && (
                   <p className="text-gray-500">{job.description}</p>

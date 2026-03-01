@@ -11,6 +11,7 @@ export interface Job {
   minimum_education: string;
   experience_years: string;
   workers_needed: number;
+  gender: string;
   call_count: number;
   whatsapp_count: number;
   created_at: string;

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
+import { DISTRICTS, DISTRICT_TALUKAS, GENDERS, JOB_TYPE_NAMES, getJobTypeLabel } from "@/lib/constants";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 
 export default function PostJob() {
@@ -17,19 +17,12 @@ export default function PostJob() {
     minimum_education: "12वी",
     experience_years: "0",
     workers_needed: "",
+    gender: "both",
   });
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [jobTypes, setJobTypes] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetch("/api/job-types")
-      .then((res) => res.json())
-      .then((data) => setJobTypes(Array.isArray(data) ? data : []))
-      .catch(() => {});
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,9 +125,9 @@ export default function PostJob() {
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
-            {jobTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
+            {JOB_TYPE_NAMES.map((name) => (
+              <option key={name} value={name}>
+                {getJobTypeLabel(name)}
               </option>
             ))}
           </select>
@@ -196,7 +189,7 @@ export default function PostJob() {
             onChange={(e) => setForm({ ...form, minimum_education: e.target.value })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
-            {["10वी", "12वी", "Graduate (पदवीधर)", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
+            {["शिक्षण नाही", "10वी", "12वी", "ITI", "Graduate (पदवीधर)", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
@@ -222,6 +215,20 @@ export default function PostJob() {
             placeholder="उदा. 500 रुपये प्रतिदिन"
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
+        </Field>
+
+        <Field label="लिंग" error={errors.gender}>
+          <select
+            value={form.gender}
+            onChange={(e) => setForm({ ...form, gender: e.target.value })}
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
+          >
+            {GENDERS.map((g) => (
+              <option key={g} value={g === "पुरुष (Male)" ? "male" : g === "महिला (Female)" ? "female" : "both"}>
+                {g}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <Field label="किती कामगार हवे" error={errors.workers_needed}>

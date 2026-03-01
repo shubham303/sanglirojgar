@@ -13,6 +13,12 @@ const MARATHI_MONTHS = [
   "डिसेंबर",
 ];
 
+export function formatLocation(taluka: string, district: string): string {
+  const d = district || "सांगली";
+  if (!taluka || taluka === d) return d;
+  return `${taluka}, ${d}`;
+}
+
 export function formatDateMarathi(dateString: string): string {
   const date = new Date(dateString);
   const day = date.getDate();

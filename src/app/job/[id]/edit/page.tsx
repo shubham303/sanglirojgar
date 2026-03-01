@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
+import { DISTRICTS, DISTRICT_TALUKAS, GENDERS, JOB_TYPE_NAMES, getJobTypeLabel } from "@/lib/constants";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 
 export default function EditJob() {
@@ -21,20 +21,18 @@ export default function EditJob() {
     minimum_education: "12वी",
     experience_years: "0",
     workers_needed: "",
+    gender: "both",
   });
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [jobTypes, setJobTypes] = useState<string[]>([]);
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/jobs/${id}`).then((res) => res.json()),
-      fetch("/api/job-types").then((res) => res.json()),
-    ])
-      .then(([data, typesData]) => {
+    fetch(`/api/jobs/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
         setForm({
           employer_name: data.employer_name || "",
           phone: data.phone || "",
@@ -46,8 +44,8 @@ export default function EditJob() {
           minimum_education: data.minimum_education || "12वी",
           experience_years: data.experience_years || "0",
           workers_needed: String(data.workers_needed || ""),
+          gender: data.gender || "both",
         });
-        setJobTypes(Array.isArray(typesData) ? typesData : []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -147,9 +145,9 @@ export default function EditJob() {
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
-            {jobTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
+            {JOB_TYPE_NAMES.map((name) => (
+              <option key={name} value={name}>
+                {getJobTypeLabel(name)}
               </option>
             ))}
           </select>
@@ -211,7 +209,7 @@ export default function EditJob() {
             onChange={(e) => setForm({ ...form, minimum_education: e.target.value })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
-            {["10वी", "12वी", "Graduate (पदवीधर)", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
+            {["शिक्षण नाही", "10वी", "12वी", "ITI", "Graduate (पदवीधर)", "BA", "BSc", "BCom", "Engineer"].map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>
@@ -236,6 +234,20 @@ export default function EditJob() {
             onChange={(e) => setForm({ ...form, salary: e.target.value })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
+        </Field>
+
+        <Field label="लिंग" error={errors.gender}>
+          <select
+            value={form.gender}
+            onChange={(e) => setForm({ ...form, gender: e.target.value })}
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
+          >
+            {GENDERS.map((g) => (
+              <option key={g} value={g === "पुरुष (Male)" ? "male" : g === "महिला (Female)" ? "female" : "both"}>
+                {g}
+              </option>
+            ))}
+          </select>
         </Field>
 
         <Field label="किती कामगार हवे" error={errors.workers_needed}>
