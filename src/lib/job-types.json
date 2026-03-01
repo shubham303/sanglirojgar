@@ -13,7 +13,6 @@
   { "marathi": "शिपाई", "english": "Peon" },
   { "marathi": "सफाई कर्मचारी", "english": "Cleaner" },
   { "marathi": "रिसेप्शनिस्ट", "english": "Receptionist" },
-  { "marathi": "अकाउंट सहाय्यक", "english": "Accounts Assistant" },
   { "marathi": "दुकान सहाय्यक", "english": "Shop Assistant" },
   { "marathi": "गोडाउन कामगार", "english": "Warehouse Worker" },
   { "marathi": "हेल्पर", "english": "Helper" },
@@ -30,5 +29,8 @@
   { "marathi": "फील्ड वर्कर", "english": "Field Worker" },
   { "marathi": "इंजिनिअर", "english": "Engineer" },
   { "marathi": "व्हिडिओ एडिटर", "english": "Video Editor" },
+  { "marathi": "मार्केटिंग", "english": "Marketing" },
+  { "marathi": "अकाउंटंट", "english": "Accountant" },
+  { "marathi": "कामगार", "english": "Worker" },
   { "marathi": "इतर", "english": "Other" }
 ]
