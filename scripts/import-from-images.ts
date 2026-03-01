@@ -15,6 +15,17 @@
 import fs from "fs";
 import path from "path";
 
+// Load .env.local
+const envPath = path.resolve(__dirname, "../.env.local");
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
+    const match = line.match(/^\s*([^#=]+?)\s*=\s*(.*)\s*$/);
+    if (match && !process.env[match[1]]) {
+      process.env[match[1]] = match[2];
+    }
+  }
+}
+
 const API_URL = "https://www.mahajob.in/api/jobs";
 const GEMINI_MODEL = "gemini-2.0-flash";
 

@@ -36,6 +36,9 @@ yarn-error.log*
 # local SQLite database
 local.db
 
+# fb ad images for import
+/fb-ads
+
 # vercel
 .vercel
 

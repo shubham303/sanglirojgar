@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     state: "महाराष्ट्र",
     district: district || "सांगली",
     taluka,
-    salary: salary.trim(),
+    salary: salary ? salary.trim() : "",
     description: description ? description.trim() : "",
     minimum_education: minimum_education || null,
     experience_years: experience_years || null,

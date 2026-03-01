@@ -47,10 +47,6 @@ export function validateJobForm(form: JobFormData): JobFormErrors {
     errs.taluka = "हे क्षेत्र रिकामे ठेवता येणार नाही";
   }
 
-  if (!form.salary || !String(form.salary).trim()) {
-    errs.salary = "हे क्षेत्र रिकामे ठेवता येणार नाही";
-  }
-
   const wn =
     typeof form.workers_needed === "number"
       ? form.workers_needed
