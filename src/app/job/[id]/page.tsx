@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getDb } from "@/lib/db";
 import JobDetailClient from "./job-detail-client";
 
-const BASE_URL = "https://sanglirojgar.vercel.app";
+const BASE_URL = "https://www.mahajob.in";
 
 interface Props {
   params: Promise<{ id: string }>;

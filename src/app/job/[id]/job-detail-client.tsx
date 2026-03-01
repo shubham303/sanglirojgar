@@ -164,6 +164,23 @@ export default function JobDetail() {
           >
             💬 WhatsApp
           </a>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(
+              `🔶 *नोकरी उपलब्ध — ${job.job_type}*\n\n` +
+              `📍 ${job.taluka}, ${job.district || "सांगली"}, महाराष्ट्र\n` +
+              `💰 पगार: ₹${job.salary}\n` +
+              (job.description ? `📋 ${job.description.slice(0, 100)}\n` : "") +
+              `👤 ${job.employer_name}\n\n` +
+              `👉 अधिक माहिती व संपर्क:\nhttps://www.mahajob.in/job/${id}\n\n` +
+              `📲 www.mahajob.in — महाराष्ट्रातील नोकऱ्या`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-base font-semibold py-3 rounded-xl transition text-center"
+            style={{ backgroundColor: "#f3f4f6", color: "#374151" }}
+          >
+            📤 ही नोकरी शेअर करा
+          </a>
         </div>
       </div>
     </div>

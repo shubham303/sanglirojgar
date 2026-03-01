@@ -12,7 +12,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://sanglirojgar.vercel.app"),
+  metadataBase: new URL("https://www.mahajob.in"),
   title: {
     default: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या | Jobs in Sangli Maharashtra",
     template: "%s | सांगली रोजगार",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   ],
   manifest: "/manifest.json",
   alternates: {
-    canonical: "https://sanglirojgar.vercel.app",
+    canonical: "https://www.mahajob.in",
   },
   openGraph: {
     type: "website",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "सांगली रोजगार",
     title: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या",
     description: "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
-    url: "https://sanglirojgar.vercel.app",
+    url: "https://www.mahajob.in",
     images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
   },
   twitter: {

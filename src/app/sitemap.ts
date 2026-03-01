@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getDb } from "@/lib/db";
 
-const BASE_URL = "https://sanglirojgar.vercel.app";
+const BASE_URL = "https://www.mahajob.in";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const db = getDb();

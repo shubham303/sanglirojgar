@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "सांगली जिल्ह्यातील नोकऱ्या शोधा — सांगली, मिरज, तासगाव, कुपवाड, जत, वाळवा. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर. मोफत जाहिरात द्या. थेट फोन करा. Find jobs in Sangli district, Maharashtra.",
   alternates: {
-    canonical: "https://sanglirojgar.vercel.app",
+    canonical: "https://www.mahajob.in",
   },
 };
 
@@ -18,7 +18,7 @@ const jsonLd = {
       "@type": "WebSite",
       name: "सांगली रोजगार",
       alternateName: "Sangli Rojgar",
-      url: "https://sanglirojgar.vercel.app",
+      url: "https://www.mahajob.in",
       description:
         "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. Jobs in Sangli, Maharashtra.",
       inLanguage: "mr",
@@ -26,8 +26,8 @@ const jsonLd = {
     {
       "@type": "Organization",
       name: "सांगली रोजगार",
-      url: "https://sanglirojgar.vercel.app",
-      logo: "https://sanglirojgar.vercel.app/icons/icon-512x512.png",
+      url: "https://www.mahajob.in",
+      logo: "https://www.mahajob.in/icons/icon-512x512.png",
       areaServed: {
         "@type": "AdministrativeArea",
         name: "Sangli District, Maharashtra, India",

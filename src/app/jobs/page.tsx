@@ -395,6 +395,26 @@ export default function BrowseJobs() {
                       WA
                     </span>
                   </span>
+                  <span
+                    role="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.open(
+                        `https://wa.me/?text=${encodeURIComponent(
+                          `🔶 *नोकरी: ${job.job_type}*\n📍 ${job.taluka}, ${job.district || "सांगली"}\n💰 ₹${job.salary}\n\n👉 https://www.mahajob.in/job/${job.id}\n📲 www.mahajob.in`
+                        )}`,
+                        "_blank"
+                      );
+                    }}
+                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    style={{ backgroundColor: "#f3f4f6" }}
+                  >
+                    <span style={{ fontSize: "22px", lineHeight: 1 }}>📤</span>
+                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#6b7280" }}>
+                      शेअर
+                    </span>
+                  </span>
                 </div>
               </div>
             </Link>
