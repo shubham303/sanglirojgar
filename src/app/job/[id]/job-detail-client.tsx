@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
 import { formatDateMarathi } from "@/lib/utils";
-import { SITE_URL, SITE_DOMAIN, SITE_TAGLINE } from "@/lib/config";
 
 export default function JobDetail() {
   const params = useParams();
@@ -164,23 +163,6 @@ export default function JobDetail() {
             style={{ backgroundColor: "#25D366", color: "#ffffff" }}
           >
             💬 WhatsApp
-          </a>
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(
-              `🔶 *नोकरी उपलब्ध — ${job.job_type}*\n\n` +
-              `📍 ${job.taluka}, ${job.district || "सांगली"}, महाराष्ट्र\n` +
-              `💰 पगार: ₹${job.salary}\n` +
-              (job.description ? `📋 ${job.description.slice(0, 100)}\n` : "") +
-              `👤 ${job.employer_name}\n\n` +
-              `👉 अधिक माहिती व संपर्क:\n${SITE_URL}/job/${id}\n\n` +
-              `📲 ${SITE_DOMAIN} — ${SITE_TAGLINE}`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-base font-semibold py-3 rounded-xl transition text-center"
-            style={{ backgroundColor: "#f3f4f6", color: "#374151" }}
-          >
-            📤 ही नोकरी शेअर करा
           </a>
         </div>
       </div>
