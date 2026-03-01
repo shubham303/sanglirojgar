@@ -15,18 +15,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या | Jobs in Sangli Maharashtra",
-    template: "%s | सांगली रोजगार",
+    default: "महाजॉब — महाराष्ट्रातील नोकऱ्या | Jobs in Maharashtra",
+    template: "%s | महाजॉब",
   },
   description:
-    "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर — थेट फोन करा. Jobs in Sangli, Miraj, Tasgaon, Kupwad, Maharashtra.",
+    "महाराष्ट्रातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर — थेट फोन करा. Jobs in Maharashtra — Sangli, Pune, Kolhapur, Mumbai.",
   keywords: [
-    "सांगली नोकरी", "sangli jobs", "jobs in sangli", "sangli rojgar",
-    "maharashtra jobs", "miraj jobs", "सांगली रोजगार",
-    "नोकरी सांगली", "कामगार हवे सांगली", "sangli district jobs",
-    "sangli job vacancy", "work in sangli", "jobs near sangli",
-    "तासगाव नोकरी", "कुपवाड नोकरी", "मिरज नोकरी",
-    "driver job sangli", "electrician job sangli", "plumber job sangli",
+    "महाजॉब", "mahajob", "maharashtra jobs", "maharashtra naukri",
+    "नोकरी महाराष्ट्र", "jobs in maharashtra", "महाराष्ट्र नोकऱ्या",
+    "sangli jobs", "pune jobs", "kolhapur jobs", "mumbai jobs",
+    "सांगली नोकरी", "पुणे नोकरी", "कोल्हापूर नोकरी",
+    "driver job maharashtra", "electrician job maharashtra", "plumber job maharashtra",
+    "कामगार हवे", "मोफत जाहिरात",
   ],
   manifest: "/manifest.json",
   alternates: {
@@ -35,21 +35,21 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "mr_IN",
-    siteName: "सांगली रोजगार",
-    title: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या",
-    description: "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
+    siteName: "महाजॉब",
+    title: "महाजॉब — महाराष्ट्रातील नोकऱ्या",
+    description: "महाराष्ट्रातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
     url: SITE_URL,
     images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
   },
   twitter: {
     card: "summary",
-    title: "सांगली रोजगार — Jobs in Sangli",
-    description: "सांगली जिल्ह्यातील नोकऱ्या शोधा. ड्रायव्हर, सेल्समन, प्लंबर — थेट फोन करा.",
+    title: "महाजॉब — Jobs in Maharashtra",
+    description: "महाराष्ट्रातील नोकऱ्या शोधा. ड्रायव्हर, सेल्समन, प्लंबर — थेट फोन करा.",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "रोजगार",
+    title: "महाजॉब",
   },
   icons: [
     { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
@@ -79,7 +79,7 @@ export default function RootLayout({
               className="font-bold text-lg shrink-0"
               style={{ color: "#FF6B00" }}
             >
-              सांगली रोजगार
+              महाजॉब
             </Link>
             <div className="flex gap-1.5">
               <Link
@@ -108,7 +108,7 @@ export default function RootLayout({
         </nav>
         <main className="max-w-3xl mx-auto px-4 py-5">{children}</main>
         <footer className="text-center text-gray-400 text-xs py-6 pb-8">
-          सांगली रोजगार
+          महाजॉब
         </footer>
         <RegisterSW />
         <InstallBanner />

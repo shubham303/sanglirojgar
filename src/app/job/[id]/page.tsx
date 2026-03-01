@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title,
       description,
       type: "article",
-      siteName: "सांगली रोजगार",
+      siteName: "महाजॉब",
       url: `${SITE_URL}/job/${id}`,
     },
   };

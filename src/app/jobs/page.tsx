@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { TALUKAS } from "@/lib/constants";
+import { DISTRICTS, DISTRICT_TALUKAS, TALUKAS } from "@/lib/constants";
 import { Job } from "@/lib/types";
 import { formatDateMarathi } from "@/lib/utils";
 
@@ -45,6 +45,7 @@ export default function BrowseJobs() {
 
   // Filter state (applied on button press)
   const [filterJobType, setFilterJobType] = useState("सर्व");
+  const [filterDistrict, setFilterDistrict] = useState("सर्व");
   const [filterTaluka, setFilterTaluka] = useState("सर्व");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -148,6 +149,7 @@ export default function BrowseJobs() {
 
   const clearFilters = () => {
     setFilterJobType("सर्व");
+    setFilterDistrict("सर्व");
     setFilterTaluka("सर्व");
     // Also apply immediately
     setAppliedJobType("सर्व");
@@ -244,6 +246,25 @@ export default function BrowseJobs() {
 
             <div className="flex-1">
               <label className="block text-xs font-medium text-gray-500 mb-1">
+                जिल्हा
+              </label>
+              <select
+                value={filterDistrict}
+                onChange={(e) => { setFilterDistrict(e.target.value); setFilterTaluka("सर्व"); }}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
+                style={{ borderColor: filterDistrict !== "सर्व" ? "#FF6B00" : undefined }}
+              >
+                <option value="सर्व">सर्व</option>
+                {DISTRICTS.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-500 mb-1">
                 तालुका
               </label>
               <select
@@ -253,7 +274,7 @@ export default function BrowseJobs() {
                 style={{ borderColor: filterTaluka !== "सर्व" ? "#FF6B00" : undefined }}
               >
                 <option value="सर्व">सर्व</option>
-                {TALUKAS.map((taluka) => (
+                {(filterDistrict !== "सर्व" ? DISTRICT_TALUKAS[filterDistrict] || [] : TALUKAS).map((taluka) => (
                   <option key={taluka} value={taluka}>
                     {taluka}
                   </option>

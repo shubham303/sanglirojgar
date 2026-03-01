@@ -1,3 +1,5 @@
+import districtTalukasData from "./district-talukas.json";
+
 export const JOB_TYPES = [
   "सेल्समन (Salesman)",
   "डिलिव्हरी बॉय (Delivery Boy)",
@@ -19,53 +21,9 @@ export const JOB_TYPES = [
   "इतर (Other)",
 ];
 
-export const DISTRICTS = [
-  "सांगली",
-  "पुणे",
-  "मुंबई",
-  "नागपूर",
-  "नाशिक",
-  "औरंगाबाद",
-  "सोलापूर",
-  "कोल्हापूर",
-  "सातारा",
-  "अहमदनगर",
-  "रत्नागिरी",
-  "ठाणे",
-  "रायगड",
-  "सिंधुदुर्ग",
-  "पालघर",
-  "धुळे",
-  "जळगाव",
-  "नंदुरबार",
-  "अमरावती",
-  "अकोला",
-  "बुलढाणा",
-  "यवतमाळ",
-  "वाशीम",
-  "वर्धा",
-  "भंडारा",
-  "गोंदिया",
-  "चंद्रपूर",
-  "गडचिरोली",
-  "जालना",
-  "बीड",
-  "लातूर",
-  "उस्मानाबाद",
-  "नांदेड",
-  "परभणी",
-  "हिंगोली",
-];
+export const DISTRICT_TALUKAS: Record<string, string[]> = districtTalukasData;
 
-export const TALUKAS = [
-  "सांगली",
-  "मिरज",
-  "कुपवाड",
-  "तासगाव",
-  "खानापूर",
-  "आटपाडी",
-  "जत",
-  "कवठेमहांकाळ",
-  "वाळवा",
-  "पलूस",
-];
+export const DISTRICTS = Object.keys(DISTRICT_TALUKAS);
+
+// Flat list of all talukas (for filters that show all)
+export const TALUKAS = Object.values(DISTRICT_TALUKAS).flat();

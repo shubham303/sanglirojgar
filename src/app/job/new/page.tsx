@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { TALUKAS, DISTRICTS } from "@/lib/constants";
+import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 
 export default function PostJob() {
@@ -152,7 +152,7 @@ export default function PostJob() {
         <Field label="जिल्हा" error={errors.district}>
           <select
             value={form.district}
-            onChange={(e) => setForm({ ...form, district: e.target.value })}
+            onChange={(e) => setForm({ ...form, district: e.target.value, taluka: "" })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             {DISTRICTS.map((d) => (
@@ -170,7 +170,7 @@ export default function PostJob() {
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
-            {TALUKAS.map((t) => (
+            {(DISTRICT_TALUKAS[form.district] || []).map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>

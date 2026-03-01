@@ -3,9 +3,9 @@ import HomeClient from "./components/HomeClient";
 import { SITE_URL } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "सांगली रोजगार — सांगली जिल्ह्यातील नोकऱ्या | Jobs in Sangli Maharashtra",
+  title: "महाजॉब — महाराष्ट्रातील नोकऱ्या | Jobs in Maharashtra",
   description:
-    "सांगली जिल्ह्यातील नोकऱ्या शोधा — सांगली, मिरज, तासगाव, कुपवाड, जत, वाळवा. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर. मोफत जाहिरात द्या. थेट फोन करा. Find jobs in Sangli district, Maharashtra.",
+    "महाराष्ट्रातील नोकऱ्या शोधा — सांगली, पुणे, कोल्हापूर, मुंबई, नाशिक. ड्रायव्हर, सेल्समन, इलेक्ट्रिशियन, प्लंबर. मोफत जाहिरात द्या. थेट फोन करा. Find jobs in Maharashtra.",
   alternates: {
     canonical: SITE_URL,
   },
@@ -17,21 +17,21 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "WebSite",
-      name: "सांगली रोजगार",
-      alternateName: "Sangli Rojgar",
+      name: "महाजॉब",
+      alternateName: "MahaJob",
       url: SITE_URL,
       description:
-        "सांगली जिल्ह्यातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. Jobs in Sangli, Maharashtra.",
+        "महाराष्ट्रातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. Jobs in Maharashtra.",
       inLanguage: "mr",
     },
     {
       "@type": "Organization",
-      name: "सांगली रोजगार",
+      name: "महाजॉब",
       url: SITE_URL,
       logo: `${SITE_URL}/icons/icon-512x512.png`,
       areaServed: {
         "@type": "AdministrativeArea",
-        name: "Sangli District, Maharashtra, India",
+        name: "Maharashtra, India",
       },
     },
   ],

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Job, JobType } from "@/lib/types";
-import { TALUKAS } from "@/lib/constants";
+import { TALUKAS, DISTRICTS } from "@/lib/constants";
 import { formatDateMarathi } from "@/lib/utils";
 
 type AdminTab = "job_types" | "all_jobs";

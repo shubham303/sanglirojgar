@@ -10,10 +10,10 @@ export default function HomeClient() {
       {/* Hero */}
       <div className="mt-6 mb-5">
         <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: "#FF6B00" }}>
-          सांगली रोजगार
+          महाजॉब
         </h1>
         <p className="text-base sm:text-lg text-gray-500 mt-2">
-          सांगली जिल्ह्यातील नोकऱ्या — थेट फोन करा
+          महाराष्ट्रातील नोकऱ्या — थेट फोन करा
         </p>
       </div>
 
@@ -69,7 +69,7 @@ export default function HomeClient() {
           >
             <p className="font-semibold text-gray-800 text-base mb-1">मालकांसाठी</p>
             <p className="text-sm text-gray-500 leading-relaxed">
-              तुमच्या दुकान, कारखाना, शेत किंवा व्यवसायासाठी कामगार शोधा — सांगली जिल्ह्यातील सर्व तालुक्यांमध्ये
+              तुमच्या दुकान, कारखाना, शेत किंवा व्यवसायासाठी कामगार शोधा — संपूर्ण महाराष्ट्रामध्ये
             </p>
           </div>
         </div>
@@ -77,9 +77,9 @@ export default function HomeClient() {
 
       {/* SEO content — visible, useful for users too */}
       <div className="w-full max-w-md mt-2 mb-5">
-        <h2 className="text-sm font-semibold text-gray-400 mb-2">सांगली जिल्ह्यातील नोकऱ्या</h2>
+        <h2 className="text-sm font-semibold text-gray-400 mb-2">महाराष्ट्रातील नोकऱ्या</h2>
         <p className="text-xs text-gray-400 leading-relaxed">
-          सांगली, मिरज, कुपवाड, तासगाव, खानापूर, आटपाडी, जत, कवठेमहांकाळ, वाळवा, पलूस — सर्व तालुक्यांमधील नोकऱ्या एकाच ठिकाणी. सेल्समन, ड्रायव्हर, इलेक्ट्रिशियन, प्लंबर, वेल्डर, मेकॅनिक, सुतार, वेटर, स्वयंपाकी, डिलिव्हरी बॉय — सर्व प्रकारच्या नोकऱ्या.
+          सांगली, पुणे, कोल्हापूर, मुंबई, नाशिक, औरंगाबाद, सोलापूर, सातारा, नागपूर — संपूर्ण महाराष्ट्रातील नोकऱ्या एकाच ठिकाणी. सेल्समन, ड्रायव्हर, इलेक्ट्रिशियन, प्लंबर, वेल्डर, मेकॅनिक, सुतार, वेटर, स्वयंपाकी, डिलिव्हरी बॉय — सर्व प्रकारच्या नोकऱ्या.
         </p>
       </div>
 
