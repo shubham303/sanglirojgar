@@ -43,6 +43,7 @@ export interface DbClient {
   addJobType(name: string): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
   incrementJobClick(id: string, field: "call_count" | "whatsapp_count"): Promise<{ error: string | null }>;
+  expireOldJobs(): Promise<DbResult<Job[]>>;
   getEmployers(): Promise<DbResult<Employer[]>>;
 }
 

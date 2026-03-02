@@ -47,7 +47,8 @@ export function createSupabaseDb(): DbClient {
       let query = supabase
         .from("jobs")
         .select("*", { count: "exact" })
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .gt("expires_at", new Date().toISOString());
 
       if (filters.job_type_id) {
         query = query.eq("job_type_id", filters.job_type_id);
@@ -253,6 +254,31 @@ export function createSupabaseDb(): DbClient {
         .eq("id", id);
 
       return { error: error?.message ?? null };
+    },
+
+    async expireOldJobs() {
+      const now = new Date().toISOString();
+
+      // Find jobs that are active but past their expiry
+      const { data: expiredJobs, error: selectErr } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("is_active", true)
+        .lt("expires_at", now);
+
+      if (selectErr) return { data: null, error: selectErr.message };
+      if (!expiredJobs || expiredJobs.length === 0) return { data: [], error: null };
+
+      const ids = expiredJobs.map((j: Job) => j.id);
+      const { error: updateErr } = await supabase
+        .from("jobs")
+        .update({ is_active: false })
+        .in("id", ids);
+
+      if (updateErr) return { data: null, error: updateErr.message };
+
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplayToList(labelMap, expiredJobs as Job[]), error: null };
     },
 
     async getEmployers() {

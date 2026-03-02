@@ -17,6 +17,7 @@ export interface Job {
   whatsapp_count: number;
   created_at: string;
   is_active: boolean;
+  expires_at?: string;
 }
 
 export interface JobType {

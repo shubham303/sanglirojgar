@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getFirstValidationError } from "@/lib/validation";
 import { prepareJobData, validateTalukaDistrict } from "@/lib/job-data";
+import { JOB_EXPIRY_MS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await db.createJob({
     ...jobData,
     is_active: true,
+    expires_at: new Date(Date.now() + JOB_EXPIRY_MS).toISOString(),
   });
 
   if (error) {

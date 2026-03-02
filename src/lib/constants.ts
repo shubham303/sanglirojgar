@@ -1,3 +1,7 @@
+// Job expiry
+export const JOB_EXPIRY_DAYS = 30;
+export const JOB_EXPIRY_MS = JOB_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
 // Job types — single source of truth
 export const JOB_TYPES = [
   { id: 1, marathi: "सेल्समन", english: "Salesman" },

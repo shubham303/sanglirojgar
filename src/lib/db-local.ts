@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import { randomUUID } from "crypto";
 import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
-import { JOB_TYPES, getJobTypeLabel } from "./constants";
+import { JOB_TYPES, JOB_EXPIRY_DAYS, getJobTypeLabel } from "./constants";
 
 let _pool: Pool | null = null;
 let _initialized = false;
@@ -93,6 +93,10 @@ async function ensureTablesExist() {
     )
   `);
 
+  // Add expires_at column if missing, backfill existing rows
+  await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ`);
+  await pool.query(`UPDATE jobs SET expires_at = created_at + INTERVAL '${JOB_EXPIRY_DAYS} days' WHERE expires_at IS NULL`);
+
   _initialized = true;
 }
 
@@ -102,7 +106,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const pool = getPool();
-        const conditions = ["is_active = TRUE"];
+        const conditions = ["is_active = TRUE", "expires_at > NOW()"];
         const values: unknown[] = [];
         let paramIdx = 1;
 
@@ -249,8 +253,8 @@ export function createLocalDb(): DbClient {
         const id = randomUUID();
         const now = new Date().toISOString();
         await getPool().query(
-          `INSERT INTO jobs (id, employer_name, phone, job_type_id, state, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender, created_at, is_active)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
+          `INSERT INTO jobs (id, employer_name, phone, job_type_id, state, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender, created_at, is_active, expires_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
           [
             id,
             job.employer_name,
@@ -267,6 +271,7 @@ export function createLocalDb(): DbClient {
             job.gender || "both",
             now,
             job.is_active,
+            (job as Record<string, unknown>).expires_at || null,
           ]
         );
         const { rows } = await getPool().query(
@@ -414,6 +419,30 @@ export function createLocalDb(): DbClient {
         return { error: null };
       } catch (e: unknown) {
         return { error: (e as Error).message };
+      }
+    },
+
+    async expireOldJobs() {
+      try {
+        await ensureTablesExist();
+        const pool = getPool();
+
+        // Find active jobs past expiry
+        const { rows: expiredJobs } = await pool.query(
+          "SELECT * FROM jobs WHERE is_active = TRUE AND expires_at < NOW()"
+        );
+
+        if (expiredJobs.length === 0) return { data: [], error: null };
+
+        // Mark them inactive
+        await pool.query(
+          "UPDATE jobs SET is_active = FALSE WHERE is_active = TRUE AND expires_at < NOW()"
+        );
+
+        const labelMap = await getJobTypeLabelMap();
+        return { data: addJobTypeDisplayToList(labelMap, expiredJobs as Job[]), error: null };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
       }
     },
 

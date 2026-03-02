@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getFirstValidationError } from "@/lib/validation";
 import { prepareJobData, validateTalukaDistrict } from "@/lib/job-data";
+import { JOB_EXPIRY_MS } from "@/lib/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +69,13 @@ export async function PATCH(
     );
   }
 
-  const { data, error } = await db.updateJob(id, { is_active: body.is_active });
+  const updateData: Record<string, unknown> = { is_active: body.is_active };
+  // Reset expiry on reactivation
+  if (body.is_active === true) {
+    updateData.expires_at = new Date(Date.now() + JOB_EXPIRY_MS).toISOString();
+  }
+
+  const { data, error } = await db.updateJob(id, updateData);
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
