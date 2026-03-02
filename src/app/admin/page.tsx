@@ -115,7 +115,11 @@ export default function AdminPage() {
       const res = await fetch(`/api/admin/jobs?${params.toString()}`);
       if (res.ok) {
         const data: PaginatedJobs = await res.json();
-        setJobs((prev) => (append ? [...prev, ...data.jobs] : data.jobs));
+        setJobs((prev) => {
+          if (!append) return data.jobs;
+          const existing = new Set(prev.map((j) => j.id));
+          return [...prev, ...data.jobs.filter((j) => !existing.has(j.id))];
+        });
         setJobsTotal(data.total);
         setJobsPage(data.page);
         setJobsHasMore(data.hasMore);
