@@ -421,7 +421,7 @@ export default function BrowseJobs() {
                         body: JSON.stringify({ type: "whatsapp" }),
                       });
                       trackEvent("whatsapp_click", { job_id: job.id, job_type: job.job_type_display, employer: job.employer_name });
-                      const waMsg = encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.`);
+                      const waMsg = encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${job.id}`);
                       window.open(`https://wa.me/91${job.phone}?text=${waMsg}`, "_blank");
                     }}
                     className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"

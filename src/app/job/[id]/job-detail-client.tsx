@@ -160,7 +160,7 @@ export default function JobDetail() {
             📞 फोन करा: {job.phone}
           </a>
           <a
-            href={`https://wa.me/91${job.phone}?text=${encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.`)}`}
+            href={`https://wa.me/91${job.phone}?text=${encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${id}`)}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
