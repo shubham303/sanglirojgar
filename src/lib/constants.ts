@@ -1,24 +1,114 @@
-import districtTalukasData from "./district-talukas.json";
-import jobTypesData from "./job-types.json";
+// Job types — single source of truth
+export const JOB_TYPES = [
+  { id: 1, marathi: "सेल्समन", english: "Salesman" },
+  { id: 2, marathi: "डिलिव्हरी बॉय", english: "Delivery Boy" },
+  { id: 3, marathi: "स्वयंपाकी", english: "Cook" },
+  { id: 4, marathi: "वेटर", english: "Waiter" },
+  { id: 5, marathi: "सुरक्षा रक्षक", english: "Security Guard" },
+  { id: 6, marathi: "ड्रायव्हर", english: "Driver" },
+  { id: 7, marathi: "मेकॅनिक", english: "Mechanic" },
+  { id: 8, marathi: "इलेक्ट्रिशियन", english: "Electrician" },
+  { id: 9, marathi: "प्लंबर", english: "Plumber" },
+  { id: 10, marathi: "सुतार", english: "Carpenter" },
+  { id: 11, marathi: "वेल्डर", english: "Welder" },
+  { id: 12, marathi: "शिपाई", english: "Peon" },
+  { id: 13, marathi: "सफाई कर्मचारी", english: "Cleaner" },
+  { id: 14, marathi: "रिसेप्शनिस्ट", english: "Receptionist" },
+  { id: 15, marathi: "दुकान सहाय्यक", english: "Shop Assistant" },
+  { id: 16, marathi: "गोडाउन कामगार", english: "Warehouse Worker" },
+  { id: 17, marathi: "हेल्पर", english: "Helper" },
+  { id: 18, marathi: "सुपरवायझर", english: "Supervisor" },
+  { id: 19, marathi: "टेलिकॉलर", english: "Telecaller" },
+  { id: 20, marathi: "एचआर", english: "HR" },
+  { id: 21, marathi: "बँक कर्मचारी", english: "Bank Staff" },
+  { id: 22, marathi: "कॉम्प्युटर ऑपरेटर", english: "Computer Operator" },
+  { id: 23, marathi: "शिक्षक", english: "Teacher" },
+  { id: 24, marathi: "नर्स", english: "Nurse" },
+  { id: 25, marathi: "तंत्रज्ञ", english: "Technician" },
+  { id: 26, marathi: "मशीन ऑपरेटर", english: "Machine Operator" },
+  { id: 27, marathi: "ऑफिस सहाय्यक", english: "Office Assistant" },
+  { id: 28, marathi: "फील्ड वर्कर", english: "Field Worker" },
+  { id: 29, marathi: "इंजिनिअर", english: "Engineer" },
+  { id: 30, marathi: "व्हिडिओ एडिटर", english: "Video Editor" },
+  { id: 31, marathi: "मार्केटिंग", english: "Marketing" },
+  { id: 32, marathi: "अकाउंटंट", english: "Accountant" },
+  { id: 33, marathi: "कामगार", english: "Worker" },
+  { id: 34, marathi: "इतर", english: "Other" },
+] as const;
 
-// Job types — single source of truth from job-types.json
-export const JOB_TYPES = jobTypesData;
+// Dropdown options: array of {id, label} for forms and filters
+export const JOB_TYPE_OPTIONS = JOB_TYPES.map((jt) => ({
+  id: jt.id,
+  label: `${jt.marathi} (${jt.english})`,
+}));
 
-// Marathi-only names (used as form values, filter params, DB values)
-export const JOB_TYPE_NAMES = jobTypesData.map((jt) => jt.marathi);
-
-// Returns bilingual label: "मराठी (English)"
-const jobTypeLabelMap = new Map<string, string>();
-for (const jt of jobTypesData) {
-  jobTypeLabelMap.set(jt.marathi, `${jt.marathi} (${jt.english})`);
+// Lookup maps
+const jobTypeLabelById = new Map<number, string>();
+const jobTypeMarathiById = new Map<number, string>();
+const jobTypeIdByMarathi = new Map<string, number>();
+for (const jt of JOB_TYPES) {
+  jobTypeLabelById.set(jt.id, `${jt.marathi} (${jt.english})`);
+  jobTypeMarathiById.set(jt.id, jt.marathi);
+  jobTypeIdByMarathi.set(jt.marathi, jt.id);
 }
-export function getJobTypeLabel(name: string): string {
-  return jobTypeLabelMap.get(name) || name;
+
+/** Returns bilingual label: "मराठी (English)" for a numeric ID */
+export function getJobTypeLabel(id: number): string {
+  return jobTypeLabelById.get(id) || `#${id}`;
+}
+
+/** Returns Marathi name for a numeric ID */
+export function getJobTypeMarathi(id: number): string {
+  return jobTypeMarathiById.get(id) || "इतर";
+}
+
+/** Returns numeric ID for a Marathi name (used by import scripts) */
+export function getJobTypeIdByMarathi(name: string): number | undefined {
+  return jobTypeIdByMarathi.get(name);
 }
 
 export const GENDERS = ["पुरुष (Male)", "महिला (Female)", "दोन्ही (Both)"];
 
-export const DISTRICT_TALUKAS: Record<string, string[]> = districtTalukasData;
+// District-talukas — single source of truth
+export const DISTRICT_TALUKAS: Record<string, string[]> = {
+  "सांगली": ["सांगली", "मिरज", "कुपवाड", "तासगाव", "खानापूर", "आटपाडी", "जत", "कवठेमहांकाळ", "वाळवा", "पलूस"],
+  "पुणे": ["पुणे शहर", "हवेली", "बारामती", "इंदापूर", "दौंड", "जुन्नर", "खेड", "मावळ", "मुळशी", "पुरंदर", "शिरूर", "वेल्हे", "भोर", "आंबेगाव"],
+  "मुंबई": ["मुंबई शहर", "मुंबई उपनगर"],
+  "नागपूर": ["नागपूर शहर", "नागपूर ग्रामीण", "हिंगणा", "काटोल", "कामठी", "नरखेड", "पारशिवनी", "रामटेक", "सावनेर", "उमरेड", "कुही", "भिवापूर", "मौदा"],
+  "नाशिक": ["नाशिक", "इगतपुरी", "दिंडोरी", "कळवण", "मालेगाव", "नांदगाव", "निफाड", "पेठ", "सिन्नर", "सुरगाणा", "त्र्यंबकेश्वर", "येवला", "चांदवड", "देवळा", "बागलाण"],
+  "औरंगाबाद": ["औरंगाबाद", "कन्नड", "खुलताबाद", "गंगापूर", "पैठण", "फुलंब्री", "सिल्लोड", "सोयगाव", "वैजापूर"],
+  "सोलापूर": ["सोलापूर उत्तर", "सोलापूर दक्षिण", "अक्कलकोट", "बार्शी", "करमाळा", "माढा", "माळशिरस", "मोहोळ", "पंढरपूर", "सांगोला", "मंगळवेढा"],
+  "कोल्हापूर": ["कोल्हापूर", "करवीर", "पन्हाळा", "शाहूवाडी", "हातकणंगले", "शिरोळ", "इचलकरंजी", "कागल", "गडहिंग्लज", "चंदगड", "आजरा", "भुदरगड", "राधानगरी", "गगनबावडा", "बावडा"],
+  "सातारा": ["सातारा", "कराड", "वाई", "महाबळेश्वर", "पाटण", "जावळी", "फलटण", "मान", "खटाव", "कोरेगाव", "खंडाळा"],
+  "अहमदनगर": ["अहमदनगर", "श्रीरामपूर", "कोपरगाव", "संगमनेर", "राहाता", "नेवासा", "शेवगाव", "पाथर्डी", "जामखेड", "कर्जत", "पारनेर", "राहुरी", "अकोले"],
+  "रत्नागिरी": ["रत्नागिरी", "चिपळूण", "गुहागर", "दापोली", "खेड", "लांजा", "राजापूर", "संगमेश्वर", "मंडणगड"],
+  "ठाणे": ["ठाणे", "कल्याण", "भिवंडी", "उल्हासनगर", "अंबरनाथ", "मुरबाड", "शहापूर"],
+  "रायगड": ["अलिबाग", "पेण", "पनवेल", "उरण", "कर्जत", "खालापूर", "महाड", "माणगाव", "मुरुड", "पोलादपूर", "रोहा", "श्रीवर्धन", "सुधागड", "तळा"],
+  "सिंधुदुर्ग": ["सिंधुदुर्ग", "कुडाळ", "मालवण", "सावंतवाडी", "वेंगुर्ला", "देवगड", "कणकवली", "दोडामार्ग"],
+  "पालघर": ["पालघर", "वसई", "डहाणू", "तलासरी", "जव्हार", "मोखाडा", "विक्रमगड", "वाडा"],
+  "धुळे": ["धुळे", "शिरपूर", "शिंदखेडा", "साक्री"],
+  "जळगाव": ["जळगाव", "भुसावळ", "चोपडा", "एरंडोल", "जामनेर", "पाचोरा", "रावेर", "यावल", "अमळनेर", "बोदवड", "चाळीसगाव", "धरणगाव", "मुक्ताईनगर", "पारोळा"],
+  "नंदुरबार": ["नंदुरबार", "शहादा", "तळोदा", "नवापूर", "अक्कलकुवा", "अक्राणी"],
+  "अमरावती": ["अमरावती", "अचलपूर", "चांदूर बाजार", "चांदूर रेल्वे", "धामणगाव रेल्वे", "मोर्शी", "वरुड", "तिवसा", "नांदगाव खंडेश्वर", "भातकुली", "अंजनगाव सुर्जी", "दर्यापूर", "चिखलदरा", "धारणी"],
+  "अकोला": ["अकोला", "अकोट", "बाळापूर", "मूर्तिजापूर", "पातूर", "तेल्हारा", "बार्शीटाकळी"],
+  "बुलढाणा": ["बुलढाणा", "चिखली", "देऊळगाव राजा", "जळगाव जामोद", "खामगाव", "लोणार", "मलकापूर", "मेहकर", "मोताळा", "नांदुरा", "संग्रामपूर", "शेगाव", "सिंदखेड राजा"],
+  "यवतमाळ": ["यवतमाळ", "अर्णी", "बाभूळगाव", "दारव्हा", "दिग्रस", "घाटंजी", "कळंब", "केळापूर", "महागाव", "नेर", "पांढरकवडा", "पुसद", "राळेगाव", "उमरखेड", "वणी", "झरीझामणी"],
+  "वाशीम": ["वाशीम", "कारंजा", "मालेगाव", "मंगरूळपीर", "मानोरा", "रिसोड"],
+  "वर्धा": ["वर्धा", "आर्वी", "आष्टी", "देवळी", "हिंगणघाट", "कारंजा", "सेलू", "समुद्रपूर"],
+  "भंडारा": ["भंडारा", "तुमसर", "पवनी", "मोहाडी", "साकोली", "लाखनी", "लाखांदूर"],
+  "गोंदिया": ["गोंदिया", "तिरोडा", "गोरेगाव", "अर्जुनी मोरगाव", "आमगाव", "देवरी", "सडक अर्जुनी", "सालेकसा"],
+  "चंद्रपूर": ["चंद्रपूर", "बल्लारपूर", "ब्रह्मपुरी", "चिमूर", "गोंडपिंपरी", "जिवती", "कोरपना", "मूल", "नागभीड", "पोंभुर्णा", "राजुरा", "सावली", "सिंदेवाही", "वरोरा"],
+  "गडचिरोली": ["गडचिरोली", "अहेरी", "आरमोरी", "चामोर्शी", "देसाईगंज", "धानोरा", "एटापल्ली", "कुरखेडा", "मुलचेरा", "सिरोंचा", "भामरागड", "कोरची"],
+  "जालना": ["जालना", "अंबड", "बदनापूर", "भोकरदन", "घनसावंगी", "जाफराबाद", "मंठा", "परतूर"],
+  "बीड": ["बीड", "आष्टी", "अंबाजोगाई", "गेवराई", "धारूर", "केज", "माजलगाव", "पाटोदा", "परळी", "शिरूर कासार", "वडवणी"],
+  "लातूर": ["लातूर", "अहमदपूर", "औसा", "चाकूर", "देवणी", "जळकोट", "निलंगा", "रेणापूर", "शिरूर अनंतपाळ", "उदगीर"],
+  "उस्मानाबाद": ["उस्मानाबाद", "उमरगा", "तुळजापूर", "लोहारा", "कळंब", "भूम", "परांडा", "वाशी"],
+  "नांदेड": ["नांदेड", "अर्धापूर", "भोकर", "बिलोली", "देगलूर", "धर्माबाद", "हदगाव", "हिमायतनगर", "कंधार", "किनवट", "लोहा", "माहूर", "मुदखेड", "मुखेड", "नायगाव", "उमरी"],
+  "परभणी": ["परभणी", "गंगाखेड", "जिंतूर", "मानवत", "पाथरी", "पालम", "पूर्णा", "सेलू", "सोनपेठ"],
+  "हिंगोली": ["हिंगोली", "औंढा नागनाथ", "बसमत", "कळमनुरी", "सेनगाव"],
+};
+
+export type District = keyof typeof DISTRICT_TALUKAS;
 
 export const DISTRICTS = Object.keys(DISTRICT_TALUKAS);
 

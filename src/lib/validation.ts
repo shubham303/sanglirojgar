@@ -1,7 +1,7 @@
 export interface JobFormData {
   employer_name: string;
   phone: string;
-  job_type: string;
+  job_type_id: string | number;
   district: string;
   taluka: string;
   salary: string;
@@ -15,7 +15,7 @@ export interface JobFormData {
 export interface JobFormErrors {
   employer_name?: string;
   phone?: string;
-  job_type?: string;
+  job_type_id?: string;
   district?: string;
   taluka?: string;
   salary?: string;
@@ -37,8 +37,9 @@ export function validateJobForm(form: JobFormData): JobFormErrors {
     errs.phone = "फोन नंबर 10 अंकी असणे आवश्यक आहे";
   }
 
-  if (!form.job_type) {
-    errs.job_type = "हे क्षेत्र रिकामे ठेवता येणार नाही";
+  const jtId = typeof form.job_type_id === "string" ? parseInt(form.job_type_id) : form.job_type_id;
+  if (!jtId || isNaN(jtId)) {
+    errs.job_type_id = "हे क्षेत्र रिकामे ठेवता येणार नाही";
   }
 
   if (!form.district) {

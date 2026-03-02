@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
-import { formatDateMarathi, formatLocation } from "@/lib/utils";
+import { JobCardInfo } from "@/app/components/JobCardInfo";
 
 export default function EmployerJobs() {
   const params = useParams();
@@ -145,7 +145,7 @@ export default function EmployerJobs() {
                     className="text-base font-bold"
                     style={{ color: job.is_active ? "#FF6B00" : "#6b7280" }}
                   >
-                    {job.job_type}
+                    {job.job_type_display}
                   </h2>
                   {!job.is_active && (
                     <span
@@ -156,35 +156,14 @@ export default function EmployerJobs() {
                     </span>
                   )}
                 </div>
-                <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-                  {formatDateMarathi(job.created_at)}
-                </span>
               </div>
-              <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
-                <p>
-                  <span className="font-medium text-gray-500">ठिकाण:</span> {formatLocation(job.taluka, job.district)}
-                </p>
-                {job.description && (
-                  <p className="text-gray-500">{job.description}</p>
-                )}
-                {(job.minimum_education || job.experience_years) && (
-                  <p className="text-xs text-gray-500">
-                    {[
-                      job.minimum_education,
-                      job.experience_years && (job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे अनुभव`),
-                    ].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-                <p className="font-semibold text-gray-800">
-                  ₹ {job.salary}
-                </p>
-                <p className="text-xs text-gray-400">
-                  कामगार हवे: {job.workers_needed}
-                </p>
-                <p className="text-xs text-gray-400">
-                  📞 {job.call_count ?? 0} कॉल &nbsp; 💬 {job.whatsapp_count ?? 0} WhatsApp
-                </p>
-              </div>
+              <JobCardInfo
+                job={job}
+                hideHeader
+                showDescription
+                showWorkerCount
+                showClickCounts
+              />
 
               <div className="flex flex-wrap gap-2 mt-3 pt-3" style={{ borderTop: "1px solid #f3f4f6" }}>
                 {job.is_active ? (

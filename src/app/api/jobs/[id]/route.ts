@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getFirstValidationError } from "@/lib/validation";
+import { prepareJobData, validateTalukaDistrict } from "@/lib/job-data";
 
 export const dynamic = "force-dynamic";
 
@@ -35,22 +36,14 @@ export async function PUT(
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const { employer_name, phone, job_type, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender } = body;
+  const jobData = prepareJobData(body);
 
-  const { data, error } = await db.updateJob(id, {
-    employer_name: employer_name.trim(),
-    phone,
-    job_type,
-    state: "महाराष्ट्र",
-    district: district || "सांगली",
-    taluka,
-    salary: salary.trim(),
-    description: description ? description.trim() : "",
-    minimum_education: minimum_education || null,
-    experience_years: experience_years || null,
-    workers_needed: typeof workers_needed === "string" ? parseInt(workers_needed) : workers_needed,
-    gender: gender || "both",
-  });
+  const talukaError = validateTalukaDistrict(jobData.district, jobData.taluka);
+  if (talukaError) {
+    return NextResponse.json({ error: talukaError }, { status: 400 });
+  }
+
+  const { data, error } = await db.updateJob(id, jobData);
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });

@@ -2,7 +2,19 @@ import type { Metadata } from "next";
 import { getDb } from "@/lib/db";
 import { SITE_URL } from "@/lib/config";
 import { formatLocation } from "@/lib/utils";
+import { getJobTypeMarathi } from "@/lib/constants";
 import JobDetailClient from "./job-detail-client";
+
+/** Resolve Marathi name from job_type_display ("मराठी (English)") or fall back to constants */
+function resolveJobTypeMarathi(job: { job_type_id: number; job_type_display?: string }): string {
+  if (job.job_type_display) {
+    // job_type_display is "मराठी (English)" — extract the Marathi part before " ("
+    const idx = job.job_type_display.indexOf(" (");
+    if (idx > 0) return job.job_type_display.slice(0, idx);
+    return job.job_type_display;
+  }
+  return resolveJobTypeMarathi(job);
+}
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -20,10 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const loc = formatLocation(job.taluka, job.district);
-  const title = `${job.job_type} — ${loc} | पगार ₹${job.salary}`;
+  const jobTypeName = resolveJobTypeMarathi(job);
+  const title = `${jobTypeName} — ${loc} | पगार ₹${job.salary}`;
   const description = job.description
-    ? `${job.job_type} नोकरी ${loc} मध्ये. पगार: ₹${job.salary}. ${job.description.slice(0, 120)}`
-    : `${job.job_type} नोकरी ${loc} मध्ये. पगार: ₹${job.salary}. ${job.employer_name} यांच्याकडे. थेट फोन करा.`;
+    ? `${jobTypeName} नोकरी ${loc} मध्ये. पगार: ₹${job.salary}. ${job.description.slice(0, 120)}`
+    : `${jobTypeName} नोकरी ${loc} मध्ये. पगार: ₹${job.salary}. ${job.employer_name} यांच्याकडे. थेट फोन करा.`;
 
   return {
     title,
@@ -51,8 +64,8 @@ export default async function JobDetailPage({ params }: Props) {
     ? {
         "@context": "https://schema.org",
         "@type": "JobPosting",
-        title: job.job_type,
-        description: job.description || `${job.job_type} — ${formatLocation(job.taluka, job.district)}`,
+        title: resolveJobTypeMarathi(job),
+        description: job.description || `${resolveJobTypeMarathi(job)} — ${formatLocation(job.taluka, job.district)}`,
         datePosted: job.created_at,
         jobLocation: {
           "@type": "Place",

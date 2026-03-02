@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { getFirstValidationError } from "@/lib/validation";
+import { prepareJobData, validateTalukaDistrict } from "@/lib/job-data";
 
 export const dynamic = "force-dynamic";
 
@@ -11,14 +12,17 @@ export async function GET(request: NextRequest) {
 
   const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")));
-  const job_type = searchParams.get("job_type") || undefined;
+  const job_type_id_raw = searchParams.get("job_type_id");
+  const job_type_id = job_type_id_raw ? parseInt(job_type_id_raw) : undefined;
+  const district = searchParams.get("district") || undefined;
   const taluka = searchParams.get("taluka") || undefined;
   const search = searchParams.get("search") || undefined;
 
   const { data, error } = await db.getActiveJobsPaginated({
     page,
     limit,
-    job_type,
+    job_type_id,
+    district,
     taluka,
     search,
   });
@@ -40,21 +44,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  const { employer_name, phone, job_type, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender } = body;
+  const jobData = prepareJobData(body);
+
+  const talukaError = validateTalukaDistrict(jobData.district, jobData.taluka);
+  if (talukaError) {
+    return NextResponse.json({ error: talukaError }, { status: 400 });
+  }
 
   const { data, error } = await db.createJob({
-    employer_name: employer_name.trim(),
-    phone,
-    job_type,
-    state: "महाराष्ट्र",
-    district: district || "सांगली",
-    taluka,
-    salary: salary ? salary.trim() : "",
-    description: description ? description.trim() : "",
-    minimum_education: minimum_education || null,
-    experience_years: experience_years || null,
-    workers_needed: typeof workers_needed === "string" ? parseInt(workers_needed) : workers_needed,
-    gender: gender || "both",
+    ...jobData,
     is_active: true,
   });
 

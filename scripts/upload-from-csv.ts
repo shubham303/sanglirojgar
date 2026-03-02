@@ -7,7 +7,7 @@
  * Default CSV path: fb-ads/jobs-to-review.csv
  *
  * CSV columns:
- *   employer_name,phone,job_type,district,taluka,salary,description,minimum_education,experience_years,workers_needed
+ *   employer_name,phone,job_type_id,district,taluka,salary,description,minimum_education,experience_years,workers_needed
  */
 
 import fs from "fs";
@@ -116,12 +116,15 @@ async function main() {
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-    const label = `[${i + 1}/${rows.length}] ${row.employer_name} — ${row.job_type}`;
+    const label = `[${i + 1}/${rows.length}] ${row.employer_name} — job_type_id=${row.job_type_id}`;
 
-    // Convert workers_needed to number
+    // Convert numeric fields
     const data: Record<string, unknown> = { ...row };
     if (data.workers_needed) {
       data.workers_needed = Number(data.workers_needed) || 1;
+    }
+    if (data.job_type_id) {
+      data.job_type_id = Number(data.job_type_id);
     }
     // Remove empty optional fields
     for (const key of ["description", "minimum_education", "experience_years", "salary"]) {

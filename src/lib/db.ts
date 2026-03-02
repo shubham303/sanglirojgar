@@ -1,4 +1,4 @@
-import { Job, JobType } from "./types";
+import { Employer, Job, JobType } from "./types";
 
 export interface DbResult<T> {
   data: T | null;
@@ -8,7 +8,8 @@ export interface DbResult<T> {
 export interface JobFilters {
   page: number;
   limit: number;
-  job_type?: string;
+  job_type_id?: number;
+  district?: string;
   taluka?: string;
   search?: string;
 }
@@ -31,7 +32,7 @@ export interface DbClient {
   getAllJobsPaginated(filters: AdminJobFilters): Promise<DbResult<PaginatedJobs>>;
   getJobById(id: string): Promise<DbResult<Job>>;
   createJob(
-    job: Omit<Job, "id" | "created_at" | "call_count" | "whatsapp_count">
+    job: Omit<Job, "id" | "created_at" | "call_count" | "whatsapp_count" | "job_type_display">
   ): Promise<DbResult<Job>>;
   updateJob(id: string, job: Partial<Job>): Promise<DbResult<Job>>;
   softDeleteJob(id: string): Promise<{ error: string | null }>;
@@ -42,6 +43,7 @@ export interface DbClient {
   addJobType(name: string): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
   incrementJobClick(id: string, field: "call_count" | "whatsapp_count"): Promise<{ error: string | null }>;
+  getEmployers(): Promise<DbResult<Employer[]>>;
 }
 
 let _db: DbClient | null = null;

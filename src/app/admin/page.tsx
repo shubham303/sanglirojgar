@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Job, JobType } from "@/lib/types";
-import { TALUKAS, DISTRICTS, JOB_TYPE_NAMES, getJobTypeLabel } from "@/lib/constants";
+import Link from "next/link";
+import { Job } from "@/lib/types";
+import { Employer } from "@/lib/types";
+import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
+import { useJobTypes } from "@/lib/useJobTypes";
 import { formatDateMarathi, formatLocation } from "@/lib/utils";
 
-type AdminTab = "job_types" | "all_jobs";
+type AdminTab = "all_jobs" | "employers";
 
 interface PaginatedJobs {
   jobs: Job[];
@@ -16,24 +19,16 @@ interface PaginatedJobs {
 }
 
 export default function AdminPage() {
+  const jobTypeOptions = useJobTypes();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [activeTab, setActiveTab] = useState<AdminTab>("job_types");
+  const [activeTab, setActiveTab] = useState<AdminTab>("all_jobs");
 
   // Login form
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
-
-  // Job types
-  const [jobTypes, setJobTypes] = useState<JobType[]>([]);
-  const [loadingTypes, setLoadingTypes] = useState(false);
-  const [newTypeName, setNewTypeName] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   // All Jobs tab state
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -45,23 +40,24 @@ export default function AdminPage() {
 
   // Filters
   const [filterJobType, setFilterJobType] = useState("");
+  const [filterDistrict, setFilterDistrict] = useState("");
   const [filterTaluka, setFilterTaluka] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
   const [filterSearch, setFilterSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
 
-  // Check if already logged in by trying to fetch job types
+  // Employers tab state
+  const [employers, setEmployers] = useState<Employer[]>([]);
+  const [loadingEmployers, setLoadingEmployers] = useState(false);
+  const [employerSearch, setEmployerSearch] = useState("");
+
+  // Check if already logged in
   useEffect(() => {
     fetch("/api/admin/job-types")
       .then((res) => {
         if (res.ok) {
           setIsLoggedIn(true);
-          return res.json();
         }
-        return null;
-      })
-      .then((data) => {
-        if (Array.isArray(data)) setJobTypes(data);
       })
       .finally(() => setChecking(false));
   }, []);
@@ -80,7 +76,6 @@ export default function AdminPage() {
 
       if (res.ok) {
         setIsLoggedIn(true);
-        fetchJobTypes();
       } else {
         const data = await res.json();
         setLoginError(data.error || "लॉगिन अयशस्वी");
@@ -95,25 +90,10 @@ export default function AdminPage() {
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
     setIsLoggedIn(false);
-    setJobTypes([]);
     setUserId("");
     setPassword("");
     setJobs([]);
-  };
-
-  const fetchJobTypes = async () => {
-    setLoadingTypes(true);
-    try {
-      const res = await fetch("/api/admin/job-types");
-      if (res.ok) {
-        const data = await res.json();
-        setJobTypes(Array.isArray(data) ? data : []);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoadingTypes(false);
-    }
+    setEmployers([]);
   };
 
   const fetchJobs = useCallback(async (page: number, append: boolean) => {
@@ -124,7 +104,8 @@ export default function AdminPage() {
       const params = new URLSearchParams();
       params.set("page", String(page));
       params.set("limit", "20");
-      if (filterJobType) params.set("job_type", filterJobType);
+      if (filterJobType) params.set("job_type_id", filterJobType);
+      if (filterDistrict) params.set("district", filterDistrict);
       if (filterTaluka) params.set("taluka", filterTaluka);
       if (filterPhone) params.set("phone", filterPhone);
       if (filterSearch) params.set("search", filterSearch);
@@ -145,72 +126,40 @@ export default function AdminPage() {
       setLoadingJobs(false);
       setLoadingMore(false);
     }
-  }, [filterJobType, filterTaluka, filterPhone, filterSearch, filterStatus]);
+  }, [filterJobType, filterDistrict, filterTaluka, filterPhone, filterSearch, filterStatus]);
 
-  // Fetch jobs when tab switches or filters change
+  const fetchEmployers = useCallback(async () => {
+    setLoadingEmployers(true);
+    try {
+      const res = await fetch("/api/admin/employers");
+      if (res.ok) {
+        const data = await res.json();
+        setEmployers(Array.isArray(data) ? data : []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingEmployers(false);
+    }
+  }, []);
+
+  // Fetch data when tab switches
   useEffect(() => {
-    if (activeTab === "all_jobs" && isLoggedIn) {
+    if (!isLoggedIn) return;
+    if (activeTab === "all_jobs") {
       fetchJobs(1, false);
+    } else if (activeTab === "employers") {
+      fetchEmployers();
     }
-  }, [activeTab, isLoggedIn, fetchJobs]);
+  }, [activeTab, isLoggedIn, fetchJobs, fetchEmployers]);
 
-  const handleAddType = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTypeName.trim()) return;
-
-    setAdding(true);
-    setError("");
-    setSuccessMsg("");
-
-    try {
-      const res = await fetch("/api/admin/job-types", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newTypeName.trim() }),
-      });
-
-      if (res.ok) {
-        setNewTypeName("");
-        setSuccessMsg("कामाचा प्रकार जोडला गेला!");
-        fetchJobTypes();
-        setTimeout(() => setSuccessMsg(""), 3000);
-      } else {
-        const data = await res.json();
-        setError(data.error || "जोडता आले नाही");
-      }
-    } catch {
-      setError("काहीतरी चूक झाली");
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const handleDeleteType = async (id: string) => {
-    setDeletingId(id);
-    setError("");
-    setSuccessMsg("");
-
-    try {
-      const res = await fetch("/api/admin/job-types", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-
-      if (res.ok) {
-        setSuccessMsg("कामाचा प्रकार काढला गेला!");
-        fetchJobTypes();
-        setTimeout(() => setSuccessMsg(""), 3000);
-      } else {
-        const data = await res.json();
-        setError(data.error || "काढता आले नाही");
-      }
-    } catch {
-      setError("काहीतरी चूक झाली");
-    } finally {
-      setDeletingId(null);
-    }
-  };
+  const filteredEmployers = employerSearch
+    ? employers.filter(
+        (emp) =>
+          emp.employer_name.toLowerCase().includes(employerSearch.toLowerCase()) ||
+          emp.phone.includes(employerSearch)
+      )
+    : employers;
 
   if (checking) {
     return (
@@ -293,17 +242,6 @@ export default function AdminPage() {
       {/* Tab switcher */}
       <div className="flex gap-1 mb-4 bg-gray-100 rounded-xl p-1">
         <button
-          onClick={() => setActiveTab("job_types")}
-          className="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition"
-          style={
-            activeTab === "job_types"
-              ? { backgroundColor: "#ffffff", color: "#1f2937", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
-              : { backgroundColor: "transparent", color: "#6b7280" }
-          }
-        >
-          कामाचे प्रकार
-        </button>
-        <button
           onClick={() => setActiveTab("all_jobs")}
           className="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition"
           style={
@@ -314,93 +252,18 @@ export default function AdminPage() {
         >
           सर्व जाहिराती
         </button>
+        <button
+          onClick={() => setActiveTab("employers")}
+          className="flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition"
+          style={
+            activeTab === "employers"
+              ? { backgroundColor: "#ffffff", color: "#1f2937", boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }
+              : { backgroundColor: "transparent", color: "#6b7280" }
+          }
+        >
+          नोकरी देणारे
+        </button>
       </div>
-
-      {/* Job Types Tab */}
-      {activeTab === "job_types" && (
-        <>
-          {/* Add new job type */}
-          <div
-            className="bg-white rounded-xl p-4 mb-4"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-          >
-            <h2 className="text-base font-bold text-gray-800 mb-3">
-              नवीन कामाचा प्रकार जोडा
-            </h2>
-
-            <form onSubmit={handleAddType} className="flex gap-2">
-              <input
-                type="text"
-                value={newTypeName}
-                onChange={(e) => setNewTypeName(e.target.value)}
-                placeholder="उदा. पेंटर, टेलर..."
-                className="flex-1 border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
-              />
-              <button
-                type="submit"
-                disabled={adding || !newTypeName.trim()}
-                className="px-4 py-2.5 rounded-xl text-sm font-semibold transition disabled:opacity-50 whitespace-nowrap"
-                style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-              >
-                {adding ? "..." : "जोडा"}
-              </button>
-            </form>
-
-            {successMsg && (
-              <p
-                className="text-xs mt-2.5 px-3 py-2 rounded-lg"
-                style={{ color: "#15803d", backgroundColor: "#f0fdf4", border: "1px solid #bbf7d0" }}
-              >
-                {successMsg}
-              </p>
-            )}
-            {error && (
-              <p className="text-red-600 text-xs mt-2.5 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                {error}
-              </p>
-            )}
-          </div>
-
-          {/* Job types list */}
-          <div
-            className="bg-white rounded-xl p-4"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-          >
-            <h2 className="text-base font-bold text-gray-800 mb-3">
-              कामाचे प्रकार ({jobTypes.length})
-            </h2>
-
-            {loadingTypes ? (
-              <p className="text-gray-400 text-sm py-4">लोड होत आहे...</p>
-            ) : jobTypes.length === 0 ? (
-              <p className="text-gray-400 text-sm py-4">कोणतेही कामाचे प्रकार नाहीत</p>
-            ) : (
-              <div className="space-y-1.5">
-                {jobTypes.map((jt) => (
-                  <div
-                    key={jt.id}
-                    className="flex items-center justify-between rounded-lg px-3 py-2.5"
-                    style={{ backgroundColor: "#fafafa" }}
-                  >
-                    <span className="text-sm text-gray-800">{jt.name}</span>
-                    <button
-                      onClick={() => handleDeleteType(jt.id)}
-                      disabled={deletingId === jt.id}
-                      className="px-3 py-1.5 text-xs rounded-lg transition disabled:opacity-50 font-medium"
-                      style={{
-                        backgroundColor: "#fef2f2",
-                        color: "#dc2626",
-                      }}
-                    >
-                      {deletingId === jt.id ? "..." : "काढा"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
 
       {/* All Jobs Tab */}
       {activeTab === "all_jobs" && (
@@ -417,21 +280,41 @@ export default function AdminPage() {
                 className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
               >
                 <option value="">सर्व कामे</option>
-                {JOB_TYPE_NAMES.map((name) => (
-                  <option key={name} value={name}>{getJobTypeLabel(name)}</option>
+                {jobTypeOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
               </select>
 
               <select
-                value={filterTaluka}
-                onChange={(e) => setFilterTaluka(e.target.value)}
+                value={filterDistrict}
+                onChange={(e) => { setFilterDistrict(e.target.value); setFilterTaluka(""); }}
                 className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
               >
-                <option value="">सर्व तालुके</option>
-                {TALUKAS.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                <option value="">सर्व जिल्हे</option>
+                {DISTRICTS.map((d) => (
+                  <option key={d} value={d}>{d}</option>
                 ))}
               </select>
+
+              {filterDistrict ? (
+                <select
+                  value={filterTaluka}
+                  onChange={(e) => setFilterTaluka(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
+                >
+                  <option value="">सर्व तालुके</option>
+                  {(DISTRICT_TALUKAS[filterDistrict] || []).map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+              ) : (
+                <select
+                  disabled
+                  className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm bg-gray-50 text-gray-400"
+                >
+                  <option>जिल्हा निवडा</option>
+                </select>
+              )}
 
               <input
                 type="text"
@@ -456,7 +339,7 @@ export default function AdminPage() {
               type="text"
               value={filterSearch}
               onChange={(e) => setFilterSearch(e.target.value)}
-              placeholder="शोधा (नाव, वर्णन, कामाचा प्रकार...)"
+              placeholder="शोधा (नाव, वर्णन...)"
               className="w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
             />
           </div>
@@ -505,7 +388,7 @@ export default function AdminPage() {
                       className="text-[10px] px-1.5 py-0.5 rounded font-medium whitespace-nowrap"
                       style={{ backgroundColor: "#fff7ed", color: "#c2410c" }}
                     >
-                      {job.job_type}
+                      {job.job_type_display}
                     </span>
                   </div>
 
@@ -544,6 +427,64 @@ export default function AdminPage() {
                   {loadingMore ? "लोड होत आहे..." : "आणखी पहा"}
                 </button>
               )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Employers Tab */}
+      {activeTab === "employers" && (
+        <>
+          <div
+            className="bg-white rounded-xl p-4 mb-4"
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+          >
+            <input
+              type="text"
+              value={employerSearch}
+              onChange={(e) => setEmployerSearch(e.target.value)}
+              placeholder="शोधा (नाव किंवा फोन नंबर)"
+              className="w-full border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
+            />
+          </div>
+
+          <p className="text-xs text-gray-500 mb-2 px-1">
+            एकूण: {filteredEmployers.length} नोकरी देणारे
+          </p>
+
+          {loadingEmployers ? (
+            <p className="text-gray-400 text-sm py-8 text-center">लोड होत आहे...</p>
+          ) : filteredEmployers.length === 0 ? (
+            <p className="text-gray-400 text-sm py-8 text-center">कोणतेही नोकरी देणारे सापडले नाहीत</p>
+          ) : (
+            <div className="space-y-2">
+              {filteredEmployers.map((emp) => (
+                <Link
+                  key={emp.phone}
+                  href={`/employer/${emp.phone}`}
+                  className="block bg-white rounded-xl p-3.5 transition"
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-800 truncate">
+                        {emp.employer_name}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">{emp.phone}</p>
+                    </div>
+                    <span
+                      className="text-xs px-2 py-1 rounded-lg font-medium whitespace-nowrap"
+                      style={{ backgroundColor: "#fff7ed", color: "#c2410c" }}
+                    >
+                      {emp.job_count} {emp.job_count === 1 ? "जाहिरात" : "जाहिराती"}
+                    </span>
+                  </div>
+                </Link>
+              ))}
             </div>
           )}
         </>

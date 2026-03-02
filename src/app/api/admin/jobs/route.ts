@@ -18,8 +18,11 @@ export async function GET(request: NextRequest) {
     limit: parseInt(searchParams.get("limit") || "20"),
   };
 
-  const jobType = searchParams.get("job_type");
-  if (jobType) filters.job_type = jobType;
+  const jobTypeId = searchParams.get("job_type_id");
+  if (jobTypeId) filters.job_type_id = parseInt(jobTypeId);
+
+  const district = searchParams.get("district");
+  if (district) filters.district = district;
 
   const taluka = searchParams.get("taluka");
   if (taluka) filters.taluka = taluka;

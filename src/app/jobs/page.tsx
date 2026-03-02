@@ -2,12 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { DISTRICTS, DISTRICT_TALUKAS, TALUKAS, JOB_TYPE_NAMES, getJobTypeLabel } from "@/lib/constants";
+import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
+import { useJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
-import { formatDateMarathi, formatLocation } from "@/lib/utils";
+import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 
 const PAGE_LIMIT = 20;
 const MAX_RETRIES = 3;
+
+const ALL = "सर्व";
 
 interface PaginatedResponse {
   jobs: Job[];
@@ -33,6 +36,7 @@ function SkeletonCard() {
 }
 
 export default function BrowseJobs() {
+  const jobTypeOptions = useJobTypes();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -43,22 +47,24 @@ export default function BrowseJobs() {
   const [error, setError] = useState("");
 
   // Filter state (applied on button press)
-  const [filterJobType, setFilterJobType] = useState("सर्व");
-  const [filterDistrict, setFilterDistrict] = useState("सर्व");
-  const [filterTaluka, setFilterTaluka] = useState("सर्व");
+  const [filterJobType, setFilterJobType] = useState(ALL);
+  const [filterDistrict, setFilterDistrict] = useState(ALL);
+  const [filterTaluka, setFilterTaluka] = useState(ALL);
   const [showFilters, setShowFilters] = useState(false);
 
   // Active filters (what's actually applied)
-  const [appliedJobType, setAppliedJobType] = useState("सर्व");
-  const [appliedTaluka, setAppliedTaluka] = useState("सर्व");
+  const [appliedJobType, setAppliedJobType] = useState(ALL);
+  const [appliedDistrict, setAppliedDistrict] = useState(ALL);
+  const [appliedTaluka, setAppliedTaluka] = useState(ALL);
 
   const buildUrl = useCallback(
-    (pageNum: number, jobType: string, taluka: string) => {
+    (pageNum: number, jobType: string, district: string, taluka: string) => {
       const params = new URLSearchParams();
       params.set("page", String(pageNum));
       params.set("limit", String(PAGE_LIMIT));
-      if (jobType !== "सर्व") params.set("job_type", jobType);
-      if (taluka !== "सर्व") params.set("taluka", taluka);
+      if (jobType !== ALL) params.set("job_type_id", jobType);
+      if (district !== ALL) params.set("district", district);
+      if (taluka !== ALL) params.set("taluka", taluka);
       return `/api/jobs?${params.toString()}`;
     },
     []
@@ -86,7 +92,7 @@ export default function BrowseJobs() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchWithRetry(buildUrl(1, "सर्व", "सर्व"));
+        const data = await fetchWithRetry(buildUrl(1, ALL, ALL, ALL));
         setJobs(data.jobs);
         setTotal(data.total);
         setHasMore(data.hasMore);
@@ -105,10 +111,11 @@ export default function BrowseJobs() {
     setLoading(true);
     setError("");
     setAppliedJobType(filterJobType);
+    setAppliedDistrict(filterDistrict);
     setAppliedTaluka(filterTaluka);
     try {
       const data = await fetchWithRetry(
-        buildUrl(1, filterJobType, filterTaluka)
+        buildUrl(1, filterJobType, filterDistrict, filterTaluka)
       );
       setJobs(data.jobs);
       setTotal(data.total);
@@ -127,9 +134,13 @@ export default function BrowseJobs() {
     setLoadingMore(true);
     try {
       const data = await fetchWithRetry(
-        buildUrl(nextPage, appliedJobType, appliedTaluka)
+        buildUrl(nextPage, appliedJobType, appliedDistrict, appliedTaluka)
       );
-      setJobs((prev) => [...prev, ...data.jobs]);
+      setJobs((prev) => {
+        const existingIds = new Set(prev.map((j) => j.id));
+        const newJobs = data.jobs.filter((j) => !existingIds.has(j.id));
+        return [...prev, ...newJobs];
+      });
       setHasMore(data.hasMore);
       setPage(nextPage);
     } catch {
@@ -140,15 +151,16 @@ export default function BrowseJobs() {
   };
 
   const clearFilters = () => {
-    setFilterJobType("सर्व");
-    setFilterDistrict("सर्व");
-    setFilterTaluka("सर्व");
+    setFilterJobType(ALL);
+    setFilterDistrict(ALL);
+    setFilterTaluka(ALL);
     // Also apply immediately
-    setAppliedJobType("सर्व");
-    setAppliedTaluka("सर्व");
+    setAppliedJobType(ALL);
+    setAppliedDistrict(ALL);
+    setAppliedTaluka(ALL);
     setLoading(true);
     setError("");
-    fetchWithRetry(buildUrl(1, "सर्व", "सर्व"))
+    fetchWithRetry(buildUrl(1, ALL, ALL, ALL))
       .then((data) => {
         setJobs(data.jobs);
         setTotal(data.total);
@@ -160,13 +172,14 @@ export default function BrowseJobs() {
   };
 
   const activeFilterCount =
-    (appliedJobType !== "सर्व" ? 1 : 0) +
-    (appliedTaluka !== "सर्व" ? 1 : 0);
+    (appliedJobType !== ALL ? 1 : 0) +
+    (appliedDistrict !== ALL ? 1 : 0) +
+    (appliedTaluka !== ALL ? 1 : 0);
 
   const retryLoad = () => {
     setLoading(true);
     setError("");
-    fetchWithRetry(buildUrl(1, appliedJobType, appliedTaluka))
+    fetchWithRetry(buildUrl(1, appliedJobType, appliedDistrict, appliedTaluka))
       .then((data) => {
         setJobs(data.jobs);
         setTotal(data.total);
@@ -225,12 +238,12 @@ export default function BrowseJobs() {
                 value={filterJobType}
                 onChange={(e) => setFilterJobType(e.target.value)}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
-                style={{ borderColor: filterJobType !== "सर्व" ? "#FF6B00" : undefined }}
+                style={{ borderColor: filterJobType !== ALL ? "#FF6B00" : undefined }}
               >
-                <option value="सर्व">सर्व</option>
-                {JOB_TYPE_NAMES.map((name) => (
-                  <option key={name} value={name}>
-                    {getJobTypeLabel(name)}
+                <option value={ALL}>सर्व</option>
+                {jobTypeOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
                   </option>
                 ))}
               </select>
@@ -242,11 +255,11 @@ export default function BrowseJobs() {
               </label>
               <select
                 value={filterDistrict}
-                onChange={(e) => { setFilterDistrict(e.target.value); setFilterTaluka("सर्व"); }}
+                onChange={(e) => { setFilterDistrict(e.target.value); setFilterTaluka(ALL); }}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
-                style={{ borderColor: filterDistrict !== "सर्व" ? "#FF6B00" : undefined }}
+                style={{ borderColor: filterDistrict !== ALL ? "#FF6B00" : undefined }}
               >
-                <option value="सर्व">सर्व</option>
+                <option value={ALL}>सर्व</option>
                 {DISTRICTS.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
@@ -254,26 +267,28 @@ export default function BrowseJobs() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                तालुका
-              </label>
-              <select
-                value={filterTaluka}
-                onChange={(e) => setFilterTaluka(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
-                style={{ borderColor: filterTaluka !== "सर्व" ? "#FF6B00" : undefined }}
-              >
-                <option value="सर्व">सर्व</option>
-                {(filterDistrict !== "सर्व" ? DISTRICT_TALUKAS[filterDistrict] || [] : TALUKAS).map((taluka) => (
-                  <option key={taluka} value={taluka}>
-                    {taluka}
-                  </option>
-                ))}
-              </select>
+          {filterDistrict !== ALL && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  तालुका
+                </label>
+                <select
+                  value={filterTaluka}
+                  onChange={(e) => setFilterTaluka(e.target.value)}
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
+                  style={{ borderColor: filterTaluka !== ALL ? "#FF6B00" : undefined }}
+                >
+                  <option value={ALL}>सर्व</option>
+                  {(DISTRICT_TALUKAS[filterDistrict] || []).map((taluka) => (
+                    <option key={taluka} value={taluka}>
+                      {taluka}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </div>
+          )}
 
           <button
             onClick={applyFilters}
@@ -327,7 +342,7 @@ export default function BrowseJobs() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <h2 className="text-base font-bold" style={{ color: "#FF6B00" }}>
-                      {job.job_type}
+                      {job.job_type_display}
                     </h2>
                     <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
                       {formatDateMarathi(job.created_at)}
@@ -353,7 +368,7 @@ export default function BrowseJobs() {
                       <p className="text-xs text-gray-500">
                         {[
                           job.minimum_education,
-                          job.experience_years && (job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे अनुभव`),
+                          job.experience_years && formatExperience(job.experience_years),
                         ].filter(Boolean).join(" · ")}
                       </p>
                     )}

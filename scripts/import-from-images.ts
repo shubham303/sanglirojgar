@@ -17,7 +17,7 @@
 
 import fs from "fs";
 import path from "path";
-import jobTypesData from "../src/lib/job-types.json";
+import { JOB_TYPES as jobTypesData, getJobTypeIdByMarathi } from "../src/lib/constants";
 
 // Load .env.local
 const envPath = path.resolve(__dirname, "../.env.local");
@@ -35,7 +35,7 @@ const GEMINI_MODEL = "gemini-2.0-flash";
 const CSV_COLUMNS = [
   "employer_name",
   "phone",
-  "job_type",
+  "job_type_id",
   "district",
   "taluka",
   "salary",
@@ -206,7 +206,12 @@ async function main() {
         continue;
       }
 
-      console.log(`  Extracted: ${data.employer_name} | ${data.job_type} | ${data.phone} | ${data.taluka}, ${data.district} | ₹${data.salary}`);
+      // Map Marathi job_type text to numeric ID
+      const marathiName = (data.job_type || "").replace(/\s*\(.*\)$/, "").trim();
+      const jobTypeId = getJobTypeIdByMarathi(marathiName) ?? 34; // default to "इतर"
+      data.job_type_id = jobTypeId;
+
+      console.log(`  Extracted: ${data.employer_name} | ${marathiName} (id=${jobTypeId}) | ${data.phone} | ${data.taluka}, ${data.district} | ₹${data.salary}`);
 
       appendToCsv(csvPath, data);
       extracted++;

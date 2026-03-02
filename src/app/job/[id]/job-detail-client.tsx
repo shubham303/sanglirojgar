@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
-import { formatDateMarathi } from "@/lib/utils";
+import { formatDateMarathi, formatExperience } from "@/lib/utils";
 
 export default function JobDetail() {
   const params = useParams();
@@ -73,7 +73,7 @@ export default function JobDetail() {
       >
         <div className="flex items-start justify-between gap-2">
           <h1 className="text-xl font-bold" style={{ color: "#FF6B00" }}>
-            {job.job_type}
+            {job.job_type_display}
           </h1>
           <span className="text-xs text-gray-400 whitespace-nowrap mt-1">
             {formatDateMarathi(job.created_at)}
@@ -115,7 +115,7 @@ export default function JobDetail() {
           {job.experience_years && (
             <div className="flex items-baseline gap-2">
               <span className="font-medium text-gray-400 text-xs w-24 shrink-0">अनुभव</span>
-              <p className="text-base">{job.experience_years === "0" ? "अनुभव नाही" : `${job.experience_years} वर्षे`}</p>
+              <p className="text-base">{formatExperience(job.experience_years)}</p>
             </div>
           )}
 

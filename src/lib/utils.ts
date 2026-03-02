@@ -26,3 +26,7 @@ export function formatDateMarathi(dateString: string): string {
   const year = date.getFullYear();
   return `${day} ${month} ${year}`;
 }
+
+export function formatExperience(years: string): string {
+  return years === "0" ? "अनुभव नाही" : `${years} वर्षे अनुभव`;
+}

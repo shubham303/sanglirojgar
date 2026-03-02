@@ -10,13 +10,12 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Return from constants with id-like structure for admin UI compatibility
-  const { JOB_TYPES } = await import("@/lib/constants");
-  const data = JOB_TYPES.map((jt, i) => ({
-    id: `const-${i}`,
-    name: jt.marathi,
-    created_at: "",
-  }));
+  const db = getDb();
+  const { data, error } = await db.getJobTypes();
+
+  if (error || !data) {
+    return NextResponse.json({ error: error || "Failed to fetch job types" }, { status: 500 });
+  }
 
   return NextResponse.json(data);
 }

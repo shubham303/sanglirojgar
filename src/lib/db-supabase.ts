@@ -1,6 +1,43 @@
 import { getSupabase } from "./supabase";
 import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
-import { Job } from "./types";
+import { Job, JobType } from "./types";
+import { getJobTypeLabel } from "./constants";
+
+/** Cached job type lookup from DB, refreshed on first use per server lifetime */
+let _jobTypeLabelMap: Map<number, string> | null = null;
+
+async function getJobTypeLabelMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, string>> {
+  if (_jobTypeLabelMap) return _jobTypeLabelMap;
+  const { data } = await supabase
+    .from("job_types")
+    .select("id, name_mr, name_en")
+    .order("id", { ascending: true });
+  _jobTypeLabelMap = new Map<number, string>();
+  if (data) {
+    for (const jt of data as JobType[]) {
+      _jobTypeLabelMap.set(jt.id, `${jt.name_mr} (${jt.name_en})`);
+    }
+  }
+  return _jobTypeLabelMap;
+}
+
+/** Invalidate the cached map so next lookup re-reads from DB */
+function invalidateJobTypeLabelMap() {
+  _jobTypeLabelMap = null;
+}
+
+/** Resolve job_type_display from DB-backed map, falling back to constants */
+function resolveJobTypeDisplay(labelMap: Map<number, string>, jobTypeId: number): string {
+  return labelMap.get(jobTypeId) || getJobTypeLabel(jobTypeId);
+}
+
+function addJobTypeDisplay(labelMap: Map<number, string>, row: Job): Job {
+  return { ...row, job_type_display: resolveJobTypeDisplay(labelMap, row.job_type_id) };
+}
+
+function addJobTypeDisplayToList(labelMap: Map<number, string>, rows: Job[]): Job[] {
+  return rows.map((r) => addJobTypeDisplay(labelMap, r));
+}
 
 export function createSupabaseDb(): DbClient {
   const supabase = getSupabase();
@@ -12,15 +49,18 @@ export function createSupabaseDb(): DbClient {
         .select("*", { count: "exact" })
         .eq("is_active", true);
 
-      if (filters.job_type) {
-        query = query.eq("job_type", filters.job_type);
+      if (filters.job_type_id) {
+        query = query.eq("job_type_id", filters.job_type_id);
+      }
+      if (filters.district) {
+        query = query.eq("district", filters.district);
       }
       if (filters.taluka) {
         query = query.eq("taluka", filters.taluka);
       }
       if (filters.search) {
         query = query.or(
-          `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,job_type.ilike.%${filters.search}%`
+          `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
         );
       }
 
@@ -36,8 +76,9 @@ export function createSupabaseDb(): DbClient {
       }
 
       const total = count ?? 0;
+      const labelMap = await getJobTypeLabelMap(supabase);
       const result: PaginatedJobs = {
-        jobs: (data as Job[]) ?? [],
+        jobs: addJobTypeDisplayToList(labelMap, (data as Job[]) ?? []),
         total,
         page: filters.page,
         limit: filters.limit,
@@ -57,15 +98,18 @@ export function createSupabaseDb(): DbClient {
       if (filters.phone) {
         query = query.eq("phone", filters.phone);
       }
-      if (filters.job_type) {
-        query = query.eq("job_type", filters.job_type);
+      if (filters.job_type_id) {
+        query = query.eq("job_type_id", filters.job_type_id);
+      }
+      if (filters.district) {
+        query = query.eq("district", filters.district);
       }
       if (filters.taluka) {
         query = query.eq("taluka", filters.taluka);
       }
       if (filters.search) {
         query = query.or(
-          `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,job_type.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`
+          `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`
         );
       }
 
@@ -81,8 +125,9 @@ export function createSupabaseDb(): DbClient {
       }
 
       const total = count ?? 0;
+      const labelMap = await getJobTypeLabelMap(supabase);
       const result: PaginatedJobs = {
-        jobs: (data as Job[]) ?? [],
+        jobs: addJobTypeDisplayToList(labelMap, (data as Job[]) ?? []),
         total,
         page: filters.page,
         limit: filters.limit,
@@ -97,7 +142,9 @@ export function createSupabaseDb(): DbClient {
         .select("*")
         .eq("id", id)
         .single();
-      return { data: data as Job | null, error: error?.message ?? null };
+      if (error) return { data: null, error: error.message };
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplay(labelMap, data as Job), error: null };
     },
 
     async createJob(job) {
@@ -106,17 +153,22 @@ export function createSupabaseDb(): DbClient {
         .insert(job)
         .select()
         .single();
-      return { data: data as Job | null, error: error?.message ?? null };
+      if (error) return { data: null, error: error.message };
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplay(labelMap, data as Job), error: null };
     },
 
     async updateJob(id: string, job: Partial<Job>) {
+      const { job_type_display: _, ...updateData } = job;
       const { data, error } = await supabase
         .from("jobs")
-        .update(job)
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
-      return { data: data as Job | null, error: error?.message ?? null };
+      if (error) return { data: null, error: error.message };
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplay(labelMap, data as Job), error: null };
     },
 
     async softDeleteJob(id: string) {
@@ -142,7 +194,9 @@ export function createSupabaseDb(): DbClient {
         .eq("phone", phone)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
-      return { data: data as Job[] | null, error: error?.message ?? null };
+      if (error) return { data: null, error: error.message };
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
     },
 
     async getAllJobsByPhone(phone: string) {
@@ -152,14 +206,16 @@ export function createSupabaseDb(): DbClient {
         .eq("phone", phone)
         .order("is_active", { ascending: false })
         .order("created_at", { ascending: false });
-      return { data: data as Job[] | null, error: error?.message ?? null };
+      if (error) return { data: null, error: error.message };
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
     },
 
     async getJobTypes() {
       const { data, error } = await supabase
         .from("job_types")
         .select("*")
-        .order("created_at", { ascending: true });
+        .order("id", { ascending: true });
       return {
         data: data as import("./types").JobType[] | null,
         error: error?.message ?? null,
@@ -169,9 +225,10 @@ export function createSupabaseDb(): DbClient {
     async addJobType(name: string) {
       const { data, error } = await supabase
         .from("job_types")
-        .insert({ name })
+        .insert({ name_mr: name })
         .select()
         .single();
+      if (!error) invalidateJobTypeLabelMap();
       return {
         data: data as import("./types").JobType | null,
         error: error?.message ?? null,
@@ -198,23 +255,45 @@ export function createSupabaseDb(): DbClient {
       return { error: error?.message ?? null };
     },
 
-    async deleteJobType(id: string) {
-      // First get the type name
-      const { data: jobType, error: fetchErr } = await supabase
-        .from("job_types")
-        .select("name")
-        .eq("id", id)
-        .single();
+    async getEmployers() {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("phone, employer_name, created_at")
+        .order("created_at", { ascending: true });
 
-      if (fetchErr || !jobType) {
-        return { error: "कामाचा प्रकार सापडला नाही" };
+      if (error) {
+        return { data: null, error: error.message };
       }
+
+      const employerMap = new Map<string, { name: string; count: number }>();
+      for (const row of data || []) {
+        const existing = employerMap.get(row.phone);
+        if (existing) {
+          existing.count++;
+        } else {
+          employerMap.set(row.phone, { name: row.employer_name, count: 1 });
+        }
+      }
+
+      const employers: import("./types").Employer[] = Array.from(
+        employerMap.entries()
+      ).map(([phone, { name, count }]) => ({
+        phone,
+        employer_name: name,
+        job_count: count,
+      }));
+
+      return { data: employers, error: null };
+    },
+
+    async deleteJobType(id: string) {
+      const numericId = parseInt(id);
 
       // Check if any active jobs use this type
       const { count, error: countErr } = await supabase
         .from("jobs")
         .select("id", { count: "exact", head: true })
-        .eq("job_type", jobType.name)
+        .eq("job_type_id", numericId)
         .eq("is_active", true);
 
       if (countErr) {
@@ -230,7 +309,8 @@ export function createSupabaseDb(): DbClient {
       const { error } = await supabase
         .from("job_types")
         .delete()
-        .eq("id", id);
+        .eq("id", numericId);
+      if (!error) invalidateJobTypeLabelMap();
       return { error: error?.message ?? null };
     },
   };

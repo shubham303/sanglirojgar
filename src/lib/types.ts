@@ -2,7 +2,8 @@ export interface Job {
   id: string;
   employer_name: string;
   phone: string;
-  job_type: string;
+  job_type_id: number;
+  job_type_display?: string; // populated via JOIN: "मराठी (English)"
   state: string;
   district: string;
   taluka: string;
@@ -19,7 +20,13 @@ export interface Job {
 }
 
 export interface JobType {
-  id: string;
-  name: string;
-  created_at: string;
+  id: number;
+  name_mr: string;
+  name_en: string;
+}
+
+export interface Employer {
+  phone: string;
+  employer_name: string;
+  job_count: number;
 }
