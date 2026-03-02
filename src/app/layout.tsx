@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import RegisterSW from "./components/RegisterSW";
 import InstallBanner from "./components/InstallBanner";
+import BottomTabBar from "./components/BottomTabBar";
 import { SITE_URL } from "@/lib/config";
 
 const GA_ID = "G-BGYJ0D4EL9";
@@ -13,6 +14,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   themeColor: "#FF6B00",
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -78,47 +80,25 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="antialiased" style={{ backgroundColor: "#f5f5f5", color: "#1a1a1a" }}>
+        {/* Desktop top nav — hidden on mobile */}
         <nav
-          className="bg-white border-b border-orange-200 px-4 py-2.5"
+          className="hidden md:block bg-white border-b border-orange-200 px-4 py-2.5"
           style={{ position: "sticky", top: 0, zIndex: 40, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
         >
           <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <Link
-              href="/"
-              className="font-bold text-lg shrink-0"
-              style={{ color: "#FF6B00" }}
-            >
+            <Link href="/" className="font-bold text-lg" style={{ color: "#FF6B00" }}>
               महा जॉब
             </Link>
-            <div className="flex gap-1.5">
-              <Link
-                href="/jobs"
-                className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap border"
-                style={{ color: "#374151", borderColor: "#d1d5db", backgroundColor: "#f9fafb" }}
-              >
-                नोकऱ्या
-              </Link>
-              <Link
-                href="/job/new"
-                className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap border"
-                style={{ color: "#374151", borderColor: "#d1d5db", backgroundColor: "#f9fafb" }}
-              >
-                जाहिरात द्या
-              </Link>
-              <Link
-                href="/my-ads"
-                className="text-xs px-3 py-1.5 rounded-full font-medium whitespace-nowrap border"
-                style={{ color: "#374151", borderColor: "#d1d5db", backgroundColor: "#f9fafb" }}
-              >
-                माझ्या जाहिराती
-              </Link>
+            <div className="flex items-center gap-5 text-sm font-medium">
+              <Link href="/jobs" className="text-gray-600 hover:text-orange-600 transition">नोकऱ्या</Link>
+              <Link href="/job/new" className="text-gray-600 hover:text-orange-600 transition">जाहिरात द्या</Link>
+              <Link href="/my-ads" className="text-gray-600 hover:text-orange-600 transition">माझ्या जाहिराती</Link>
+              <Link href="/contact" className="text-gray-600 hover:text-orange-600 transition">संपर्क</Link>
             </div>
           </div>
         </nav>
-        <main className="max-w-3xl mx-auto px-4 py-5">{children}</main>
-        <footer className="text-center text-gray-400 text-xs py-6 pb-8">
-          महा जॉब
-        </footer>
+        <main className="max-w-3xl mx-auto px-4 py-5 pb-20 md:pb-5">{children}</main>
+        <BottomTabBar />
         <RegisterSW />
         <InstallBanner />
       </body>

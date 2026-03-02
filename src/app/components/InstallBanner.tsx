@@ -83,7 +83,7 @@ export default function InstallBanner() {
       <div
         style={{
           position: "fixed",
-          bottom: 0,
+          bottom: 56,
           left: 0,
           right: 0,
           zIndex: 50,

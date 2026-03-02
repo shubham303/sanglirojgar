@@ -150,7 +150,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         {mode === "create" ? "नोकरी जाहिरात द्या" : "जाहिरात बदला"}
       </h1>
 
-      <form onSubmit={handleSubmit} className={`space-y-4${mode === "create" ? " pb-24" : ""}`}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="नोकरी देणाऱ्याचे नाव" error={errors.employer_name}>
           <input
             type="text"
@@ -310,32 +310,16 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           </p>
         )}
 
-        {mode === "create" ? (
-          <div
-            className="fixed bottom-0 left-0 right-0 px-4 py-3"
-            style={{ backgroundColor: "#f5f5f5", boxShadow: "0 -1px 3px rgba(0,0,0,0.06)" }}
-          >
-            <div className="max-w-3xl mx-auto">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full text-base font-semibold py-3.5 rounded-xl transition disabled:opacity-50"
-                style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-              >
-                {submitting ? "नोंदवत आहे..." : "जाहिरात नोंदवा"}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full text-base font-semibold py-3.5 rounded-xl transition disabled:opacity-50"
-            style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-          >
-            {submitting ? "जतन होत आहे..." : "बदल जतन करा"}
-          </button>
-        )}
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full text-base font-semibold py-3.5 rounded-xl transition disabled:opacity-50"
+          style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
+        >
+          {submitting
+            ? (mode === "create" ? "नोंदवत आहे..." : "जतन होत आहे...")
+            : (mode === "create" ? "जाहिरात नोंदवा" : "बदल जतन करा")}
+        </button>
       </form>
     </div>
   );

@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 export default function HomeClient() {
 
   return (
@@ -32,26 +30,8 @@ export default function HomeClient() {
         </p>
       </div>
 
-      {/* Main CTAs */}
-      <div className="flex flex-col gap-2.5 w-full max-w-xs">
-        <Link
-          href="/jobs"
-          className="text-sm font-semibold py-3 rounded-xl text-center transition"
-          style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-        >
-          नोकऱ्या पहा
-        </Link>
-        <Link
-          href="/job/new"
-          className="text-sm font-semibold py-3 rounded-xl text-center border transition"
-          style={{ backgroundColor: "#ffffff", borderColor: "#FF6B00", color: "#FF6B00" }}
-        >
-          मोफत जाहिरात द्या
-        </Link>
-      </div>
-
       {/* Who is this for */}
-      <div className="w-full max-w-md mt-8 mb-5">
+      <div className="w-full max-w-md mt-2 mb-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div
             className="bg-white rounded-xl p-4 text-left"
@@ -74,32 +54,74 @@ export default function HomeClient() {
         </div>
       </div>
 
+      {/* Testimonials — horizontal scroll */}
+      <div className="w-full max-w-md mt-2 mb-5">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">लोक काय म्हणतात</h2>
+        <div
+          className="flex gap-3 overflow-x-auto pb-2"
+          style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+        >
+          {[
+            { name: "राजेश पाटील", location: "सांगली", text: "महा जॉब वरून 2 दिवसात ड्रायव्हर मिळाला. खूप सोपं आहे!" },
+            { name: "सुनीता जाधव", location: "कोल्हापूर", text: "मला स्वयंपाकाची नोकरी लगेच मिळाली. रजिस्ट्रेशन नाही, थेट फोन केला." },
+            { name: "अमित शिंदे", location: "पुणे", text: "आमच्या दुकानासाठी सेल्समन शोधत होतो. एका दिवसात 5 कॉल आले!" },
+            { name: "प्रिया कुलकर्णी", location: "मिरज", text: "कोणतेही चार्जेस नाहीत. अकाउंटंटची जागा भरली गेली." },
+            { name: "विकास माळी", location: "सातारा", text: "इलेक्ट्रिशियनचं काम मिळालं. WhatsApp वर लगेच संपर्क झाला." },
+          ].map((t, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-xl p-4 shrink-0"
+              style={{
+                width: "260px",
+                scrollSnapAlign: "start",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              }}
+            >
+              <p className="text-sm text-gray-600 leading-relaxed mb-3">
+                &ldquo;{t.text}&rdquo;
+              </p>
+              <p className="text-xs font-semibold text-gray-700">{t.name}</p>
+              <p className="text-xs text-gray-400">{t.location}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="w-full max-w-md mt-2 mb-5">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">कसं काम करतं?</h2>
+        <div className="flex flex-col gap-2.5">
+          {[
+            { step: "1", title: "जाहिरात द्या किंवा नोकरी शोधा", desc: "2 मिनिटांत मोफत जाहिरात द्या किंवा उपलब्ध नोकऱ्या पहा" },
+            { step: "2", title: "थेट संपर्क करा", desc: "फोन किंवा WhatsApp वरून लगेच बोला — कोणताही मध्यस्थ नाही" },
+            { step: "3", title: "कामावर रुजू व्हा", desc: "बोलणी करा आणि लगेच कामाला सुरुवात करा" },
+          ].map((s) => (
+            <div
+              key={s.step}
+              className="bg-white rounded-xl p-3.5 flex items-start gap-3 text-left"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+            >
+              <span
+                className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                style={{ backgroundColor: "#FF6B00" }}
+              >
+                {s.step}
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{s.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* SEO content — visible, useful for users too */}
       <div className="w-full max-w-md mt-2 mb-5">
         <h2 className="text-sm font-semibold text-gray-400 mb-2">महाराष्ट्रातील नोकऱ्या</h2>
         <p className="text-xs text-gray-400 leading-relaxed">
           सांगली, पुणे, कोल्हापूर, मुंबई, नाशिक, औरंगाबाद, सोलापूर, सातारा, नागपूर — संपूर्ण महाराष्ट्रातील नोकऱ्या एकाच ठिकाणी. सेल्समन, ड्रायव्हर, इलेक्ट्रिशियन, प्लंबर, वेल्डर, मेकॅनिक, सुतार, वेटर, स्वयंपाकी, डिलिव्हरी बॉय — सर्व प्रकारच्या नोकऱ्या.
         </p>
-      </div>
-
-      {/* Contact / Help */}
-      <div
-        className="w-full max-w-md mt-2 mb-5 bg-white rounded-xl p-4 text-center"
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-      >
-        <p className="text-sm text-gray-700 mb-2">
-          जाहिरात देताना काही अडचण येत आहे?
-        </p>
-        <a
-          href="https://wa.me/919284408873?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%95%E0%A4%BE%E0%A4%B0%2C%20%E0%A4%AE%E0%A4%B2%E0%A4%BE%20%E0%A4%AE%E0%A4%A6%E0%A4%A4%20%E0%A4%B9%E0%A4%B5%E0%A5%80%20%E0%A4%86%E0%A4%B9%E0%A5%87."
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-full transition"
-          style={{ backgroundColor: "#25D366", color: "#ffffff" }}
-        >
-          <span style={{ fontSize: 16 }}>💬</span>
-          आम्हाला WhatsApp करा
-        </a>
       </div>
 
     </div>

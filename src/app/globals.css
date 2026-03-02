@@ -35,6 +35,10 @@
     font-size: 16px;
   }
 
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
   /* Override dark mode */
   @media (prefers-color-scheme: dark) {
     html, body {
