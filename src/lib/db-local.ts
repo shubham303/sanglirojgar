@@ -214,7 +214,7 @@ export function createLocalDb(): DbClient {
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];
         const { rows } = await pool.query(
-          `SELECT * FROM jobs WHERE ${where} ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          `SELECT * FROM jobs WHERE ${where} ORDER BY call_count DESC, whatsapp_count DESC, created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
           dataValues
         );
 

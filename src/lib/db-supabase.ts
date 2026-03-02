@@ -116,6 +116,8 @@ export function createSupabaseDb(): DbClient {
 
       const offset = (filters.page - 1) * filters.limit;
       query = query
+        .order("call_count", { ascending: false })
+        .order("whatsapp_count", { ascending: false })
         .order("created_at", { ascending: false })
         .range(offset, offset + filters.limit - 1);
 
