@@ -146,11 +146,20 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-800 mb-4">
-        {mode === "create" ? "नोकरी जाहिरात द्या" : "जाहिरात बदला"}
-      </h1>
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-800">
+          {mode === "create" ? "नोकरी जाहिरात द्या" : "जाहिरात बदला"}
+        </h1>
+        {mode === "create" && (
+          <p className="text-sm text-gray-400 mt-1">2 मिनिटांत मोफत जाहिरात — कोणतेही चार्जेस नाहीत</p>
+        )}
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 bg-white rounded-xl p-4"
+        style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+      >
         <Field label="नोकरी देणाऱ्याचे नाव" error={errors.employer_name}>
           <input
             type="text"
@@ -320,6 +329,16 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             ? (mode === "create" ? "नोंदवत आहे..." : "जतन होत आहे...")
             : (mode === "create" ? "जाहिरात नोंदवा" : "बदल जतन करा")}
         </button>
+
+        {mode === "create" && (
+          <div className="flex items-center justify-center gap-4 pt-2 text-xs text-gray-400">
+            <span>100% मोफत</span>
+            <span style={{ color: "#d1d5db" }}>|</span>
+            <span>लॉगिन नाही</span>
+            <span style={{ color: "#d1d5db" }}>|</span>
+            <span>तात्काळ प्रकाशित</span>
+          </div>
+        )}
       </form>
     </div>
   );
