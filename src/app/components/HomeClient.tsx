@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { SITE_DOMAIN } from "@/lib/config";
 
 export default function HomeClient() {
 
@@ -100,28 +99,6 @@ export default function HomeClient() {
         >
           <span style={{ fontSize: 16 }}>💬</span>
           आम्हाला WhatsApp करा
-        </a>
-      </div>
-
-      {/* Share website */}
-      <div className="w-full max-w-xs mt-4 mb-4">
-        <a
-          href={`https://wa.me/?text=${encodeURIComponent(
-            `🔶 *महा जॉब — महाराष्ट्रातील नोकऱ्या*\n\n` +
-            `नोकरी शोधत आहात? सांगली, मिरज, कोल्हापूर, पुणे — महाराष्ट्रातील नोकऱ्या एकाच ठिकाणी!\n\n` +
-            `✅ रजिस्ट्रेशन नाही\n` +
-            `✅ पूर्णपणे मोफत\n` +
-            `✅ नोकरी देणाऱ्यांशी थेट संपर्क\n\n` +
-            `👉 ${SITE_DOMAIN}\n\n` +
-            `तुमच्या ओळखीच्यांना पण शेअर करा! 🙏`
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-semibold transition"
-          style={{ backgroundColor: "#25D366", color: "#ffffff" }}
-        >
-          <span style={{ fontSize: 18 }}>💬</span>
-          WhatsApp वर शेअर करा
         </a>
       </div>
 
