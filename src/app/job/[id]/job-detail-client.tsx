@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatExperience } from "@/lib/utils";
+import { trackEvent } from "@/lib/gtag";
 
 export default function JobDetail() {
   const params = useParams();
@@ -151,6 +152,7 @@ export default function JobDetail() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type: "call" }),
               });
+              trackEvent("phone_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
             }}
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
@@ -167,6 +169,7 @@ export default function JobDetail() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ type: "whatsapp" }),
               });
+              trackEvent("whatsapp_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
             }}
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#25D366", color: "#ffffff" }}

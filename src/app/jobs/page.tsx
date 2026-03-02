@@ -6,6 +6,7 @@ import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
 import { useJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
+import { trackEvent } from "@/lib/gtag";
 
 const PAGE_LIMIT = 20;
 const MAX_RETRIES = 3;
@@ -113,6 +114,11 @@ export default function BrowseJobs() {
     setAppliedJobType(filterJobType);
     setAppliedDistrict(filterDistrict);
     setAppliedTaluka(filterTaluka);
+    trackEvent("filter_used", {
+      job_type: filterJobType,
+      district: filterDistrict,
+      taluka: filterTaluka,
+    });
     try {
       const data = await fetchWithRetry(
         buildUrl(1, filterJobType, filterDistrict, filterTaluka)
@@ -393,6 +399,7 @@ export default function BrowseJobs() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ type: "call" }),
                       });
+                      trackEvent("phone_click", { job_id: job.id, job_type: job.job_type_display, employer: job.employer_name });
                       window.location.href = `tel:${job.phone}`;
                     }}
                     className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
@@ -413,6 +420,7 @@ export default function BrowseJobs() {
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ type: "whatsapp" }),
                       });
+                      trackEvent("whatsapp_click", { job_id: job.id, job_type: job.job_type_display, employer: job.employer_name });
                       window.open(`https://wa.me/91${job.phone}`, "_blank");
                     }}
                     className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"

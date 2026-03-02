@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
 import { JobCardInfo } from "@/app/components/JobCardInfo";
+import { trackEvent } from "@/lib/gtag";
 
 export default function EmployerJobs() {
   const params = useParams();
@@ -54,6 +55,9 @@ export default function EmployerJobs() {
       });
       if (res.ok) {
         const updatedJob = await res.json();
+        if (newStatus === true) {
+          trackEvent("job_reactivated", { job_id: id });
+        }
         setJobs((prev) =>
           prev
             .map((j) => (j.id === id ? updatedJob : j))

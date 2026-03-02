@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS, GENDERS } from "@/lib/constants";
 import { useJobTypes } from "@/lib/useJobTypes";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
+import { trackEvent } from "@/lib/gtag";
 import { Field } from "./Field";
 
 interface JobFormProps {
@@ -82,6 +83,9 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         }),
       });
       if (res.ok) {
+        if (mode === "create") {
+          trackEvent("job_posted", { job_type: form.job_type_id, district: form.district, taluka: form.taluka });
+        }
         setSuccess(true);
       } else {
         const data = await res.json().catch(() => null);
