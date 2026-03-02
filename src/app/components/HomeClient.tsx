@@ -62,26 +62,28 @@ export default function HomeClient() {
           style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
         >
           {[
-            { name: "राजेश पाटील", location: "सांगली", text: "महा जॉब वरून 2 दिवसात ड्रायव्हर मिळाला. खूप सोपं आहे!" },
-            { name: "सुनीता जाधव", location: "कोल्हापूर", text: "मला स्वयंपाकाची नोकरी लगेच मिळाली. रजिस्ट्रेशन नाही, थेट फोन केला." },
-            { name: "अमित शिंदे", location: "पुणे", text: "आमच्या दुकानासाठी सेल्समन शोधत होतो. एका दिवसात 5 कॉल आले!" },
-            { name: "प्रिया कुलकर्णी", location: "मिरज", text: "कोणतेही चार्जेस नाहीत. अकाउंटंटची जागा भरली गेली." },
-            { name: "विकास माळी", location: "सातारा", text: "इलेक्ट्रिशियनचं काम मिळालं. WhatsApp वर लगेच संपर्क झाला." },
+            { name: "राजेश पाटील", location: "सांगली", text: "महा जॉब वरून 2 दिवसात ड्रायव्हर मिळाला. खूप सोपं आहे!", accent: "#FF6B00" },
+            { name: "सुनीता जाधव", location: "कोल्हापूर", text: "मला स्वयंपाकाची नोकरी लगेच मिळाली. रजिस्ट्रेशन नाही, थेट फोन केला.", accent: "#16a34a" },
+            { name: "अमित शिंदे", location: "पुणे", text: "आमच्या दुकानासाठी सेल्समन शोधत होतो. एका दिवसात 5 कॉल आले!", accent: "#2563eb" },
+            { name: "प्रिया कुलकर्णी", location: "मिरज", text: "कोणतेही चार्जेस नाहीत. अकाउंटंटची जागा भरली गेली.", accent: "#9333ea" },
+            { name: "विकास माळी", location: "सातारा", text: "इलेक्ट्रिशियनचं काम मिळालं. WhatsApp वर लगेच संपर्क झाला.", accent: "#FF6B00" },
           ].map((t, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl p-4 shrink-0"
+              className="rounded-xl p-4 shrink-0"
               style={{
                 width: "260px",
                 scrollSnapAlign: "start",
+                backgroundColor: `${t.accent}10`,
+                borderLeft: `3px solid ${t.accent}`,
                 boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
               }}
             >
-              <p className="text-sm text-gray-600 leading-relaxed mb-3">
+              <p className="text-sm text-gray-700 leading-relaxed mb-3">
                 &ldquo;{t.text}&rdquo;
               </p>
-              <p className="text-xs font-semibold text-gray-700">{t.name}</p>
-              <p className="text-xs text-gray-400">{t.location}</p>
+              <p className="text-xs font-semibold" style={{ color: t.accent }}>{t.name}</p>
+              <p className="text-xs text-gray-500">{t.location}</p>
             </div>
           ))}
         </div>
