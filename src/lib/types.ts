@@ -18,6 +18,7 @@ export interface Job {
   created_at: string;
   is_active: boolean;
   expires_at?: string;
+  is_scraped?: boolean;
 }
 
 export interface JobType {
