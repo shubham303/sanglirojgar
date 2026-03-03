@@ -209,6 +209,21 @@ export function createSupabaseDb(): DbClient {
       return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
     },
 
+    async findDuplicateJobs(phone: string, job_type_id: number, taluka: string) {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("*")
+        .eq("phone", phone)
+        .eq("job_type_id", job_type_id)
+        .eq("taluka", taluka)
+        .eq("is_active", true)
+        .eq("is_deleted", false)
+        .gt("expires_at", new Date().toISOString());
+      if (error) return { data: null, error: error.message };
+      const labelMap = await getJobTypeLabelMap(supabase);
+      return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
+    },
+
     async getAllJobsByPhone(phone: string) {
       const { data, error } = await supabase
         .from("jobs")

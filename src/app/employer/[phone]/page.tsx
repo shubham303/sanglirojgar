@@ -123,6 +123,15 @@ export default function EmployerJobs() {
         </button>
       </form>
 
+      {searched && !loading && jobs.length > 0 && (
+        <div
+          className="text-sm text-gray-600 rounded-xl px-4 py-3 mb-4"
+          style={{ backgroundColor: "#eff6ff", borderLeft: "3px solid #93c5fd" }}
+        >
+          30 दिवसांपेक्षा जुन्या जाहिराती आपोआप बंद होतात. कृपया जुन्या किंवा अनावश्यक जाहिराती काढून टाका.
+        </div>
+      )}
+
       {loading ? (
         <p className="text-center text-gray-400 text-base py-8">
           लोड होत आहे...

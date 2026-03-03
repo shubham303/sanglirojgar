@@ -366,6 +366,20 @@ export function createLocalDb(): DbClient {
       }
     },
 
+    async findDuplicateJobs(phone: string, job_type_id: number, taluka: string) {
+      try {
+        await ensureTablesExist();
+        const { rows } = await getPool().query(
+          "SELECT * FROM jobs WHERE phone = $1 AND job_type_id = $2 AND taluka = $3 AND is_active = TRUE AND is_deleted = FALSE AND expires_at > NOW()",
+          [phone, job_type_id, taluka]
+        );
+        const labelMap = await getJobTypeLabelMap();
+        return { data: addJobTypeDisplayToList(labelMap, rows as Job[]), error: null };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
+      }
+    },
+
     async getAllJobsByPhone(phone: string) {
       try {
         await ensureTablesExist();

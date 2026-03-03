@@ -40,3 +40,9 @@ export interface Employer {
   employer_name: string;
   job_count: number;
 }
+
+export interface DuplicateJobsResponse {
+  error: string;
+  code: "DUPLICATE_JOBS";
+  duplicates: Job[];
+}

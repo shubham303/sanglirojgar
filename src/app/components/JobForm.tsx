@@ -6,7 +6,9 @@ import { DISTRICTS, DISTRICT_TALUKAS, GENDERS } from "@/lib/constants";
 import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 import { trackEvent } from "@/lib/gtag";
+import { Job } from "@/lib/types";
 import { Field } from "./Field";
+import { JobCardInfo } from "./JobCardInfo";
 
 interface JobFormProps {
   mode: "create" | "edit";
@@ -36,6 +38,8 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [duplicateJobs, setDuplicateJobs] = useState<Job[]>([]);
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
 
   // Edit mode: load existing data
   useEffect(() => {
@@ -62,8 +66,8 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     }
   }, [mode, jobId]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent, skipDuplicateCheck = false) => {
+    if (e) e.preventDefault();
     const errs = validateJobForm(form);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -73,20 +77,32 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     try {
       const url = mode === "create" ? "/api/jobs" : `/api/jobs/${jobId}`;
       const method = mode === "create" ? "POST" : "PUT";
+      const payload: Record<string, unknown> = {
+        ...form,
+        job_type_id: parseInt(form.job_type_id),
+        workers_needed: parseInt(form.workers_needed),
+      };
+      if (mode === "create" && skipDuplicateCheck) {
+        payload.skip_duplicate_check = true;
+      }
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          job_type_id: parseInt(form.job_type_id),
-          workers_needed: parseInt(form.workers_needed),
-        }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         if (mode === "create") {
           trackEvent("job_posted", { job_type: form.job_type_id, district: form.district, taluka: form.taluka });
         }
         setSuccess(true);
+      } else if (res.status === 409 && mode === "create") {
+        const data = await res.json().catch(() => null);
+        if (data?.code === "DUPLICATE_JOBS" && data.duplicates) {
+          setDuplicateJobs(data.duplicates);
+          setShowDuplicateWarning(true);
+        } else {
+          setSubmitError(data?.error || "जाहिरात नोंदवता आली नाही. कृपया पुन्हा प्रयत्न करा.");
+        }
       } else {
         const data = await res.json().catch(() => null);
         setSubmitError(
@@ -344,6 +360,64 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           </div>
         )}
       </form>
+
+      {showDuplicateWarning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}>
+            <h2 className="text-lg font-bold text-gray-800 mb-2">
+              सारखी जाहिरात आधीच आहे
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              या फोन नंबरवर हाच कामाचा प्रकार आणि तालुका असलेली जाहिरात आधीच सक्रिय आहे. कृपया आधी तुमच्या जाहिराती तपासा.
+            </p>
+
+            <div className="space-y-3 mb-4">
+              {duplicateJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="bg-gray-50 rounded-lg p-3"
+                  style={{ borderLeft: "3px solid #FF6B00" }}
+                >
+                  <JobCardInfo
+                    job={job}
+                    showDescription
+                    truncateDescription
+                    showEmployerName
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <Link
+                href={`/employer/${form.phone}`}
+                className="text-sm font-semibold py-3 rounded-xl text-center transition block"
+                style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
+              >
+                माझ्या जाहिराती पहा आणि व्यवस्थापित करा
+              </Link>
+              <button
+                onClick={() => {
+                  setShowDuplicateWarning(false);
+                  handleSubmit(undefined, true);
+                }}
+                disabled={submitting}
+                className="text-sm font-medium py-2.5 rounded-xl text-center transition border border-gray-300 disabled:opacity-50"
+                style={{ color: "#374151" }}
+              >
+                {submitting ? "नोंदवत आहे..." : "तरीही नवीन जाहिरात द्या"}
+              </button>
+              <button
+                onClick={() => setShowDuplicateWarning(false)}
+                className="text-sm py-2 rounded-xl text-center transition"
+                style={{ color: "#6b7280" }}
+              >
+                रद्द करा
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

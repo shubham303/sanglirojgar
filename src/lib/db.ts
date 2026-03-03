@@ -39,6 +39,7 @@ export interface DbClient {
   softDeleteJob(id: string): Promise<{ error: string | null }>;
   hardDeleteJob(id: string): Promise<{ error: string | null }>;
   getActiveJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
+  findDuplicateJobs(phone: string, job_type_id: number, taluka: string): Promise<DbResult<Job[]>>;
   getAllJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
   getJobTypes(): Promise<DbResult<JobType[]>>;
   getIndustries(): Promise<DbResult<Industry[]>>;

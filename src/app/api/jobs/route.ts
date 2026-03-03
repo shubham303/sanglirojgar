@@ -52,6 +52,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: talukaError }, { status: 400 });
   }
 
+  // Duplicate check (skip if explicitly requested)
+  if (!body.skip_duplicate_check) {
+    const dupResult = await db.findDuplicateJobs(jobData.phone, jobData.job_type_id, jobData.taluka);
+    if (dupResult.error) {
+      console.error("Duplicate check failed, proceeding:", dupResult.error);
+    } else if (dupResult.data && dupResult.data.length > 0) {
+      return NextResponse.json(
+        {
+          error: "या फोन नंबरवर हाच कामाचा प्रकार आणि तालुका असलेली जाहिरात आधीच आहे.",
+          code: "DUPLICATE_JOBS",
+          duplicates: dupResult.data,
+        },
+        { status: 409 }
+      );
+    }
+  }
+
   const { data, error } = await db.createJob({
     ...jobData,
     is_active: true,
