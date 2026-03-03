@@ -1,5 +1,3 @@
-import { JOB_TYPE_OPTIONS, JOB_TYPE_OPTIONS_GROUPED, GroupedJobTypeOptions } from "./constants";
-
 export interface JobTypeOption {
   id: number;
   label: string;
@@ -24,17 +22,15 @@ let fetchGroupedPromise: Promise<GroupedJobTypeOption[]> | null = null;
 /**
  * Async fetch of job type options from the API.
  * Deduplicates concurrent calls and caches for 60 minutes.
- * Falls back to stale cache or hardcoded constants on failure.
+ * Returns stale cache on failure, or empty array if no cache exists.
  */
 export async function fetchJobTypeOptions(): Promise<JobTypeOption[]> {
   const now = Date.now();
 
-  // Return cached data if still fresh
   if (cachedOptions && now - lastFetchTime < CACHE_TTL_MS) {
     return cachedOptions;
   }
 
-  // Deduplicate concurrent requests
   if (fetchPromise) return fetchPromise;
 
   fetchPromise = fetch("/api/job-types")
@@ -48,8 +44,7 @@ export async function fetchJobTypeOptions(): Promise<JobTypeOption[]> {
       return data;
     })
     .catch(() => {
-      // Return stale cache if available, else hardcoded fallback
-      return cachedOptions || JOB_TYPE_OPTIONS.map((o) => ({ id: o.id, label: o.label }));
+      return cachedOptions || [];
     })
     .finally(() => {
       fetchPromise = null;
@@ -59,20 +54,10 @@ export async function fetchJobTypeOptions(): Promise<JobTypeOption[]> {
 }
 
 /**
- * Synchronous accessor — returns cached options or hardcoded fallback.
- * Guarantees a non-empty array so dropdowns always have data on first render.
+ * Synchronous accessor — returns cached options or empty array.
  */
 export function getJobTypeOptionsSync(): JobTypeOption[] {
-  return cachedOptions || JOB_TYPE_OPTIONS.map((o) => ({ id: o.id, label: o.label }));
-}
-
-function toGrouped(data: GroupedJobTypeOptions[]): GroupedJobTypeOption[] {
-  return data.map((g) => ({
-    industry_id: g.industry_id,
-    industry_mr: g.industry_mr,
-    industry_en: g.industry_en,
-    options: g.options.map((o) => ({ id: o.id, label: o.label })),
-  }));
+  return cachedOptions || [];
 }
 
 /**
@@ -99,7 +84,7 @@ export async function fetchGroupedJobTypeOptions(): Promise<GroupedJobTypeOption
       return data;
     })
     .catch(() => {
-      return cachedGrouped || toGrouped(JOB_TYPE_OPTIONS_GROUPED);
+      return cachedGrouped || [];
     })
     .finally(() => {
       fetchGroupedPromise = null;
@@ -109,8 +94,8 @@ export async function fetchGroupedJobTypeOptions(): Promise<GroupedJobTypeOption
 }
 
 /**
- * Synchronous accessor — returns cached grouped options or hardcoded fallback.
+ * Synchronous accessor — returns cached grouped options or empty array.
  */
 export function getGroupedJobTypeOptionsSync(): GroupedJobTypeOption[] {
-  return cachedGrouped || toGrouped(JOB_TYPE_OPTIONS_GROUPED);
+  return cachedGrouped || [];
 }

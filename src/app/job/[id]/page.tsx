@@ -3,18 +3,16 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { SITE_URL } from "@/lib/config";
 import { formatLocation } from "@/lib/utils";
-import { getJobTypeMarathi } from "@/lib/constants";
 import JobDetailClient from "./job-detail-client";
 
-/** Resolve Marathi name from job_type_display ("मराठी (English)") or fall back to constants */
+/** Extract Marathi name from job_type_display ("मराठी (English)") */
 function resolveJobTypeMarathi(job: { job_type_id: number; job_type_display?: string }): string {
   if (job.job_type_display) {
-    // job_type_display is "मराठी (English)" — extract the Marathi part before " ("
     const idx = job.job_type_display.indexOf(" (");
     if (idx > 0) return job.job_type_display.slice(0, idx);
     return job.job_type_display;
   }
-  return resolveJobTypeMarathi(job);
+  return `#${job.job_type_id}`;
 }
 
 interface Props {

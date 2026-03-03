@@ -1,7 +1,6 @@
 import { getSupabase } from "./supabase";
 import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
-import { getJobTypeLabel } from "./constants";
 
 /** Cached job type lookup from DB, refreshed on first use per server lifetime */
 let _jobTypeLabelMap: Map<number, string> | null = null;
@@ -28,7 +27,7 @@ function invalidateJobTypeLabelMap() {
 
 /** Resolve job_type_display from DB-backed map, falling back to constants */
 function resolveJobTypeDisplay(labelMap: Map<number, string>, jobTypeId: number): string {
-  return labelMap.get(jobTypeId) || getJobTypeLabel(jobTypeId);
+  return labelMap.get(jobTypeId) || `#${jobTypeId}`;
 }
 
 function addJobTypeDisplay(labelMap: Map<number, string>, row: Job): Job {

@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import { randomUUID } from "crypto";
 import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
-import { JOB_TYPES, JOB_EXPIRY_DAYS, getJobTypeLabel } from "./constants";
+import { JOB_TYPES, JOB_EXPIRY_DAYS } from "./constants";
 
 let _pool: Pool | null = null;
 let _initialized = false;
@@ -37,7 +37,7 @@ function invalidateJobTypeLabelMap() {
 
 /** Resolve job_type_display from DB-backed map, falling back to constants */
 function resolveJobTypeDisplay(labelMap: Map<number, string>, jobTypeId: number): string {
-  return labelMap.get(jobTypeId) || getJobTypeLabel(jobTypeId);
+  return labelMap.get(jobTypeId) || `#${jobTypeId}`;
 }
 
 function addJobTypeDisplay(labelMap: Map<number, string>, row: Job): Job {

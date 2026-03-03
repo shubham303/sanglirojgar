@@ -5,20 +5,7 @@ export const ADMIN_PHONE = "9284408873";
 export const JOB_EXPIRY_DAYS = 30;
 export const JOB_EXPIRY_MS = JOB_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
-// Industries — groups for job types
-export const INDUSTRIES = [
-  { id: 1, marathi: "सामान्य", english: "General" },
-  { id: 2, marathi: "हॉस्पिटल", english: "Hospital" },
-  { id: 3, marathi: "हॉटेल", english: "Hotel" },
-  { id: 4, marathi: "उत्पादन", english: "Manufacturing" },
-  { id: 5, marathi: "बांधकाम", english: "Construction" },
-  { id: 6, marathi: "शिक्षण", english: "Education" },
-  { id: 7, marathi: "सॉफ्टवेअर", english: "Software" },
-  { id: 8, marathi: "रिअल इस्टेट", english: "Real Estate" },
-  { id: 9, marathi: "व्यापार", english: "Trading" },
-] as const;
-
-// Job types — single source of truth (with industry_id)
+// Job types — used only for local DB seeding and import scripts
 export const JOB_TYPES = [
   { id: 1, marathi: "सेल्समन", english: "Salesman", industry_id: 1 },
   { id: 2, marathi: "डिलिव्हरी बॉय", english: "Delivery Boy", industry_id: 1 },
@@ -66,75 +53,10 @@ export const JOB_TYPES = [
   { id: 43, marathi: "हाउसकीपिंग", english: "Housekeeping", industry_id: 2 },
 ] as const;
 
-// Dropdown options: array of {id, label} for forms and filters
-export const JOB_TYPE_OPTIONS = JOB_TYPES.map((jt) => ({
-  id: jt.id,
-  label: `${jt.marathi} (${jt.english})`,
-}));
-
-// Lookup maps
-const jobTypeLabelById = new Map<number, string>();
-const jobTypeMarathiById = new Map<number, string>();
-const jobTypeIdByMarathi = new Map<string, number>();
-for (const jt of JOB_TYPES) {
-  jobTypeLabelById.set(jt.id, `${jt.marathi} (${jt.english})`);
-  jobTypeMarathiById.set(jt.id, jt.marathi);
-  jobTypeIdByMarathi.set(jt.marathi, jt.id);
-}
-
-/** Returns bilingual label: "मराठी (English)" for a numeric ID */
-export function getJobTypeLabel(id: number): string {
-  return jobTypeLabelById.get(id) || `#${id}`;
-}
-
-/** Returns Marathi name for a numeric ID */
-export function getJobTypeMarathi(id: number): string {
-  return jobTypeMarathiById.get(id) || "इतर";
-}
-
 /** Returns numeric ID for a Marathi name (used by import scripts) */
 export function getJobTypeIdByMarathi(name: string): number | undefined {
-  return jobTypeIdByMarathi.get(name);
+  return JOB_TYPES.find((jt) => jt.marathi === name)?.id;
 }
-
-// Industry lookup maps
-const industryById = new Map<number, { marathi: string; english: string }>();
-for (const ind of INDUSTRIES) {
-  industryById.set(ind.id, { marathi: ind.marathi, english: ind.english });
-}
-
-/** Returns industry label: "मराठी (English)" for an industry ID */
-export function getIndustryLabel(id: number): string {
-  const ind = industryById.get(id);
-  return ind ? `${ind.marathi} (${ind.english})` : "सामान्य (General)";
-}
-
-// Grouped job type options for <optgroup> dropdowns
-export interface GroupedJobTypeOptions {
-  industry_id: number;
-  industry_mr: string;
-  industry_en: string;
-  options: { id: number; label: string }[];
-}
-
-export const JOB_TYPE_OPTIONS_GROUPED: GroupedJobTypeOptions[] = (() => {
-  const map = new Map<number, GroupedJobTypeOptions>();
-  for (const ind of INDUSTRIES) {
-    map.set(ind.id, {
-      industry_id: ind.id,
-      industry_mr: ind.marathi,
-      industry_en: ind.english,
-      options: [],
-    });
-  }
-  for (const jt of JOB_TYPES) {
-    const group = map.get(jt.industry_id);
-    if (group) {
-      group.options.push({ id: jt.id, label: `${jt.marathi} (${jt.english})` });
-    }
-  }
-  return Array.from(map.values()).filter((g) => g.options.length > 0);
-})();
 
 export const GENDERS = ["पुरुष (Male)", "महिला (Female)", "दोन्ही (Both)"];
 
