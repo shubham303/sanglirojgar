@@ -15,8 +15,25 @@ interface RawJobBody {
   is_scraped?: boolean | string;
 }
 
-export function prepareJobData(body: RawJobBody) {
-  const data: Record<string, unknown> = {
+interface PreparedJobData {
+  employer_name: string;
+  phone: string;
+  job_type_id: number;
+  state: string;
+  district: string;
+  taluka: string;
+  salary: string;
+  description: string;
+  minimum_education: string;
+  experience_years: string;
+  workers_needed: number;
+  gender: string;
+  is_scraped?: boolean;
+  [key: string]: unknown;
+}
+
+export function prepareJobData(body: RawJobBody): PreparedJobData {
+  const data: PreparedJobData = {
     employer_name: body.employer_name.trim(),
     phone: body.phone,
     job_type_id:
