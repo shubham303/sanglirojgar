@@ -48,6 +48,7 @@ export function createSupabaseDb(): DbClient {
         .from("jobs")
         .select("*", { count: "exact" })
         .eq("is_active", true)
+        .eq("is_deleted", false)
         .gt("expires_at", new Date().toISOString());
 
       if (filters.job_type_id) {
@@ -93,6 +94,11 @@ export function createSupabaseDb(): DbClient {
         .from("jobs")
         .select("*", { count: "exact" });
 
+      if (filters.is_deleted !== undefined) {
+        query = query.eq("is_deleted", filters.is_deleted);
+      } else {
+        query = query.eq("is_deleted", false);
+      }
       if (filters.is_active !== undefined) {
         query = query.eq("is_active", filters.is_active);
       }
@@ -177,7 +183,7 @@ export function createSupabaseDb(): DbClient {
     async softDeleteJob(id: string) {
       const { error } = await supabase
         .from("jobs")
-        .update({ is_active: false })
+        .update({ is_deleted: true })
         .eq("id", id);
       return { error: error?.message ?? null };
     },
@@ -196,6 +202,7 @@ export function createSupabaseDb(): DbClient {
         .select("*")
         .eq("phone", phone)
         .eq("is_active", true)
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
@@ -207,6 +214,7 @@ export function createSupabaseDb(): DbClient {
         .from("jobs")
         .select("*")
         .eq("phone", phone)
+        .eq("is_deleted", false)
         .order("is_active", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) return { data: null, error: error.message };
@@ -277,6 +285,7 @@ export function createSupabaseDb(): DbClient {
         .from("jobs")
         .select("*")
         .eq("is_active", true)
+        .eq("is_deleted", false)
         .lt("expires_at", now);
 
       if (selectErr) return { data: null, error: selectErr.message };
@@ -298,6 +307,7 @@ export function createSupabaseDb(): DbClient {
       const { data, error } = await supabase
         .from("jobs")
         .select("phone, employer_name, created_at")
+        .eq("is_deleted", false)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -333,7 +343,8 @@ export function createSupabaseDb(): DbClient {
         .from("jobs")
         .select("id", { count: "exact", head: true })
         .eq("job_type_id", numericId)
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .eq("is_deleted", false);
 
       if (countErr) {
         return { error: countErr.message };

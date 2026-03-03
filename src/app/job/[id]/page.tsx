@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { SITE_URL } from "@/lib/config";
 import { formatLocation } from "@/lib/utils";
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const db = getDb();
   const { data: job } = await db.getJobById(id);
 
-  if (!job) {
+  if (!job || job.is_deleted) {
     return {
       title: "जाहिरात सापडली नाही",
     };
@@ -58,6 +59,10 @@ export default async function JobDetailPage({ params }: Props) {
   const { id } = await params;
   const db = getDb();
   const { data: job } = await db.getJobById(id);
+
+  if (!job || job.is_deleted) {
+    notFound();
+  }
 
   // JSON-LD structured data for Google JobPosting rich results
   const jsonLd = job

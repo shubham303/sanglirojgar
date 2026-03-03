@@ -20,6 +20,10 @@ export async function GET(
     return NextResponse.json({ error: error || "Not found" }, { status: 404 });
   }
 
+  if (data.is_deleted) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   return NextResponse.json(data);
 }
 
@@ -30,6 +34,13 @@ export async function PUT(
 ) {
   const db = getDb();
   const { id } = await params;
+
+  // Prevent editing deleted jobs
+  const { data: existing } = await db.getJobById(id);
+  if (!existing || existing.is_deleted) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const body = await request.json();
 
   const validationError = getFirstValidationError(body);
@@ -60,6 +71,13 @@ export async function PATCH(
 ) {
   const db = getDb();
   const { id } = await params;
+
+  // Prevent reactivating deleted jobs
+  const { data: existing } = await db.getJobById(id);
+  if (!existing || existing.is_deleted) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const body = await request.json();
 
   if (typeof body.is_active !== "boolean") {
@@ -84,7 +102,7 @@ export async function PATCH(
   return NextResponse.json(data);
 }
 
-// DELETE /api/jobs/[id] — Permanently delete a job
+// DELETE /api/jobs/[id] — Soft-delete a job (mark as deleted, preserved in DB)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -92,7 +110,7 @@ export async function DELETE(
   const db = getDb();
   const { id } = await params;
 
-  const { error } = await db.hardDeleteJob(id);
+  const { error } = await db.softDeleteJob(id);
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });

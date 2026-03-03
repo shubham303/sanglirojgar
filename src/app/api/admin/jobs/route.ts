@@ -37,6 +37,10 @@ export async function GET(request: NextRequest) {
   if (isActive === "true") filters.is_active = true;
   else if (isActive === "false") filters.is_active = false;
 
+  const isDeleted = searchParams.get("is_deleted");
+  if (isDeleted === "true") filters.is_deleted = true;
+  else if (isDeleted === "false") filters.is_deleted = false;
+
   const db = getDb();
   const { data, error } = await db.getAllJobsPaginated(filters);
 

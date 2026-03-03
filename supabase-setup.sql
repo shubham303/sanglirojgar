@@ -17,7 +17,8 @@ CREATE TABLE jobs (
   call_count integer NOT NULL DEFAULT 0,
   whatsapp_count integer NOT NULL DEFAULT 0,
   created_at timestamp with time zone DEFAULT now(),
-  is_active boolean DEFAULT true
+  is_active boolean DEFAULT true,
+  is_deleted boolean DEFAULT false
 );
 
 -- Row Level Security
@@ -44,6 +45,9 @@ CREATE INDEX idx_jobs_phone ON jobs (phone);
 
 -- Index on is_active for filtering
 CREATE INDEX idx_jobs_is_active ON jobs (is_active);
+
+-- Index on is_deleted for filtering
+CREATE INDEX idx_jobs_is_deleted ON jobs (is_deleted);
 
 -- Industries table (groups job types by sector)
 CREATE TABLE industries (

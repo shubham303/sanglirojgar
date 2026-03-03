@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await db.createJob({
     ...jobData,
     is_active: true,
+    is_deleted: false,
     expires_at: new Date(Date.now() + JOB_EXPIRY_MS).toISOString(),
   });
 

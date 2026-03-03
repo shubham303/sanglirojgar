@@ -17,6 +17,7 @@ export interface Job {
   whatsapp_count: number;
   created_at: string;
   is_active: boolean;
+  is_deleted: boolean;
   expires_at?: string;
   is_scraped?: boolean;
 }

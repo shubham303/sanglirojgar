@@ -44,7 +44,7 @@ export default function AdminPage() {
   const [filterTaluka, setFilterTaluka] = useState("");
   const [filterPhone, setFilterPhone] = useState("");
   const [filterSearch, setFilterSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive" | "deleted">("all");
 
   // Employers tab state
   const [employers, setEmployers] = useState<Employer[]>([]);
@@ -111,6 +111,7 @@ export default function AdminPage() {
       if (filterSearch) params.set("search", filterSearch);
       if (filterStatus === "active") params.set("is_active", "true");
       if (filterStatus === "inactive") params.set("is_active", "false");
+      if (filterStatus === "deleted") params.set("is_deleted", "true");
 
       const res = await fetch(`/api/admin/jobs?${params.toString()}`);
       if (res.ok) {
@@ -334,12 +335,13 @@ export default function AdminPage() {
 
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as "all" | "active" | "inactive")}
+                onChange={(e) => setFilterStatus(e.target.value as "all" | "active" | "inactive" | "deleted")}
                 className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
               >
                 <option value="all">सर्व स्थिती</option>
                 <option value="active">सक्रिय</option>
                 <option value="inactive">निष्क्रिय</option>
+                <option value="deleted">काढलेले</option>
               </select>
             </div>
 
@@ -370,7 +372,7 @@ export default function AdminPage() {
                   className="bg-white rounded-xl p-3.5"
                   style={{
                     boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    opacity: job.is_active ? 1 : 0.55,
+                    opacity: job.is_deleted ? 0.45 : job.is_active ? 1 : 0.55,
                   }}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -382,12 +384,14 @@ export default function AdminPage() {
                         <span
                           className="text-[10px] px-1.5 py-0.5 rounded font-medium"
                           style={
-                            job.is_active
+                            job.is_deleted
+                              ? { backgroundColor: "#f3f4f6", color: "#6b7280" }
+                              : job.is_active
                               ? { backgroundColor: "#f0fdf4", color: "#15803d" }
                               : { backgroundColor: "#fef2f2", color: "#dc2626" }
                           }
                         >
-                          {job.is_active ? "सक्रिय" : "निष्क्रिय"}
+                          {job.is_deleted ? "काढलेले" : job.is_active ? "सक्रिय" : "निष्क्रिय"}
                         </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-0.5">{job.phone}</p>

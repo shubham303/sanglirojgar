@@ -96,6 +96,7 @@ async function ensureTablesExist() {
   // Add expires_at column if missing, backfill existing rows
   await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ`);
   await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_scraped BOOLEAN DEFAULT FALSE`);
+  await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE`);
   await pool.query(`UPDATE jobs SET expires_at = created_at + INTERVAL '${JOB_EXPIRY_DAYS} days' WHERE expires_at IS NULL`);
 
   _initialized = true;
@@ -107,7 +108,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const pool = getPool();
-        const conditions = ["is_active = TRUE", "expires_at > NOW()"];
+        const conditions = ["is_active = TRUE", "is_deleted = FALSE", "expires_at > NOW()"];
         const values: unknown[] = [];
         let paramIdx = 1;
 
@@ -171,6 +172,13 @@ export function createLocalDb(): DbClient {
         const values: unknown[] = [];
         let paramIdx = 1;
 
+        if (filters.is_deleted !== undefined) {
+          conditions.push(`is_deleted = $${paramIdx}`);
+          values.push(filters.is_deleted);
+          paramIdx++;
+        } else {
+          conditions.push("is_deleted = FALSE");
+        }
         if (filters.is_active !== undefined) {
           conditions.push(`is_active = $${paramIdx}`);
           values.push(filters.is_active);
@@ -325,7 +333,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         await getPool().query(
-          "UPDATE jobs SET is_active = FALSE WHERE id = $1",
+          "UPDATE jobs SET is_deleted = TRUE WHERE id = $1",
           [id]
         );
         return { error: null };
@@ -348,7 +356,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE phone = $1 AND is_active = TRUE ORDER BY created_at DESC",
+          "SELECT * FROM jobs WHERE phone = $1 AND is_active = TRUE AND is_deleted = FALSE ORDER BY created_at DESC",
           [phone]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -362,7 +370,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE phone = $1 ORDER BY is_active DESC, created_at DESC",
+          "SELECT * FROM jobs WHERE phone = $1 AND is_deleted = FALSE ORDER BY is_active DESC, created_at DESC",
           [phone]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -443,14 +451,14 @@ export function createLocalDb(): DbClient {
 
         // Find active jobs past expiry
         const { rows: expiredJobs } = await pool.query(
-          "SELECT * FROM jobs WHERE is_active = TRUE AND expires_at < NOW()"
+          "SELECT * FROM jobs WHERE is_active = TRUE AND is_deleted = FALSE AND expires_at < NOW()"
         );
 
         if (expiredJobs.length === 0) return { data: [], error: null };
 
         // Mark them inactive
         await pool.query(
-          "UPDATE jobs SET is_active = FALSE WHERE is_active = TRUE AND expires_at < NOW()"
+          "UPDATE jobs SET is_active = FALSE WHERE is_active = TRUE AND is_deleted = FALSE AND expires_at < NOW()"
         );
 
         const labelMap = await getJobTypeLabelMap();
@@ -465,9 +473,10 @@ export function createLocalDb(): DbClient {
         await ensureTablesExist();
         const { rows } = await getPool().query(
           `SELECT phone,
-             (SELECT employer_name FROM jobs j2 WHERE j2.phone = j1.phone ORDER BY created_at ASC LIMIT 1) as employer_name,
+             (SELECT employer_name FROM jobs j2 WHERE j2.phone = j1.phone AND j2.is_deleted = FALSE ORDER BY created_at ASC LIMIT 1) as employer_name,
              COUNT(*) as job_count
            FROM jobs j1
+           WHERE is_deleted = FALSE
            GROUP BY phone
            ORDER BY MAX(created_at) DESC`
         );
@@ -490,7 +499,7 @@ export function createLocalDb(): DbClient {
 
         // Check if any active jobs use this type
         const { rows: countRows } = await pool.query(
-          "SELECT COUNT(*) as cnt FROM jobs WHERE job_type_id = $1 AND is_active = TRUE",
+          "SELECT COUNT(*) as cnt FROM jobs WHERE job_type_id = $1 AND is_active = TRUE AND is_deleted = FALSE",
           [numericId]
         );
         const count = parseInt(countRows[0].cnt);

@@ -25,6 +25,7 @@ export interface PaginatedJobs {
 export interface AdminJobFilters extends JobFilters {
   phone?: string;
   is_active?: boolean;
+  is_deleted?: boolean;
 }
 
 export interface DbClient {
