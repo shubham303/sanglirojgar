@@ -39,6 +39,23 @@ function addJobTypeDisplayToList(labelMap: Map<number, string>, rows: Job[]): Jo
   return rows.map((r) => addJobTypeDisplay(labelMap, r));
 }
 
+/** Select string for jobs with employer name from employers table */
+const JOBS_SELECT = "*, employers(name)";
+
+/** Extract employer_name from Supabase relational query result (employers.name) */
+function resolveEmployerName(row: Record<string, unknown>): Job {
+  const { employers, ...rest } = row;
+  const employerData = employers as { name: string } | null;
+  return {
+    ...rest,
+    employer_name: employerData?.name ?? (rest.employer_name as string | undefined),
+  } as Job;
+}
+
+function resolveEmployerNames(rows: Record<string, unknown>[]): Job[] {
+  return rows.map(resolveEmployerName);
+}
+
 export function createSupabaseDb(): DbClient {
   const supabase = getSupabase();
 
@@ -46,7 +63,7 @@ export function createSupabaseDb(): DbClient {
     async getActiveJobsPaginated(filters: JobFilters) {
       let query = supabase
         .from("jobs")
-        .select("*", { count: "exact" })
+        .select(JOBS_SELECT, { count: "exact" })
         .eq("is_active", true)
         .eq("is_deleted", false)
         .gt("expires_at", new Date().toISOString());
@@ -80,7 +97,7 @@ export function createSupabaseDb(): DbClient {
       const total = count ?? 0;
       const labelMap = await getJobTypeLabelMap(supabase);
       const result: PaginatedJobs = {
-        jobs: addJobTypeDisplayToList(labelMap, (data as Job[]) ?? []),
+        jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
         total,
         page: filters.page,
         limit: filters.limit,
@@ -92,7 +109,7 @@ export function createSupabaseDb(): DbClient {
     async getAllJobsPaginated(filters: AdminJobFilters) {
       let query = supabase
         .from("jobs")
-        .select("*", { count: "exact" });
+        .select(JOBS_SELECT, { count: "exact" });
 
       if (filters.is_deleted !== undefined) {
         query = query.eq("is_deleted", filters.is_deleted);
@@ -136,7 +153,7 @@ export function createSupabaseDb(): DbClient {
       const total = count ?? 0;
       const labelMap = await getJobTypeLabelMap(supabase);
       const result: PaginatedJobs = {
-        jobs: addJobTypeDisplayToList(labelMap, (data as Job[]) ?? []),
+        jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
         total,
         page: filters.page,
         limit: filters.limit,
@@ -148,36 +165,42 @@ export function createSupabaseDb(): DbClient {
     async getJobById(id: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select(JOBS_SELECT)
         .eq("id", id)
         .single();
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplay(labelMap, data as Job), error: null };
+      return { data: addJobTypeDisplay(labelMap, resolveEmployerName(data as Record<string, unknown>)), error: null };
     },
 
     async createJob(job) {
+      // Upsert employer before inserting job (idempotent)
+      const { error: empErr } = await supabase
+        .from("employers")
+        .upsert({ phone: job.phone, name: job.employer_name }, { onConflict: "phone" });
+      if (empErr) return { data: null, error: empErr.message };
+
       const { data, error } = await supabase
         .from("jobs")
         .insert(job)
-        .select()
+        .select(JOBS_SELECT)
         .single();
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplay(labelMap, data as Job), error: null };
+      return { data: addJobTypeDisplay(labelMap, resolveEmployerName(data as Record<string, unknown>)), error: null };
     },
 
     async updateJob(id: string, job: Partial<Job>) {
-      const { job_type_display: _, ...updateData } = job;
+      const { job_type_display: _, employer_name: __, ...updateData } = job;
       const { data, error } = await supabase
         .from("jobs")
         .update(updateData)
         .eq("id", id)
-        .select()
+        .select(JOBS_SELECT)
         .single();
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplay(labelMap, data as Job), error: null };
+      return { data: addJobTypeDisplay(labelMap, resolveEmployerName(data as Record<string, unknown>)), error: null };
     },
 
     async softDeleteJob(id: string) {
@@ -199,20 +222,20 @@ export function createSupabaseDb(): DbClient {
     async getActiveJobsByPhone(phone: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select(JOBS_SELECT)
         .eq("phone", phone)
         .eq("is_active", true)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false });
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
+      return { data: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])), error: null };
     },
 
     async findDuplicateJobs(phone: string, job_type_id: number, taluka: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select(JOBS_SELECT)
         .eq("phone", phone)
         .eq("job_type_id", job_type_id)
         .eq("taluka", taluka)
@@ -221,20 +244,20 @@ export function createSupabaseDb(): DbClient {
         .gt("expires_at", new Date().toISOString());
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
+      return { data: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])), error: null };
     },
 
     async getAllJobsByPhone(phone: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select("*")
+        .select(JOBS_SELECT)
         .eq("phone", phone)
         .eq("is_deleted", false)
         .order("is_active", { ascending: false })
         .order("created_at", { ascending: false });
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplayToList(labelMap, data as Job[]), error: null };
+      return { data: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])), error: null };
     },
 
     async getJobTypes() {
@@ -298,7 +321,7 @@ export function createSupabaseDb(): DbClient {
       // Find jobs that are active but past their expiry
       const { data: expiredJobs, error: selectErr } = await supabase
         .from("jobs")
-        .select("*")
+        .select(JOBS_SELECT)
         .eq("is_active", true)
         .eq("is_deleted", false)
         .lt("expires_at", now);
@@ -306,7 +329,8 @@ export function createSupabaseDb(): DbClient {
       if (selectErr) return { data: null, error: selectErr.message };
       if (!expiredJobs || expiredJobs.length === 0) return { data: [], error: null };
 
-      const ids = expiredJobs.map((j: Job) => j.id);
+      const resolved = resolveEmployerNames(expiredJobs as Record<string, unknown>[]);
+      const ids = resolved.map((j) => j.id);
       const { error: updateErr } = await supabase
         .from("jobs")
         .update({ is_active: false })
@@ -315,37 +339,39 @@ export function createSupabaseDb(): DbClient {
       if (updateErr) return { data: null, error: updateErr.message };
 
       const labelMap = await getJobTypeLabelMap(supabase);
-      return { data: addJobTypeDisplayToList(labelMap, expiredJobs as Job[]), error: null };
+      return { data: addJobTypeDisplayToList(labelMap, resolved), error: null };
+    },
+
+    async upsertEmployer(phone: string, name: string) {
+      const { data, error } = await supabase
+        .from("employers")
+        .upsert({ phone, name }, { onConflict: "phone" })
+        .select()
+        .single();
+      if (error) return { data: null, error: error.message };
+      return {
+        data: { phone: data.phone, employer_name: data.name, job_count: 0, created_at: data.created_at } as import("./types").Employer,
+        error: null,
+      };
     },
 
     async getEmployers() {
       const { data, error } = await supabase
-        .from("jobs")
-        .select("phone, employer_name, created_at")
-        .eq("is_deleted", false)
-        .order("created_at", { ascending: true });
+        .from("employers")
+        .select("phone, name, jobs(count)");
 
       if (error) {
         return { data: null, error: error.message };
       }
 
-      const employerMap = new Map<string, { name: string; count: number }>();
-      for (const row of data || []) {
-        const existing = employerMap.get(row.phone);
-        if (existing) {
-          existing.count++;
-        } else {
-          employerMap.set(row.phone, { name: row.employer_name, count: 1 });
-        }
-      }
-
-      const employers: import("./types").Employer[] = Array.from(
-        employerMap.entries()
-      ).map(([phone, { name, count }]) => ({
-        phone,
-        employer_name: name,
-        job_count: count,
-      }));
+      const employers: import("./types").Employer[] = (data || []).map((row: Record<string, unknown>) => {
+        const jobsData = row.jobs as { count: number }[] | null;
+        return {
+          phone: row.phone as string,
+          employer_name: row.name as string,
+          job_count: jobsData?.[0]?.count ?? 0,
+        };
+      });
 
       return { data: employers, error: null };
     },

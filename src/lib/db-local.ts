@@ -71,6 +71,15 @@ async function ensureTablesExist() {
     }
   }
 
+  // Create employers table before jobs (jobs references it via FK)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS employers (
+      phone TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS jobs (
       id TEXT PRIMARY KEY,
@@ -99,6 +108,22 @@ async function ensureTablesExist() {
   await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE`);
   await pool.query(`UPDATE jobs SET expires_at = created_at + INTERVAL '${JOB_EXPIRY_DAYS} days' WHERE expires_at IS NULL`);
 
+  // Backfill employers from existing jobs data
+  await pool.query(`
+    INSERT INTO employers (phone, name, created_at)
+    SELECT DISTINCT ON (phone) phone, employer_name, MIN(created_at) OVER (PARTITION BY phone)
+    FROM jobs ORDER BY phone, created_at ASC
+    ON CONFLICT (phone) DO NOTHING
+  `);
+
+  // Add FK constraint if not exists (ignore error if already exists)
+  await pool.query(`
+    DO $$ BEGIN
+      ALTER TABLE jobs ADD CONSTRAINT fk_jobs_employer FOREIGN KEY (phone) REFERENCES employers(phone);
+    EXCEPTION WHEN duplicate_object THEN NULL;
+    END $$
+  `);
+
   _initialized = true;
 }
 
@@ -108,28 +133,28 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const pool = getPool();
-        const conditions = ["is_active = TRUE", "is_deleted = FALSE", "expires_at > NOW()"];
+        const conditions = ["j.is_active = TRUE", "j.is_deleted = FALSE", "j.expires_at > NOW()"];
         const values: unknown[] = [];
         let paramIdx = 1;
 
         if (filters.job_type_id) {
-          conditions.push(`job_type_id = $${paramIdx}`);
+          conditions.push(`j.job_type_id = $${paramIdx}`);
           values.push(filters.job_type_id);
           paramIdx++;
         }
         if (filters.district) {
-          conditions.push(`district = $${paramIdx}`);
+          conditions.push(`j.district = $${paramIdx}`);
           values.push(filters.district);
           paramIdx++;
         }
         if (filters.taluka) {
-          conditions.push(`taluka = $${paramIdx}`);
+          conditions.push(`j.taluka = $${paramIdx}`);
           values.push(filters.taluka);
           paramIdx++;
         }
         if (filters.search) {
           conditions.push(
-            `(employer_name ILIKE $${paramIdx} OR description ILIKE $${paramIdx})`
+            `(e.name ILIKE $${paramIdx} OR j.description ILIKE $${paramIdx})`
           );
           values.push(`%${filters.search}%`);
           paramIdx++;
@@ -138,7 +163,7 @@ export function createLocalDb(): DbClient {
         const where = conditions.join(" AND ");
 
         const countResult = await pool.query(
-          `SELECT COUNT(*) as cnt FROM jobs WHERE ${where}`,
+          `SELECT COUNT(*) as cnt FROM jobs j JOIN employers e ON j.phone = e.phone WHERE ${where}`,
           values
         );
         const total = parseInt(countResult.rows[0].cnt);
@@ -146,7 +171,7 @@ export function createLocalDb(): DbClient {
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];
         const { rows } = await pool.query(
-          `SELECT * FROM jobs WHERE ${where} ORDER BY created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          `SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE ${where} ORDER BY j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
           dataValues
         );
 
@@ -173,40 +198,40 @@ export function createLocalDb(): DbClient {
         let paramIdx = 1;
 
         if (filters.is_deleted !== undefined) {
-          conditions.push(`is_deleted = $${paramIdx}`);
+          conditions.push(`j.is_deleted = $${paramIdx}`);
           values.push(filters.is_deleted);
           paramIdx++;
         } else {
-          conditions.push("is_deleted = FALSE");
+          conditions.push("j.is_deleted = FALSE");
         }
         if (filters.is_active !== undefined) {
-          conditions.push(`is_active = $${paramIdx}`);
+          conditions.push(`j.is_active = $${paramIdx}`);
           values.push(filters.is_active);
           paramIdx++;
         }
         if (filters.phone) {
-          conditions.push(`phone = $${paramIdx}`);
+          conditions.push(`j.phone = $${paramIdx}`);
           values.push(filters.phone);
           paramIdx++;
         }
         if (filters.job_type_id) {
-          conditions.push(`job_type_id = $${paramIdx}`);
+          conditions.push(`j.job_type_id = $${paramIdx}`);
           values.push(filters.job_type_id);
           paramIdx++;
         }
         if (filters.district) {
-          conditions.push(`district = $${paramIdx}`);
+          conditions.push(`j.district = $${paramIdx}`);
           values.push(filters.district);
           paramIdx++;
         }
         if (filters.taluka) {
-          conditions.push(`taluka = $${paramIdx}`);
+          conditions.push(`j.taluka = $${paramIdx}`);
           values.push(filters.taluka);
           paramIdx++;
         }
         if (filters.search) {
           conditions.push(
-            `(employer_name ILIKE $${paramIdx} OR description ILIKE $${paramIdx} OR phone ILIKE $${paramIdx})`
+            `(e.name ILIKE $${paramIdx} OR j.description ILIKE $${paramIdx} OR j.phone ILIKE $${paramIdx})`
           );
           values.push(`%${filters.search}%`);
           paramIdx++;
@@ -215,7 +240,7 @@ export function createLocalDb(): DbClient {
         const where = conditions.length > 0 ? conditions.join(" AND ") : "TRUE";
 
         const countResult = await pool.query(
-          `SELECT COUNT(*) as cnt FROM jobs WHERE ${where}`,
+          `SELECT COUNT(*) as cnt FROM jobs j JOIN employers e ON j.phone = e.phone WHERE ${where}`,
           values
         );
         const total = parseInt(countResult.rows[0].cnt);
@@ -223,7 +248,7 @@ export function createLocalDb(): DbClient {
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];
         const { rows } = await pool.query(
-          `SELECT * FROM jobs WHERE ${where} ORDER BY call_count DESC, whatsapp_count DESC, created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          `SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE ${where} ORDER BY j.call_count DESC, j.whatsapp_count DESC, j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
           dataValues
         );
 
@@ -245,7 +270,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE id = $1",
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.id = $1",
           [id]
         );
         if (!rows[0]) return { data: null, error: null };
@@ -257,11 +282,23 @@ export function createLocalDb(): DbClient {
     },
 
     async createJob(job) {
+      const client = await getPool().connect();
       try {
         await ensureTablesExist();
         const id = randomUUID();
         const now = new Date().toISOString();
-        await getPool().query(
+
+        await client.query("BEGIN");
+
+        // Upsert employer
+        await client.query(
+          `INSERT INTO employers (phone, name) VALUES ($1, $2)
+           ON CONFLICT (phone) DO UPDATE SET name = $2`,
+          [job.phone, job.employer_name]
+        );
+
+        // Insert job
+        await client.query(
           `INSERT INTO jobs (id, employer_name, phone, job_type_id, state, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender, created_at, is_active, expires_at, is_scraped)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
           [
@@ -284,14 +321,20 @@ export function createLocalDb(): DbClient {
             (job as Record<string, unknown>).is_scraped ?? false,
           ]
         );
+
+        await client.query("COMMIT");
+
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE id = $1",
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.id = $1",
           [id]
         );
         const labelMap = await getJobTypeLabelMap();
         return { data: addJobTypeDisplay(labelMap, rows[0] as Job), error: null };
       } catch (e: unknown) {
+        await client.query("ROLLBACK");
         return { data: null, error: (e as Error).message };
+      } finally {
+        client.release();
       }
     },
 
@@ -303,7 +346,7 @@ export function createLocalDb(): DbClient {
         let paramIdx = 1;
 
         for (const [key, value] of Object.entries(job)) {
-          if (key === "id" || key === "created_at" || key === "job_type_display") continue;
+          if (key === "id" || key === "created_at" || key === "job_type_display" || key === "employer_name") continue;
           fields.push(`${key} = $${paramIdx}`);
           values.push(value);
           paramIdx++;
@@ -318,7 +361,7 @@ export function createLocalDb(): DbClient {
         }
 
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE id = $1",
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.id = $1",
           [id]
         );
         if (!rows[0]) return { data: null, error: null };
@@ -356,7 +399,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE phone = $1 AND is_active = TRUE AND is_deleted = FALSE ORDER BY created_at DESC",
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.phone = $1 AND j.is_active = TRUE AND j.is_deleted = FALSE ORDER BY j.created_at DESC",
           [phone]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -370,7 +413,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE phone = $1 AND job_type_id = $2 AND taluka = $3 AND is_active = TRUE AND is_deleted = FALSE AND expires_at > NOW()",
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.phone = $1 AND j.job_type_id = $2 AND j.taluka = $3 AND j.is_active = TRUE AND j.is_deleted = FALSE AND j.expires_at > NOW()",
           [phone, job_type_id, taluka]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -384,7 +427,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT * FROM jobs WHERE phone = $1 AND is_deleted = FALSE ORDER BY is_active DESC, created_at DESC",
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.phone = $1 AND j.is_deleted = FALSE ORDER BY j.is_active DESC, j.created_at DESC",
           [phone]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -465,7 +508,7 @@ export function createLocalDb(): DbClient {
 
         // Find active jobs past expiry
         const { rows: expiredJobs } = await pool.query(
-          "SELECT * FROM jobs WHERE is_active = TRUE AND is_deleted = FALSE AND expires_at < NOW()"
+          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.is_active = TRUE AND j.is_deleted = FALSE AND j.expires_at < NOW()"
         );
 
         if (expiredJobs.length === 0) return { data: [], error: null };
@@ -482,17 +525,33 @@ export function createLocalDb(): DbClient {
       }
     },
 
+    async upsertEmployer(phone: string, name: string) {
+      try {
+        await ensureTablesExist();
+        const { rows } = await getPool().query(
+          `INSERT INTO employers (phone, name) VALUES ($1, $2)
+           ON CONFLICT (phone) DO UPDATE SET name = $2
+           RETURNING *`,
+          [phone, name]
+        );
+        return {
+          data: { phone: rows[0].phone, employer_name: rows[0].name, job_count: 0, created_at: rows[0].created_at } as import("./types").Employer,
+          error: null,
+        };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
+      }
+    },
+
     async getEmployers() {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          `SELECT phone,
-             (SELECT employer_name FROM jobs j2 WHERE j2.phone = j1.phone AND j2.is_deleted = FALSE ORDER BY created_at ASC LIMIT 1) as employer_name,
-             COUNT(*) as job_count
-           FROM jobs j1
-           WHERE is_deleted = FALSE
-           GROUP BY phone
-           ORDER BY MAX(created_at) DESC`
+          `SELECT e.phone, e.name as employer_name, COUNT(j.id) as job_count
+           FROM employers e
+           LEFT JOIN jobs j ON e.phone = j.phone AND j.is_deleted = FALSE
+           GROUP BY e.phone, e.name
+           ORDER BY MAX(j.created_at) DESC`
         );
         const employers: import("./types").Employer[] = rows.map((r) => ({
           phone: r.phone,

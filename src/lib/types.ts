@@ -1,6 +1,6 @@
 export interface Job {
   id: string;
-  employer_name: string;
+  employer_name?: string; // populated via JOIN from employers table
   phone: string;
   job_type_id: number;
   job_type_display?: string; // populated via JOIN: "मराठी (English)"
@@ -39,6 +39,7 @@ export interface Employer {
   phone: string;
   employer_name: string;
   job_count: number;
+  created_at?: string;
 }
 
 export interface DuplicateJobsResponse {

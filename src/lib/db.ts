@@ -47,6 +47,7 @@ export interface DbClient {
   deleteJobType(id: string): Promise<{ error: string | null }>;
   incrementJobClick(id: string, field: "call_count" | "whatsapp_count"): Promise<{ error: string | null }>;
   expireOldJobs(): Promise<DbResult<Job[]>>;
+  upsertEmployer(phone: string, name: string): Promise<DbResult<Employer>>;
   getEmployers(): Promise<DbResult<Employer[]>>;
 }
 
