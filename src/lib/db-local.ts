@@ -108,6 +108,9 @@ async function ensureTablesExist() {
   await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE`);
   await pool.query(`UPDATE jobs SET expires_at = created_at + INTERVAL '${JOB_EXPIRY_DAYS} days' WHERE expires_at IS NULL`);
 
+  // Add last_contacted_by_admin_at column if missing
+  await pool.query(`ALTER TABLE employers ADD COLUMN IF NOT EXISTS last_contacted_by_admin_at TIMESTAMPTZ DEFAULT NULL`);
+
   // Backfill employers from existing jobs data
   await pool.query(`
     INSERT INTO employers (phone, name, created_at)
@@ -547,20 +550,35 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          `SELECT e.phone, e.name as employer_name, COUNT(j.id) as job_count
+          `SELECT e.phone, e.name as employer_name, e.created_at, e.last_contacted_by_admin_at, COUNT(j.id) as job_count
            FROM employers e
            LEFT JOIN jobs j ON e.phone = j.phone AND j.is_deleted = FALSE
-           GROUP BY e.phone, e.name
+           GROUP BY e.phone, e.name, e.created_at, e.last_contacted_by_admin_at
            ORDER BY MAX(j.created_at) DESC`
         );
         const employers: import("./types").Employer[] = rows.map((r) => ({
           phone: r.phone,
           employer_name: r.employer_name,
           job_count: parseInt(r.job_count),
+          created_at: r.created_at,
+          last_contacted_by_admin_at: r.last_contacted_by_admin_at ?? null,
         }));
         return { data: employers, error: null };
       } catch (e: unknown) {
         return { data: null, error: (e as Error).message };
+      }
+    },
+
+    async updateEmployerLastContacted(phone: string) {
+      try {
+        await ensureTablesExist();
+        await getPool().query(
+          "UPDATE employers SET last_contacted_by_admin_at = NOW() WHERE phone = $1",
+          [phone]
+        );
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
       }
     },
 

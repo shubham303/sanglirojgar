@@ -358,7 +358,7 @@ export function createSupabaseDb(): DbClient {
     async getEmployers() {
       const { data, error } = await supabase
         .from("employers")
-        .select("phone, name, jobs(count)");
+        .select("phone, name, created_at, last_contacted_by_admin_at, jobs(count)");
 
       if (error) {
         return { data: null, error: error.message };
@@ -370,10 +370,20 @@ export function createSupabaseDb(): DbClient {
           phone: row.phone as string,
           employer_name: row.name as string,
           job_count: jobsData?.[0]?.count ?? 0,
+          created_at: row.created_at as string | undefined,
+          last_contacted_by_admin_at: row.last_contacted_by_admin_at as string | null | undefined,
         };
       });
 
       return { data: employers, error: null };
+    },
+
+    async updateEmployerLastContacted(phone: string) {
+      const { error } = await supabase
+        .from("employers")
+        .update({ last_contacted_by_admin_at: new Date().toISOString() })
+        .eq("phone", phone);
+      return { error: error?.message ?? null };
     },
 
     async deleteJobType(id: string) {

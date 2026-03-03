@@ -40,6 +40,7 @@ export interface Employer {
   employer_name: string;
   job_count: number;
   created_at?: string;
+  last_contacted_by_admin_at?: string | null;
 }
 
 export interface DuplicateJobsResponse {

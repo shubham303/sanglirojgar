@@ -49,6 +49,7 @@ export interface DbClient {
   expireOldJobs(): Promise<DbResult<Job[]>>;
   upsertEmployer(phone: string, name: string): Promise<DbResult<Employer>>;
   getEmployers(): Promise<DbResult<Employer[]>>;
+  updateEmployerLastContacted(phone: string): Promise<{ error: string | null }>;
 }
 
 let _db: DbClient | null = null;
