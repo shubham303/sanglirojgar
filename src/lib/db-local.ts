@@ -2,7 +2,7 @@ import { Pool } from "pg";
 import { randomUUID } from "crypto";
 import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
-import { JOB_TYPES, JOB_EXPIRY_DAYS } from "./constants";
+import { JOB_EXPIRY_DAYS } from "./constants";
 
 let _pool: Pool | null = null;
 let _initialized = false;
@@ -59,17 +59,6 @@ async function ensureTablesExist() {
       name_en TEXT NOT NULL
     )
   `);
-
-  // Seed job_types from constants if table is empty
-  const { rows: jtRows } = await pool.query("SELECT COUNT(*) as cnt FROM job_types");
-  if (parseInt(jtRows[0].cnt) === 0) {
-    for (const jt of JOB_TYPES) {
-      await pool.query(
-        "INSERT INTO job_types (id, name_mr, name_en) VALUES ($1, $2, $3)",
-        [jt.id, jt.marathi, jt.english]
-      );
-    }
-  }
 
   // Create employers table before jobs (jobs references it via FK)
   await pool.query(`

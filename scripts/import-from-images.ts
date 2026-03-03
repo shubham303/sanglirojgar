@@ -17,7 +17,7 @@
 
 import fs from "fs";
 import path from "path";
-import { JOB_TYPES as jobTypesData, getJobTypeIdByMarathi } from "../src/lib/constants";
+import { createClient } from "@supabase/supabase-js";
 
 // Load .env.local
 const envPath = path.resolve(__dirname, "../.env.local");
@@ -46,7 +46,27 @@ const CSV_COLUMNS = [
   "gender",
 ] as const;
 
-const JOB_TYPES = jobTypesData.map((jt) => `${jt.marathi} (${jt.english})`);
+// Load job types from DB
+let JOB_TYPES: string[] = [];
+let jobTypeIdByMarathi = new Map<string, number>();
+
+async function loadJobTypes() {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data, error } = await supabase
+    .from("job_types")
+    .select("id, name_mr, name_en")
+    .order("id", { ascending: true });
+  if (error || !data) throw new Error(`Failed to load job types: ${error?.message}`);
+  JOB_TYPES = data.map((jt: { name_mr: string; name_en: string }) => `${jt.name_mr} (${jt.name_en})`);
+  jobTypeIdByMarathi = new Map(data.map((jt: { id: number; name_mr: string }) => [jt.name_mr, jt.id]));
+}
+
+function getJobTypeIdByMarathi(name: string): number | undefined {
+  return jobTypeIdByMarathi.get(name);
+}
 
 const DISTRICTS = [
   "सांगली", "पुणे", "मुंबई", "नागपूर", "नाशिक", "औरंगाबाद", "सोलापूर",
@@ -167,6 +187,9 @@ async function main() {
     console.error("Usage: npx tsx scripts/import-from-images.ts <folder-path>");
     process.exit(1);
   }
+
+  await loadJobTypes();
+  console.log(`Loaded ${JOB_TYPES.length} job types from DB\n`);
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
