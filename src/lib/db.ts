@@ -1,4 +1,4 @@
-import { Employer, Job, JobType } from "./types";
+import { Employer, Industry, Job, JobType } from "./types";
 
 export interface DbResult<T> {
   data: T | null;
@@ -40,6 +40,7 @@ export interface DbClient {
   getActiveJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
   getAllJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
   getJobTypes(): Promise<DbResult<JobType[]>>;
+  getIndustries(): Promise<DbResult<Industry[]>>;
   addJobType(name: string): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
   incrementJobClick(id: string, field: "call_count" | "whatsapp_count"): Promise<{ error: string | null }>;

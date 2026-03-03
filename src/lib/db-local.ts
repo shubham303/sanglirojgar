@@ -384,6 +384,18 @@ export function createLocalDb(): DbClient {
       }
     },
 
+    async getIndustries() {
+      try {
+        await ensureTablesExist();
+        const { rows } = await getPool().query(
+          "SELECT * FROM industries ORDER BY id ASC"
+        );
+        return { data: rows as import("./types").Industry[], error: null };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
+      }
+    },
+
     async addJobType(name: string) {
       try {
         await ensureTablesExist();

@@ -12,10 +12,11 @@ interface RawJobBody {
   experience_years?: string;
   workers_needed: string | number;
   gender?: string;
+  is_scraped?: boolean | string;
 }
 
 export function prepareJobData(body: RawJobBody) {
-  return {
+  const data: Record<string, unknown> = {
     employer_name: body.employer_name.trim(),
     phone: body.phone,
     job_type_id:
@@ -35,6 +36,15 @@ export function prepareJobData(body: RawJobBody) {
         : body.workers_needed,
     gender: body.gender || "both",
   };
+
+  if (body.is_scraped !== undefined) {
+    data.is_scraped =
+      typeof body.is_scraped === "string"
+        ? body.is_scraped === "true"
+        : body.is_scraped;
+  }
+
+  return data;
 }
 
 export function validateTalukaDistrict(

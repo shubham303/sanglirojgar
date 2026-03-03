@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
-import { useJobTypes } from "@/lib/useJobTypes";
+import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
@@ -37,7 +37,7 @@ function SkeletonCard() {
 }
 
 export default function BrowseJobs() {
-  const jobTypeOptions = useJobTypes();
+  const groupedJobTypes = useGroupedJobTypes();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -247,10 +247,14 @@ export default function BrowseJobs() {
                 style={{ borderColor: filterJobType !== ALL ? "#FF6B00" : undefined }}
               >
                 <option value={ALL}>सर्व</option>
-                {jobTypeOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
+                {groupedJobTypes.map((group) => (
+                  <optgroup key={group.industry_id} label={`${group.industry_mr} (${group.industry_en})`}>
+                    {group.options.map((opt) => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

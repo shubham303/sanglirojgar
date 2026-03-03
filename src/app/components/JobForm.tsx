@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS, GENDERS } from "@/lib/constants";
-import { useJobTypes } from "@/lib/useJobTypes";
+import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 import { trackEvent } from "@/lib/gtag";
 import { Field } from "./Field";
@@ -17,7 +17,7 @@ const EDUCATION_OPTIONS = ["शिक्षण नाही", "10वी", "12व
 const EXPERIENCE_OPTIONS = ["0", "1", "2", "3", "3+"];
 
 export default function JobForm({ mode, jobId }: JobFormProps) {
-  const jobTypeOptions = useJobTypes();
+  const groupedJobTypes = useGroupedJobTypes();
   const [form, setForm] = useState({
     employer_name: "",
     phone: "",
@@ -193,10 +193,14 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
-            {jobTypeOptions.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {opt.label}
-              </option>
+            {groupedJobTypes.map((group) => (
+              <optgroup key={group.industry_id} label={`${group.industry_mr} (${group.industry_en})`}>
+                {group.options.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </Field>

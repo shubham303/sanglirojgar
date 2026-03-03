@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Job } from "@/lib/types";
 import { Employer } from "@/lib/types";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
-import { useJobTypes } from "@/lib/useJobTypes";
+import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { formatDateMarathi, formatLocation } from "@/lib/utils";
 
 type AdminTab = "all_jobs" | "employers";
@@ -19,7 +19,7 @@ interface PaginatedJobs {
 }
 
 export default function AdminPage() {
-  const jobTypeOptions = useJobTypes();
+  const groupedJobTypes = useGroupedJobTypes();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminTab>("all_jobs");
@@ -284,8 +284,12 @@ export default function AdminPage() {
                 className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
               >
                 <option value="">सर्व कामे</option>
-                {jobTypeOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>{opt.label}</option>
+                {groupedJobTypes.map((group) => (
+                  <optgroup key={group.industry_id} label={`${group.industry_mr} (${group.industry_en})`}>
+                    {group.options.map((opt) => (
+                      <option key={opt.id} value={opt.id}>{opt.label}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
 

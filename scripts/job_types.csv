@@ -1,35 +1,44 @@
-id,name_mr,name_en
-1,सेल्समन,Salesman
-2,डिलिव्हरी बॉय,Delivery Boy
-3,स्वयंपाकी,Cook
-4,वेटर,Waiter
-5,सुरक्षा रक्षक,Security Guard
-6,ड्रायव्हर,Driver
-7,मेकॅनिक,Mechanic
-8,इलेक्ट्रिशियन,Electrician
-9,प्लंबर,Plumber
-10,सुतार,Carpenter
-11,वेल्डर,Welder
-12,शिपाई,Peon
-13,सफाई कर्मचारी,Cleaner
-14,रिसेप्शनिस्ट,Receptionist
-15,दुकान सहाय्यक,Shop Assistant
-16,गोडाउन कामगार,Warehouse Worker
-17,हेल्पर,Helper
-18,सुपरवायझर,Supervisor
-19,टेलिकॉलर,Telecaller
-20,एचआर,HR
-21,बँक कर्मचारी,Bank Staff
-22,कॉम्प्युटर ऑपरेटर,Computer Operator
-23,शिक्षक,Teacher
-24,नर्स,Nurse
-25,तंत्रज्ञ,Technician
-26,मशीन ऑपरेटर,Machine Operator
-27,ऑफिस सहाय्यक,Office Assistant
-28,फील्ड वर्कर,Field Worker
-29,इंजिनिअर,Engineer
-30,व्हिडिओ एडिटर,Video Editor
-31,मार्केटिंग,Marketing
-32,अकाउंटंट,Accountant
-33,कामगार,Worker
-34,इतर,Other
+id,name_mr,name_en,industry_id
+1,सेल्समन,Salesman,1
+2,डिलिव्हरी बॉय,Delivery Boy,1
+3,स्वयंपाकी,Cook,3
+4,वेटर,Waiter,3
+5,सुरक्षा रक्षक,Security Guard,1
+6,ड्रायव्हर,Driver,1
+7,मेकॅनिक,Mechanic,1
+8,इलेक्ट्रिशियन,Electrician,5
+9,प्लंबर,Plumber,5
+10,सुतार,Carpenter,5
+11,वेल्डर,Welder,4
+12,शिपाई,Peon,1
+13,सफाई कर्मचारी,Cleaner,1
+14,रिसेप्शनिस्ट,Receptionist,1
+15,दुकान सहाय्यक,Shop Assistant,1
+16,गोडाउन कामगार,Warehouse Worker,1
+17,हेल्पर,Helper,1
+18,सुपरवायझर,Supervisor,1
+19,टेलिकॉलर,Telecaller,1
+20,एचआर,HR,1
+21,बँक कर्मचारी,Bank Staff,1
+22,कॉम्प्युटर ऑपरेटर,Computer Operator,1
+23,शिक्षक,Teacher,6
+24,नर्स,Nurse,2
+25,तंत्रज्ञ,Technician,2
+26,मशीन ऑपरेटर,Machine Operator,4
+27,ऑफिस सहाय्यक,Office Assistant,1
+28,फील्ड वर्कर,Field Worker,1
+29,इंजिनिअर,Engineer,1
+30,व्हिडिओ एडिटर,Video Editor,1
+31,मार्केटिंग,Marketing,1
+32,अकाउंटंट,Accountant,1
+33,कामगार,Worker,4
+34,इतर,Other,1
+35,आरएमओ,RMO,2
+36,हॉस्पिटल ब्रदर,Hospital Brother,2
+37,हॉस्पिटल सिस्टर,Hospital Sister,2
+38,सीएचओ,CHO,2
+39,हॉस्पिटल तंत्रज्ञ,Hospital Technician,2
+40,ओटी तंत्रज्ञ,OT Technician,2
+41,कॅथलॅब तंत्रज्ञ,Cathlab Technician,2
+42,परफ्युजनिस्ट,Perfusionist,2
+43,हाउसकीपिंग,Housekeeping,2

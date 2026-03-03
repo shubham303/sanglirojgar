@@ -45,10 +45,39 @@ CREATE INDEX idx_jobs_phone ON jobs (phone);
 -- Index on is_active for filtering
 CREATE INDEX idx_jobs_is_active ON jobs (is_active);
 
--- Job types table (admin-managed)
+-- Industries table (groups job types by sector)
+CREATE TABLE industries (
+  id serial PRIMARY KEY,
+  name_mr text NOT NULL UNIQUE,
+  name_en text NOT NULL,
+  created_at timestamp with time zone DEFAULT now()
+);
+
+-- RLS for industries
+ALTER TABLE industries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can read industries"
+  ON industries FOR SELECT
+  USING (true);
+
+-- Seed industries
+INSERT INTO industries (id, name_mr, name_en) VALUES
+  (1, 'सामान्य', 'General'),
+  (2, 'हॉस्पिटल', 'Hospital'),
+  (3, 'हॉटेल', 'Hotel'),
+  (4, 'उत्पादन', 'Manufacturing'),
+  (5, 'बांधकाम', 'Construction'),
+  (6, 'शिक्षण', 'Education'),
+  (7, 'सॉफ्टवेअर', 'Software'),
+  (8, 'रिअल इस्टेट', 'Real Estate'),
+  (9, 'व्यापार', 'Trading');
+
+-- Job types table (admin-managed, grouped by industry)
 CREATE TABLE job_types (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  name text NOT NULL UNIQUE,
+  id serial PRIMARY KEY,
+  name_mr text NOT NULL,
+  name_en text NOT NULL DEFAULT '',
+  industry_id integer REFERENCES industries(id) DEFAULT 1,
   created_at timestamp with time zone DEFAULT now()
 );
 
@@ -70,23 +99,51 @@ CREATE POLICY "Anyone can delete job_types"
   ON job_types FOR DELETE
   USING (true);
 
--- Seed initial job types
-INSERT INTO job_types (name) VALUES
-  ('सेल्समन'),
-  ('डिलिव्हरी बॉय'),
-  ('स्वयंपाकी'),
-  ('वेटर'),
-  ('सुरक्षा रक्षक'),
-  ('ड्रायव्हर'),
-  ('मेकॅनिक'),
-  ('इलेक्ट्रिशियन'),
-  ('प्लंबर'),
-  ('सुतार'),
-  ('वेल्डर'),
-  ('शिपाई'),
-  ('सफाई कर्मचारी'),
-  ('रिसेप्शनिस्ट'),
-  ('अकाउंटंट'),
-  ('दुकान सहाय्यक'),
-  ('गोडाउन कामगार'),
-  ('इतर');
+-- Seed job types with industry assignments
+INSERT INTO job_types (id, name_mr, name_en, industry_id) VALUES
+  (1, 'सेल्समन', 'Salesman', 1),
+  (2, 'डिलिव्हरी बॉय', 'Delivery Boy', 1),
+  (3, 'स्वयंपाकी', 'Cook', 3),
+  (4, 'वेटर', 'Waiter', 3),
+  (5, 'सुरक्षा रक्षक', 'Security Guard', 1),
+  (6, 'ड्रायव्हर', 'Driver', 1),
+  (7, 'मेकॅनिक', 'Mechanic', 1),
+  (8, 'इलेक्ट्रिशियन', 'Electrician', 5),
+  (9, 'प्लंबर', 'Plumber', 5),
+  (10, 'सुतार', 'Carpenter', 5),
+  (11, 'वेल्डर', 'Welder', 4),
+  (12, 'शिपाई', 'Peon', 1),
+  (13, 'सफाई कर्मचारी', 'Cleaner', 1),
+  (14, 'रिसेप्शनिस्ट', 'Receptionist', 1),
+  (15, 'दुकान सहाय्यक', 'Shop Assistant', 1),
+  (16, 'गोडाउन कामगार', 'Warehouse Worker', 1),
+  (17, 'हेल्पर', 'Helper', 1),
+  (18, 'सुपरवायझर', 'Supervisor', 1),
+  (19, 'टेलिकॉलर', 'Telecaller', 1),
+  (20, 'एचआर', 'HR', 1),
+  (21, 'बँक कर्मचारी', 'Bank Staff', 1),
+  (22, 'कॉम्प्युटर ऑपरेटर', 'Computer Operator', 1),
+  (23, 'शिक्षक', 'Teacher', 6),
+  (24, 'नर्स', 'Nurse', 2),
+  (25, 'तंत्रज्ञ', 'Technician', 2),
+  (26, 'मशीन ऑपरेटर', 'Machine Operator', 4),
+  (27, 'ऑफिस सहाय्यक', 'Office Assistant', 1),
+  (28, 'फील्ड वर्कर', 'Field Worker', 1),
+  (29, 'इंजिनिअर', 'Engineer', 1),
+  (30, 'व्हिडिओ एडिटर', 'Video Editor', 1),
+  (31, 'मार्केटिंग', 'Marketing', 1),
+  (32, 'अकाउंटंट', 'Accountant', 1),
+  (33, 'कामगार', 'Worker', 4),
+  (34, 'इतर', 'Other', 1),
+  (35, 'आरएमओ', 'RMO', 2),
+  (36, 'हॉस्पिटल ब्रदर', 'Hospital Brother', 2),
+  (37, 'हॉस्पिटल सिस्टर', 'Hospital Sister', 2),
+  (38, 'सीएचओ', 'CHO', 2),
+  (39, 'हॉस्पिटल तंत्रज्ञ', 'Hospital Technician', 2),
+  (40, 'ओटी तंत्रज्ञ', 'OT Technician', 2),
+  (41, 'कॅथलॅब तंत्रज्ञ', 'Cathlab Technician', 2),
+  (42, 'परफ्युजनिस्ट', 'Perfusionist', 2),
+  (43, 'हाउसकीपिंग', 'Housekeeping', 2);
+
+-- Reset industries sequence to max id
+SELECT setval('industries_id_seq', (SELECT MAX(id) FROM industries));

@@ -217,10 +217,21 @@ export function createSupabaseDb(): DbClient {
     async getJobTypes() {
       const { data, error } = await supabase
         .from("job_types")
-        .select("*")
+        .select("id, name_mr, name_en, industry_id")
         .order("id", { ascending: true });
       return {
         data: data as import("./types").JobType[] | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async getIndustries() {
+      const { data, error } = await supabase
+        .from("industries")
+        .select("id, name_mr, name_en")
+        .order("id", { ascending: true });
+      return {
+        data: data as import("./types").Industry[] | null,
         error: error?.message ?? null,
       };
     },

@@ -7,7 +7,7 @@
  * Default CSV path: fb-ads/jobs-to-review.csv
  *
  * CSV columns:
- *   employer_name,phone,job_type_id,district,taluka,salary,description,minimum_education,experience_years,workers_needed
+ *   employer_name,phone,job_type,job_type_id,district,taluka,salary,description,minimum_education,experience_years,workers_needed,gender,is_scraped
  */
 
 import fs from "fs";
@@ -118,14 +118,25 @@ async function main() {
     const row = rows[i];
     const label = `[${i + 1}/${rows.length}] ${row.employer_name} — job_type_id=${row.job_type_id}`;
 
-    // Convert numeric fields
+    // Build payload with correct types
     const data: Record<string, unknown> = { ...row };
+
+    // Convert numeric fields
     if (data.workers_needed) {
       data.workers_needed = Number(data.workers_needed) || 1;
     }
     if (data.job_type_id) {
       data.job_type_id = Number(data.job_type_id);
     }
+
+    // Convert boolean fields
+    if (data.is_scraped !== undefined) {
+      data.is_scraped = data.is_scraped === "true" || data.is_scraped === true;
+    }
+
+    // Remove job_type text column (API uses job_type_id instead)
+    delete data.job_type;
+
     // Remove empty optional fields
     for (const key of ["description", "minimum_education", "experience_years", "salary"]) {
       if (!data[key]) delete data[key];

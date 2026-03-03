@@ -2,42 +2,65 @@
 export const JOB_EXPIRY_DAYS = 30;
 export const JOB_EXPIRY_MS = JOB_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
-// Job types — single source of truth
+// Industries — groups for job types
+export const INDUSTRIES = [
+  { id: 1, marathi: "सामान्य", english: "General" },
+  { id: 2, marathi: "हॉस्पिटल", english: "Hospital" },
+  { id: 3, marathi: "हॉटेल", english: "Hotel" },
+  { id: 4, marathi: "उत्पादन", english: "Manufacturing" },
+  { id: 5, marathi: "बांधकाम", english: "Construction" },
+  { id: 6, marathi: "शिक्षण", english: "Education" },
+  { id: 7, marathi: "सॉफ्टवेअर", english: "Software" },
+  { id: 8, marathi: "रिअल इस्टेट", english: "Real Estate" },
+  { id: 9, marathi: "व्यापार", english: "Trading" },
+] as const;
+
+// Job types — single source of truth (with industry_id)
 export const JOB_TYPES = [
-  { id: 1, marathi: "सेल्समन", english: "Salesman" },
-  { id: 2, marathi: "डिलिव्हरी बॉय", english: "Delivery Boy" },
-  { id: 3, marathi: "स्वयंपाकी", english: "Cook" },
-  { id: 4, marathi: "वेटर", english: "Waiter" },
-  { id: 5, marathi: "सुरक्षा रक्षक", english: "Security Guard" },
-  { id: 6, marathi: "ड्रायव्हर", english: "Driver" },
-  { id: 7, marathi: "मेकॅनिक", english: "Mechanic" },
-  { id: 8, marathi: "इलेक्ट्रिशियन", english: "Electrician" },
-  { id: 9, marathi: "प्लंबर", english: "Plumber" },
-  { id: 10, marathi: "सुतार", english: "Carpenter" },
-  { id: 11, marathi: "वेल्डर", english: "Welder" },
-  { id: 12, marathi: "शिपाई", english: "Peon" },
-  { id: 13, marathi: "सफाई कर्मचारी", english: "Cleaner" },
-  { id: 14, marathi: "रिसेप्शनिस्ट", english: "Receptionist" },
-  { id: 15, marathi: "दुकान सहाय्यक", english: "Shop Assistant" },
-  { id: 16, marathi: "गोडाउन कामगार", english: "Warehouse Worker" },
-  { id: 17, marathi: "हेल्पर", english: "Helper" },
-  { id: 18, marathi: "सुपरवायझर", english: "Supervisor" },
-  { id: 19, marathi: "टेलिकॉलर", english: "Telecaller" },
-  { id: 20, marathi: "एचआर", english: "HR" },
-  { id: 21, marathi: "बँक कर्मचारी", english: "Bank Staff" },
-  { id: 22, marathi: "कॉम्प्युटर ऑपरेटर", english: "Computer Operator" },
-  { id: 23, marathi: "शिक्षक", english: "Teacher" },
-  { id: 24, marathi: "नर्स", english: "Nurse" },
-  { id: 25, marathi: "तंत्रज्ञ", english: "Technician" },
-  { id: 26, marathi: "मशीन ऑपरेटर", english: "Machine Operator" },
-  { id: 27, marathi: "ऑफिस सहाय्यक", english: "Office Assistant" },
-  { id: 28, marathi: "फील्ड वर्कर", english: "Field Worker" },
-  { id: 29, marathi: "इंजिनिअर", english: "Engineer" },
-  { id: 30, marathi: "व्हिडिओ एडिटर", english: "Video Editor" },
-  { id: 31, marathi: "मार्केटिंग", english: "Marketing" },
-  { id: 32, marathi: "अकाउंटंट", english: "Accountant" },
-  { id: 33, marathi: "कामगार", english: "Worker" },
-  { id: 34, marathi: "इतर", english: "Other" },
+  { id: 1, marathi: "सेल्समन", english: "Salesman", industry_id: 1 },
+  { id: 2, marathi: "डिलिव्हरी बॉय", english: "Delivery Boy", industry_id: 1 },
+  { id: 3, marathi: "स्वयंपाकी", english: "Cook", industry_id: 3 },
+  { id: 4, marathi: "वेटर", english: "Waiter", industry_id: 3 },
+  { id: 5, marathi: "सुरक्षा रक्षक", english: "Security Guard", industry_id: 1 },
+  { id: 6, marathi: "ड्रायव्हर", english: "Driver", industry_id: 1 },
+  { id: 7, marathi: "मेकॅनिक", english: "Mechanic", industry_id: 1 },
+  { id: 8, marathi: "इलेक्ट्रिशियन", english: "Electrician", industry_id: 5 },
+  { id: 9, marathi: "प्लंबर", english: "Plumber", industry_id: 5 },
+  { id: 10, marathi: "सुतार", english: "Carpenter", industry_id: 5 },
+  { id: 11, marathi: "वेल्डर", english: "Welder", industry_id: 4 },
+  { id: 12, marathi: "शिपाई", english: "Peon", industry_id: 1 },
+  { id: 13, marathi: "सफाई कर्मचारी", english: "Cleaner", industry_id: 1 },
+  { id: 14, marathi: "रिसेप्शनिस्ट", english: "Receptionist", industry_id: 1 },
+  { id: 15, marathi: "दुकान सहाय्यक", english: "Shop Assistant", industry_id: 1 },
+  { id: 16, marathi: "गोडाउन कामगार", english: "Warehouse Worker", industry_id: 1 },
+  { id: 17, marathi: "हेल्पर", english: "Helper", industry_id: 1 },
+  { id: 18, marathi: "सुपरवायझर", english: "Supervisor", industry_id: 1 },
+  { id: 19, marathi: "टेलिकॉलर", english: "Telecaller", industry_id: 1 },
+  { id: 20, marathi: "एचआर", english: "HR", industry_id: 1 },
+  { id: 21, marathi: "बँक कर्मचारी", english: "Bank Staff", industry_id: 1 },
+  { id: 22, marathi: "कॉम्प्युटर ऑपरेटर", english: "Computer Operator", industry_id: 1 },
+  { id: 23, marathi: "शिक्षक", english: "Teacher", industry_id: 6 },
+  { id: 24, marathi: "नर्स", english: "Nurse", industry_id: 2 },
+  { id: 25, marathi: "तंत्रज्ञ", english: "Technician", industry_id: 2 },
+  { id: 26, marathi: "मशीन ऑपरेटर", english: "Machine Operator", industry_id: 4 },
+  { id: 27, marathi: "ऑफिस सहाय्यक", english: "Office Assistant", industry_id: 1 },
+  { id: 28, marathi: "फील्ड वर्कर", english: "Field Worker", industry_id: 1 },
+  { id: 29, marathi: "इंजिनिअर", english: "Engineer", industry_id: 1 },
+  { id: 30, marathi: "व्हिडिओ एडिटर", english: "Video Editor", industry_id: 1 },
+  { id: 31, marathi: "मार्केटिंग", english: "Marketing", industry_id: 1 },
+  { id: 32, marathi: "अकाउंटंट", english: "Accountant", industry_id: 1 },
+  { id: 33, marathi: "कामगार", english: "Worker", industry_id: 4 },
+  { id: 34, marathi: "इतर", english: "Other", industry_id: 1 },
+  // Hospital-specific types
+  { id: 35, marathi: "आरएमओ", english: "RMO", industry_id: 2 },
+  { id: 36, marathi: "हॉस्पिटल ब्रदर", english: "Hospital Brother", industry_id: 2 },
+  { id: 37, marathi: "हॉस्पिटल सिस्टर", english: "Hospital Sister", industry_id: 2 },
+  { id: 38, marathi: "सीएचओ", english: "CHO", industry_id: 2 },
+  { id: 39, marathi: "हॉस्पिटल तंत्रज्ञ", english: "Hospital Technician", industry_id: 2 },
+  { id: 40, marathi: "ओटी तंत्रज्ञ", english: "OT Technician", industry_id: 2 },
+  { id: 41, marathi: "कॅथलॅब तंत्रज्ञ", english: "Cathlab Technician", industry_id: 2 },
+  { id: 42, marathi: "परफ्युजनिस्ट", english: "Perfusionist", industry_id: 2 },
+  { id: 43, marathi: "हाउसकीपिंग", english: "Housekeeping", industry_id: 2 },
 ] as const;
 
 // Dropdown options: array of {id, label} for forms and filters
@@ -70,6 +93,45 @@ export function getJobTypeMarathi(id: number): string {
 export function getJobTypeIdByMarathi(name: string): number | undefined {
   return jobTypeIdByMarathi.get(name);
 }
+
+// Industry lookup maps
+const industryById = new Map<number, { marathi: string; english: string }>();
+for (const ind of INDUSTRIES) {
+  industryById.set(ind.id, { marathi: ind.marathi, english: ind.english });
+}
+
+/** Returns industry label: "मराठी (English)" for an industry ID */
+export function getIndustryLabel(id: number): string {
+  const ind = industryById.get(id);
+  return ind ? `${ind.marathi} (${ind.english})` : "सामान्य (General)";
+}
+
+// Grouped job type options for <optgroup> dropdowns
+export interface GroupedJobTypeOptions {
+  industry_id: number;
+  industry_mr: string;
+  industry_en: string;
+  options: { id: number; label: string }[];
+}
+
+export const JOB_TYPE_OPTIONS_GROUPED: GroupedJobTypeOptions[] = (() => {
+  const map = new Map<number, GroupedJobTypeOptions>();
+  for (const ind of INDUSTRIES) {
+    map.set(ind.id, {
+      industry_id: ind.id,
+      industry_mr: ind.marathi,
+      industry_en: ind.english,
+      options: [],
+    });
+  }
+  for (const jt of JOB_TYPES) {
+    const group = map.get(jt.industry_id);
+    if (group) {
+      group.options.push({ id: jt.id, label: `${jt.marathi} (${jt.english})` });
+    }
+  }
+  return Array.from(map.values()).filter((g) => g.options.length > 0);
+})();
 
 export const GENDERS = ["पुरुष (Male)", "महिला (Female)", "दोन्ही (Both)"];
 

@@ -21,10 +21,17 @@ export interface Job {
   is_scraped?: boolean;
 }
 
+export interface Industry {
+  id: number;
+  name_mr: string;
+  name_en: string;
+}
+
 export interface JobType {
   id: number;
   name_mr: string;
   name_en: string;
+  industry_id: number;
 }
 
 export interface Employer {
