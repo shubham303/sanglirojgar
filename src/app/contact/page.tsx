@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
+import { ADMIN_PHONE } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "संपर्क | महा जॉब",
   description: "महा जॉब बद्दल माहिती आणि संपर्क",
 };
-
-const ADMIN_PHONE = "9284408873";
 const WA_MESSAGE = encodeURIComponent("नमस्कार, मला mahajob.in बद्दल माहिती हवी आहे.");
 
 export default function ContactPage() {
