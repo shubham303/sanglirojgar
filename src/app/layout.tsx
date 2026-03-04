@@ -42,8 +42,8 @@ export const metadata: Metadata = {
     locale: "mr_IN",
     siteName: "महा जॉब",
     title: "महा जॉब — महाराष्ट्रातील नोकऱ्या",
-    description: "महाराष्ट्रातील नोकऱ्या शोधा किंवा मोफत जाहिरात द्या. थेट फोन करा. No registration required.",
-    url: SITE_URL,
+    description: "नोकरी शोधा किंवा मोफत जाहिरात द्या — registration नाही, पूर्णपणे मोफत",
+    url: "https://www.mahajob.in",
     images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
   },
   twitter: {

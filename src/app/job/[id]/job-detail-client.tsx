@@ -76,9 +76,25 @@ export default function JobDetail() {
           <h1 className="text-xl font-bold" style={{ color: "#FF6B00" }}>
             {job.job_type_display}
           </h1>
-          <span className="text-xs text-gray-400 whitespace-nowrap mt-1">
-            {formatDateMarathi(job.created_at)}
-          </span>
+          <div className="flex items-center gap-2 shrink-0 mt-1">
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`नोकरी उपलब्ध — ${job.job_type_display} — ${job.taluka} — पगार: ${job.salary} — संपर्क: ${job.phone} — अधिक नोकऱ्यांसाठी पहा: www.mahajob.in`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center rounded-lg"
+              style={{ width: 32, height: 32, backgroundColor: "#25D366" }}
+              title="ही नोकरी शेअर करा"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                <polyline points="16 6 12 2 8 6" />
+                <line x1="12" y1="2" x2="12" y2="15" />
+              </svg>
+            </a>
+            <span className="text-xs text-gray-400 whitespace-nowrap">
+              {formatDateMarathi(job.created_at)}
+            </span>
+          </div>
         </div>
 
         <div className="mt-3 space-y-2.5 text-sm text-gray-700">

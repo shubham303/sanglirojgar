@@ -391,7 +391,7 @@ export default function BrowseJobs() {
                   </div>
                 </div>
 
-                {/* Call button — right side */}
+                {/* Action buttons — right side */}
                 <div className="flex flex-col items-center justify-center shrink-0 gap-1.5 pl-2 border-l border-gray-100">
                   <span
                     role="button"
@@ -451,6 +451,18 @@ export default function BrowseJobs() {
               {loadingMore ? "लोड होत आहे..." : "अजून नोकऱ्या पहा"}
             </button>
           )}
+
+          {/* WhatsApp share button for the site */}
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent("महाराष्ट्रातील नोकऱ्या एकाच ठिकाणी — www.mahajob.in — मोफत आणि थेट संपर्क. नोकरी हवी असेल तर पहा, कामगार हवे असतील तर मोफत जाहिरात द्या!")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3 text-base font-semibold rounded-xl transition"
+            style={{ backgroundColor: "#25D366", color: "#ffffff" }}
+          >
+            <span style={{ fontSize: "20px", lineHeight: 1 }}>💬</span>
+            मित्रांना WhatsApp वर शेअर करा
+          </a>
         </div>
       )}
     </div>
