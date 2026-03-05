@@ -243,7 +243,7 @@ export default function BrowseJobs() {
               <select
                 value={filterJobType}
                 onChange={(e) => setFilterJobType(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm sm:text-base bg-white focus:outline-none"
                 style={{ borderColor: filterJobType !== ALL ? "#FF6B00" : undefined }}
               >
                 <option value={ALL}>सर्व</option>
