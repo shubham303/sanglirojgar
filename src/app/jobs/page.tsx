@@ -7,6 +7,7 @@ import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
+import JobTypePicker from "../components/JobTypePicker";
 
 const PAGE_LIMIT = 20;
 const MAX_RETRIES = 3;
@@ -240,23 +241,12 @@ export default function BrowseJobs() {
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 कामाचा प्रकार
               </label>
-              <select
+              <JobTypePicker
                 value={filterJobType}
-                onChange={(e) => setFilterJobType(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-xs sm:text-sm bg-white focus:outline-none"
-                style={{ borderColor: filterJobType !== ALL ? "#FF6B00" : undefined }}
-              >
-                <option value={ALL}>सर्व</option>
-                {groupedJobTypes.map((group) => (
-                  <optgroup key={group.industry_id} label={`${group.industry_mr} (${group.industry_en})`}>
-                    {group.options.map((opt) => (
-                      <option key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                onChange={setFilterJobType}
+                groupedJobTypes={groupedJobTypes}
+                allLabel={ALL}
+              />
             </div>
 
             <div className="flex-1">

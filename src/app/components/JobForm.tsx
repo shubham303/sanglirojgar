@@ -9,6 +9,7 @@ import { trackEvent } from "@/lib/gtag";
 import { Job } from "@/lib/types";
 import { Field } from "./Field";
 import { JobCardInfo } from "./JobCardInfo";
+import JobTypePicker from "./JobTypePicker";
 
 interface JobFormProps {
   mode: "create" | "edit";
@@ -225,22 +226,11 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         </Field>
 
         <Field label="कामाचा प्रकार" error={errors.job_type_id}>
-          <select
+          <JobTypePicker
             value={form.job_type_id}
-            onChange={(e) => setForm({ ...form, job_type_id: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm bg-white focus:outline-none focus:border-[#FF6B00]"
-          >
-            <option value="">-- निवडा --</option>
-            {groupedJobTypes.map((group) => (
-              <optgroup key={group.industry_id} label={`${group.industry_mr} (${group.industry_en})`}>
-                {group.options.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+            onChange={(val) => setForm({ ...form, job_type_id: val })}
+            groupedJobTypes={groupedJobTypes}
+          />
         </Field>
 
         <Field label="राज्य">

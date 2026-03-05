@@ -34,25 +34,6 @@
     font-size: 16px;
   }
 
-  select {
-    font-size: 13px;
-  }
-
-  optgroup {
-    font-weight: 700;
-    font-size: 13px;
-  }
-
-  option {
-    font-weight: 400;
-    font-size: 12px;
-  }
-
-  @media (min-width: 640px) {
-    select, optgroup, option {
-      font-size: 14px;
-    }
-  }
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
