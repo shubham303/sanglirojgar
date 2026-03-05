@@ -228,7 +228,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           <select
             value={form.job_type_id}
             onChange={(e) => setForm({ ...form, job_type_id: e.target.value })}
-            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm sm:text-base bg-white focus:outline-none focus:border-[#FF6B00]"
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             <option value="">-- निवडा --</option>
             {groupedJobTypes.map((group) => (
