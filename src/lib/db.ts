@@ -1,4 +1,4 @@
-import { Employer, Industry, Job, JobType } from "./types";
+import { DailyClickStats, Employer, Industry, Job, JobType } from "./types";
 
 export interface DbResult<T> {
   data: T | null;
@@ -45,11 +45,12 @@ export interface DbClient {
   getIndustries(): Promise<DbResult<Industry[]>>;
   addJobType(name: string): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
-  incrementJobClick(id: string, field: "call_count" | "whatsapp_count"): Promise<{ error: string | null }>;
   expireOldJobs(): Promise<DbResult<Job[]>>;
   upsertEmployer(phone: string, name: string): Promise<DbResult<Employer>>;
   getEmployers(): Promise<DbResult<Employer[]>>;
   updateEmployerLastContacted(phone: string): Promise<{ error: string | null }>;
+  logJobClick(jobId: string, clickType: "call" | "whatsapp"): Promise<{ error: string | null }>;
+  getDailyClickStats(days: number): Promise<DbResult<DailyClickStats[]>>;
 }
 
 let _db: DbClient | null = null;

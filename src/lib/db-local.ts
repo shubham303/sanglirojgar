@@ -48,6 +48,18 @@ function addJobTypeDisplayToList(labelMap: Map<number, string>, rows: Job[]): Jo
   return rows.map((r) => addJobTypeDisplay(labelMap, r));
 }
 
+/** Common SELECT for jobs with employer name and click counts from job_clicks */
+const JOBS_SELECT_LOCAL = `j.*, e.name as employer_name,
+  COALESCE(c.call_count, 0)::int as call_count,
+  COALESCE(c.whatsapp_count, 0)::int as whatsapp_count`;
+
+const CLICKS_JOIN = `LEFT JOIN (
+  SELECT job_id,
+    COUNT(*) FILTER (WHERE click_type = 'call') as call_count,
+    COUNT(*) FILTER (WHERE click_type = 'whatsapp') as whatsapp_count
+  FROM job_clicks GROUP BY job_id
+) c ON j.id = c.job_id`;
+
 async function ensureTablesExist() {
   if (_initialized) return;
   const pool = getPool();
@@ -99,6 +111,18 @@ async function ensureTablesExist() {
 
   // Add last_contacted_by_admin_at column if missing
   await pool.query(`ALTER TABLE employers ADD COLUMN IF NOT EXISTS last_contacted_by_admin_at TIMESTAMPTZ DEFAULT NULL`);
+
+  // Job clicks log table for daily stats
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS job_clicks (
+      id SERIAL PRIMARY KEY,
+      job_id TEXT NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+      click_type TEXT NOT NULL CHECK (click_type IN ('call', 'whatsapp')),
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_job_clicks_created_at ON job_clicks(created_at)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_job_clicks_job_id ON job_clicks(job_id)`);
 
   // Backfill employers from existing jobs data
   await pool.query(`
@@ -163,7 +187,7 @@ export function createLocalDb(): DbClient {
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];
         const { rows } = await pool.query(
-          `SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE ${where} ORDER BY j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE ${where} ORDER BY j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
           dataValues
         );
 
@@ -240,7 +264,7 @@ export function createLocalDb(): DbClient {
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];
         const { rows } = await pool.query(
-          `SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE ${where} ORDER BY j.call_count DESC, j.whatsapp_count DESC, j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE ${where} ORDER BY call_count DESC, whatsapp_count DESC, j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
           dataValues
         );
 
@@ -262,7 +286,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.id = $1",
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.id = $1`,
           [id]
         );
         if (!rows[0]) return { data: null, error: null };
@@ -317,7 +341,7 @@ export function createLocalDb(): DbClient {
         await client.query("COMMIT");
 
         const { rows } = await getPool().query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.id = $1",
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.id = $1`,
           [id]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -353,7 +377,7 @@ export function createLocalDb(): DbClient {
         }
 
         const { rows } = await getPool().query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.id = $1",
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.id = $1`,
           [id]
         );
         if (!rows[0]) return { data: null, error: null };
@@ -391,7 +415,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.phone = $1 AND j.is_active = TRUE AND j.is_deleted = FALSE ORDER BY j.created_at DESC",
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.phone = $1 AND j.is_active = TRUE AND j.is_deleted = FALSE ORDER BY j.created_at DESC`,
           [phone]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -405,7 +429,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.phone = $1 AND j.job_type_id = $2 AND j.taluka = $3 AND j.is_active = TRUE AND j.is_deleted = FALSE AND j.expires_at > NOW()",
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.phone = $1 AND j.job_type_id = $2 AND j.taluka = $3 AND j.is_active = TRUE AND j.is_deleted = FALSE AND j.expires_at > NOW()`,
           [phone, job_type_id, taluka]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -419,7 +443,7 @@ export function createLocalDb(): DbClient {
       try {
         await ensureTablesExist();
         const { rows } = await getPool().query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.phone = $1 AND j.is_deleted = FALSE ORDER BY j.is_active DESC, j.created_at DESC",
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.phone = $1 AND j.is_deleted = FALSE ORDER BY j.is_active DESC, j.created_at DESC`,
           [phone]
         );
         const labelMap = await getJobTypeLabelMap();
@@ -480,19 +504,6 @@ export function createLocalDb(): DbClient {
       }
     },
 
-    async incrementJobClick(id: string, field: "call_count" | "whatsapp_count") {
-      try {
-        await ensureTablesExist();
-        await getPool().query(
-          `UPDATE jobs SET ${field} = ${field} + 1 WHERE id = $1`,
-          [id]
-        );
-        return { error: null };
-      } catch (e: unknown) {
-        return { error: (e as Error).message };
-      }
-    },
-
     async expireOldJobs() {
       try {
         await ensureTablesExist();
@@ -500,7 +511,7 @@ export function createLocalDb(): DbClient {
 
         // Find active jobs past expiry
         const { rows: expiredJobs } = await pool.query(
-          "SELECT j.*, e.name as employer_name FROM jobs j JOIN employers e ON j.phone = e.phone WHERE j.is_active = TRUE AND j.is_deleted = FALSE AND j.expires_at < NOW()"
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE j.is_active = TRUE AND j.is_deleted = FALSE AND j.expires_at < NOW()`
         );
 
         if (expiredJobs.length === 0) return { data: [], error: null };
@@ -568,6 +579,43 @@ export function createLocalDb(): DbClient {
         return { error: null };
       } catch (e: unknown) {
         return { error: (e as Error).message };
+      }
+    },
+
+    async logJobClick(jobId: string, clickType: "call" | "whatsapp") {
+      try {
+        await ensureTablesExist();
+        await getPool().query(
+          "INSERT INTO job_clicks (job_id, click_type) VALUES ($1, $2)",
+          [jobId, clickType]
+        );
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
+      }
+    },
+
+    async getDailyClickStats(days: number) {
+      try {
+        await ensureTablesExist();
+        const { rows } = await getPool().query(
+          `SELECT
+            DATE(created_at AT TIME ZONE 'Asia/Kolkata') as date,
+            COUNT(*) FILTER (WHERE click_type = 'call') as call_count,
+            COUNT(*) FILTER (WHERE click_type = 'whatsapp') as whatsapp_count
+          FROM job_clicks
+          WHERE created_at >= NOW() - INTERVAL '${days} days'
+          GROUP BY DATE(created_at AT TIME ZONE 'Asia/Kolkata')
+          ORDER BY date ASC`
+        );
+        const stats = rows.map((r: Record<string, unknown>) => ({
+          date: (r.date as Date).toISOString().split("T")[0],
+          call_count: parseInt(r.call_count as string),
+          whatsapp_count: parseInt(r.whatsapp_count as string),
+        }));
+        return { data: stats, error: null };
+      } catch (e: unknown) {
+        return { data: null, error: (e as Error).message };
       }
     },
 

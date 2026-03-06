@@ -7,6 +7,7 @@ import { Employer } from "@/lib/types";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
 import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { formatDateMarathi, formatLocation } from "@/lib/utils";
+import DailyClicksChart from "@/app/components/DailyClicksChart";
 
 type EmployerSortOption = "date_added" | "job_count" | "last_contacted";
 
@@ -334,6 +335,9 @@ export default function AdminPage() {
           नोकरी देणारे
         </button>
       </div>
+
+      {/* Daily Clicks Chart */}
+      <DailyClicksChart isLoggedIn={isLoggedIn} />
 
       {/* All Jobs Tab */}
       {activeTab === "all_jobs" && (

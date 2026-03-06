@@ -41,13 +41,26 @@ function addJobTypeDisplayToList(labelMap: Map<number, string>, rows: Job[]): Jo
 /** Select string for jobs with employer name from employers table */
 const JOBS_SELECT = "*, employers(name)";
 
-/** Extract employer_name from Supabase relational query result (employers.name) */
+/** Select string for jobs with employer name and click counts */
+const JOBS_SELECT_WITH_CLICKS = "*, employers(name), job_clicks(click_type)";
+
+/** Extract employer_name and click counts from Supabase relational query result */
 function resolveEmployerName(row: Record<string, unknown>): Job {
-  const { employers, ...rest } = row;
+  const { employers, job_clicks, ...rest } = row;
   const employerData = employers as { name: string } | null;
+  // Compute click counts from joined job_clicks rows
+  const clicks = (job_clicks as { click_type: string }[] | null) || [];
+  let callCount = 0;
+  let whatsappCount = 0;
+  for (const c of clicks) {
+    if (c.click_type === "call") callCount++;
+    else if (c.click_type === "whatsapp") whatsappCount++;
+  }
   return {
     ...rest,
     employer_name: employerData?.name ?? (rest.employer_name as string | undefined),
+    call_count: callCount,
+    whatsapp_count: whatsappCount,
   } as Job;
 }
 
@@ -62,7 +75,7 @@ export function createSupabaseDb(): DbClient {
     async getActiveJobsPaginated(filters: JobFilters) {
       let query = supabase
         .from("jobs")
-        .select(JOBS_SELECT, { count: "exact" })
+        .select(JOBS_SELECT_WITH_CLICKS, { count: "exact" })
         .eq("is_active", true)
         .eq("is_deleted", false)
         .gt("expires_at", new Date().toISOString());
@@ -108,7 +121,7 @@ export function createSupabaseDb(): DbClient {
     async getAllJobsPaginated(filters: AdminJobFilters) {
       let query = supabase
         .from("jobs")
-        .select(JOBS_SELECT, { count: "exact" });
+        .select(JOBS_SELECT_WITH_CLICKS, { count: "exact" });
 
       if (filters.is_deleted !== undefined) {
         query = query.eq("is_deleted", filters.is_deleted);
@@ -138,8 +151,6 @@ export function createSupabaseDb(): DbClient {
 
       const offset = (filters.page - 1) * filters.limit;
       query = query
-        .order("call_count", { ascending: false })
-        .order("whatsapp_count", { ascending: false })
         .order("created_at", { ascending: false })
         .range(offset, offset + filters.limit - 1);
 
@@ -151,8 +162,16 @@ export function createSupabaseDb(): DbClient {
 
       const total = count ?? 0;
       const labelMap = await getJobTypeLabelMap(supabase);
+      const jobs = addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? []));
+      // Sort by click counts (computed from job_clicks) client-side
+      jobs.sort((a, b) => {
+        const aTotalClicks = a.call_count + a.whatsapp_count;
+        const bTotalClicks = b.call_count + b.whatsapp_count;
+        if (bTotalClicks !== aTotalClicks) return bTotalClicks - aTotalClicks;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
       const result: PaginatedJobs = {
-        jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
+        jobs,
         total,
         page: filters.page,
         limit: filters.limit,
@@ -164,7 +183,7 @@ export function createSupabaseDb(): DbClient {
     async getJobById(id: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .eq("id", id)
         .single();
       if (error) return { data: null, error: error.message };
@@ -182,7 +201,7 @@ export function createSupabaseDb(): DbClient {
       const { data, error } = await supabase
         .from("jobs")
         .insert(job)
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .single();
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
@@ -195,7 +214,7 @@ export function createSupabaseDb(): DbClient {
         .from("jobs")
         .update(updateData)
         .eq("id", id)
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .single();
       if (error) return { data: null, error: error.message };
       const labelMap = await getJobTypeLabelMap(supabase);
@@ -221,7 +240,7 @@ export function createSupabaseDb(): DbClient {
     async getActiveJobsByPhone(phone: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .eq("phone", phone)
         .eq("is_active", true)
         .eq("is_deleted", false)
@@ -234,7 +253,7 @@ export function createSupabaseDb(): DbClient {
     async findDuplicateJobs(phone: string, job_type_id: number, taluka: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .eq("phone", phone)
         .eq("job_type_id", job_type_id)
         .eq("taluka", taluka)
@@ -249,7 +268,7 @@ export function createSupabaseDb(): DbClient {
     async getAllJobsByPhone(phone: string) {
       const { data, error } = await supabase
         .from("jobs")
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .eq("phone", phone)
         .eq("is_deleted", false)
         .order("is_active", { ascending: false })
@@ -294,33 +313,13 @@ export function createSupabaseDb(): DbClient {
       };
     },
 
-    async incrementJobClick(id: string, field: "call_count" | "whatsapp_count") {
-      const { data: job, error: fetchErr } = await supabase
-        .from("jobs")
-        .select(field)
-        .eq("id", id)
-        .single();
-
-      if (fetchErr || !job) {
-        return { error: fetchErr?.message ?? "Job not found" };
-      }
-
-      const currentValue = (job as Record<string, number>)[field] ?? 0;
-      const { error } = await supabase
-        .from("jobs")
-        .update({ [field]: currentValue + 1 })
-        .eq("id", id);
-
-      return { error: error?.message ?? null };
-    },
-
     async expireOldJobs() {
       const now = new Date().toISOString();
 
       // Find jobs that are active but past their expiry
       const { data: expiredJobs, error: selectErr } = await supabase
         .from("jobs")
-        .select(JOBS_SELECT)
+        .select(JOBS_SELECT_WITH_CLICKS)
         .eq("is_active", true)
         .eq("is_deleted", false)
         .lt("expires_at", now);
@@ -383,6 +382,44 @@ export function createSupabaseDb(): DbClient {
         .update({ last_contacted_by_admin_at: new Date().toISOString() })
         .eq("phone", phone);
       return { error: error?.message ?? null };
+    },
+
+    async logJobClick(jobId: string, clickType: "call" | "whatsapp") {
+      const { error } = await supabase
+        .from("job_clicks")
+        .insert({ job_id: jobId, click_type: clickType });
+      return { error: error?.message ?? null };
+    },
+
+    async getDailyClickStats(days: number) {
+      const sinceDate = new Date();
+      sinceDate.setDate(sinceDate.getDate() - days);
+
+      const { data, error } = await supabase
+        .from("job_clicks")
+        .select("click_type, created_at")
+        .gte("created_at", sinceDate.toISOString())
+        .order("created_at", { ascending: true });
+
+      if (error) return { data: null, error: error.message };
+
+      // Aggregate by date client-side (Supabase doesn't support GROUP BY in query builder)
+      const map = new Map<string, { call_count: number; whatsapp_count: number }>();
+      for (const row of data || []) {
+        // Convert to IST date string
+        const d = new Date(row.created_at as string);
+        const istDate = new Date(d.getTime() + 5.5 * 60 * 60 * 1000).toISOString().split("T")[0];
+        if (!map.has(istDate)) map.set(istDate, { call_count: 0, whatsapp_count: 0 });
+        const entry = map.get(istDate)!;
+        if (row.click_type === "call") entry.call_count++;
+        else entry.whatsapp_count++;
+      }
+
+      const stats = Array.from(map.entries())
+        .map(([date, counts]) => ({ date, ...counts }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return { data: stats, error: null };
     },
 
     async deleteJobType(id: string) {

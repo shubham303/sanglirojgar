@@ -24,8 +24,7 @@ export async function POST(
     );
   }
 
-  const field = body.type === "call" ? "call_count" : "whatsapp_count";
-  const { error } = await db.incrementJobClick(id, field);
+  const { error } = await db.logJobClick(id, body.type as "call" | "whatsapp");
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });

@@ -48,3 +48,9 @@ export interface DuplicateJobsResponse {
   code: "DUPLICATE_JOBS";
   duplicates: Job[];
 }
+
+export interface DailyClickStats {
+  date: string; // YYYY-MM-DD
+  call_count: number;
+  whatsapp_count: number;
+}
