@@ -162,16 +162,8 @@ export function createSupabaseDb(): DbClient {
 
       const total = count ?? 0;
       const labelMap = await getJobTypeLabelMap(supabase);
-      const jobs = addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? []));
-      // Sort by click counts (computed from job_clicks) client-side
-      jobs.sort((a, b) => {
-        const aTotalClicks = a.call_count + a.whatsapp_count;
-        const bTotalClicks = b.call_count + b.whatsapp_count;
-        if (bTotalClicks !== aTotalClicks) return bTotalClicks - aTotalClicks;
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
       const result: PaginatedJobs = {
-        jobs,
+        jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
         total,
         page: filters.page,
         limit: filters.limit,

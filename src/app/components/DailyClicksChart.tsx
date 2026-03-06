@@ -11,6 +11,7 @@ export default function DailyClicksChart({ isLoggedIn }: Props) {
   const [stats, setStats] = useState<DailyClickStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
+  const [hovered, setHovered] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -218,6 +219,48 @@ export default function DailyClicksChart({ isLoggedIn }: Props) {
                 <circle key={`w-${i}`} cx={toX(i)} cy={toY(s.whatsapp_count)} r="2.5" fill="#16a34a" />
               ) : null
             )}
+
+            {/* Invisible hit areas for hover */}
+            {filledStats.map((_, i) => {
+              const halfW = xStep / 2;
+              return (
+                <rect
+                  key={`hit-${i}`}
+                  x={toX(i) - halfW}
+                  y={padTop}
+                  width={xStep}
+                  height={plotH}
+                  fill="transparent"
+                  onMouseEnter={() => setHovered(i)}
+                  onMouseLeave={() => setHovered(null)}
+                  style={{ cursor: "crosshair" }}
+                />
+              );
+            })}
+
+            {/* Hover tooltip */}
+            {hovered !== null && (() => {
+              const s = filledStats[hovered];
+              const x = toX(hovered);
+              const total = s.call_count + s.whatsapp_count;
+              const parts = s.date.split("-");
+              const dateLabel = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parts[0]}`;
+              const tw = 105;
+              const tx = x + tw + 5 > chartWidth - padRight ? x - tw - 5 : x + 5;
+              return (
+                <g pointerEvents="none">
+                  <line x1={x} y1={padTop} x2={x} y2={padTop + plotH} stroke="#d1d5db" strokeWidth="1" strokeDasharray="3 2" />
+                  {s.call_count > 0 && <circle cx={x} cy={toY(s.call_count)} r="4" fill="#2563eb" stroke="#fff" strokeWidth="1.5" />}
+                  {s.whatsapp_count > 0 && <circle cx={x} cy={toY(s.whatsapp_count)} r="4" fill="#16a34a" stroke="#fff" strokeWidth="1.5" />}
+                  {total > 0 && <circle cx={x} cy={toY(total)} r="3" fill="#f97316" stroke="#fff" strokeWidth="1" />}
+                  <rect x={tx} y={padTop} width={tw} height={58} rx={4} fill="#1f2937" opacity={0.92} />
+                  <text x={tx + 8} y={padTop + 14} fontSize="9" fontWeight="600" fill="#fff">{dateLabel}</text>
+                  <text x={tx + 8} y={padTop + 28} fontSize="9" fill="#93c5fd">{"Call: "}{s.call_count}</text>
+                  <text x={tx + 8} y={padTop + 40} fontSize="9" fill="#86efac">{"WA: "}{s.whatsapp_count}</text>
+                  <text x={tx + 8} y={padTop + 52} fontSize="9" fill="#fdba74">{"एकूण: "}{total}</text>
+                </g>
+              );
+            })()}
           </svg>
         </div>
       )}
