@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { DailyClickStats } from "@/lib/types";
 
 interface Props {
@@ -11,6 +11,7 @@ export default function DailyClicksChart({ isLoggedIn }: Props) {
   const [stats, setStats] = useState<DailyClickStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -92,6 +93,28 @@ export default function DailyClicksChart({ isLoggedIn }: Props) {
   const xLabelCount = Math.min(6, pointCount);
   const xLabelStep = Math.max(1, Math.floor((pointCount - 1) / (xLabelCount - 1)));
 
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<SVGSVGElement>) => {
+      const svg = e.currentTarget;
+      const rect = svg.getBoundingClientRect();
+      const mouseX = ((e.clientX - rect.left) / rect.width) * chartWidth;
+      // Find closest data point
+      let closest = 0;
+      let minDist = Infinity;
+      for (let i = 0; i < pointCount; i++) {
+        const dist = Math.abs(mouseX - toX(i));
+        if (dist < minDist) {
+          minDist = dist;
+          closest = i;
+        }
+      }
+      setHoveredIndex(closest);
+    },
+    [pointCount, chartWidth, toX]
+  );
+
+  const handleMouseLeave = useCallback(() => setHoveredIndex(null), []);
+
   return (
     <div
       className="bg-white rounded-xl p-4 mb-4"
@@ -141,7 +164,9 @@ export default function DailyClicksChart({ isLoggedIn }: Props) {
           <svg
             viewBox={`0 0 ${chartWidth} ${chartHeight}`}
             className="w-full"
-            style={{ minWidth: "300px" }}
+            style={{ minWidth: "300px", cursor: "crosshair" }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
           >
             {/* Grid lines */}
             {yLabels.map((v) => (
@@ -218,6 +243,54 @@ export default function DailyClicksChart({ isLoggedIn }: Props) {
                 <circle key={`w-${i}`} cx={toX(i)} cy={toY(s.whatsapp_count)} r="2.5" fill="#16a34a" />
               ) : null
             )}
+
+            {/* Hover tooltip */}
+            {hoveredIndex !== null && (() => {
+              const s = filledStats[hoveredIndex];
+              const x = toX(hoveredIndex);
+              const parts = s.date.split("-");
+              const dateLabel = `${parseInt(parts[2])}/${parseInt(parts[1])}/${parts[0]}`;
+              const total = s.call_count + s.whatsapp_count;
+              // Position tooltip to left or right of the line to avoid going off-screen
+              const tooltipW = 105;
+              const tooltipX = x + tooltipW + 5 > chartWidth - padRight ? x - tooltipW - 5 : x + 5;
+              return (
+                <g>
+                  {/* Vertical guide line */}
+                  <line
+                    x1={x} y1={padTop} x2={x} y2={padTop + plotH}
+                    stroke="#d1d5db" strokeWidth="1" strokeDasharray="3 2"
+                  />
+                  {/* Highlighted dots */}
+                  {s.call_count > 0 && (
+                    <circle cx={x} cy={toY(s.call_count)} r="4" fill="#2563eb" stroke="#fff" strokeWidth="1.5" />
+                  )}
+                  {s.whatsapp_count > 0 && (
+                    <circle cx={x} cy={toY(s.whatsapp_count)} r="4" fill="#16a34a" stroke="#fff" strokeWidth="1.5" />
+                  )}
+                  {total > 0 && (
+                    <circle cx={x} cy={toY(total)} r="3" fill="#f97316" stroke="#fff" strokeWidth="1" />
+                  )}
+                  {/* Tooltip box */}
+                  <rect
+                    x={tooltipX} y={padTop} width={tooltipW} height={58}
+                    rx="4" fill="#1f2937" opacity="0.92"
+                  />
+                  <text x={tooltipX + 8} y={padTop + 14} fontSize="9" fontWeight="600" fill="#fff">
+                    {dateLabel}
+                  </text>
+                  <text x={tooltipX + 8} y={padTop + 28} fontSize="9" fill="#93c5fd">
+                    Call: {s.call_count}
+                  </text>
+                  <text x={tooltipX + 8} y={padTop + 40} fontSize="9" fill="#86efac">
+                    WhatsApp: {s.whatsapp_count}
+                  </text>
+                  <text x={tooltipX + 8} y={padTop + 52} fontSize="9" fill="#fdba74">
+                    एकूण: {total}
+                  </text>
+                </g>
+              );
+            })()}
           </svg>
         </div>
       )}
