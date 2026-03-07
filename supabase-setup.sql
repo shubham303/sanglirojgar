@@ -147,7 +147,8 @@ INSERT INTO job_types (id, name_mr, name_en, industry_id) VALUES
   (40, 'ओटी तंत्रज्ञ', 'OT Technician', 2),
   (41, 'कॅथलॅब तंत्रज्ञ', 'Cathlab Technician', 2),
   (42, 'परफ्युजनिस्ट', 'Perfusionist', 2),
-  (43, 'हाउसकीपिंग', 'Housekeeping', 2);
+  (43, 'हाउसकीपिंग', 'Housekeeping', 2),
+  (101, 'मेडिकल रिप्रेझेंटेटिव्ह', 'Medical Representative', 2);
 
 -- Reset industries sequence to max id
 SELECT setval('industries_id_seq', (SELECT MAX(id) FROM industries));
