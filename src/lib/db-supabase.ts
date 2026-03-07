@@ -4,6 +4,8 @@ import { Job, JobType } from "./types";
 
 /** Cached job type lookup from DB, refreshed on first use per server lifetime */
 let _jobTypeLabelMap: Map<number, string> | null = null;
+/** Cached job type content fragments: "name_mr name_en" */
+let _jobTypeContentMap: Map<number, string> | null = null;
 
 async function getJobTypeLabelMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, string>> {
   if (_jobTypeLabelMap) return _jobTypeLabelMap;
@@ -12,17 +14,37 @@ async function getJobTypeLabelMap(supabase: ReturnType<typeof getSupabase>): Pro
     .select("id, name_mr, name_en")
     .order("id", { ascending: true });
   _jobTypeLabelMap = new Map<number, string>();
+  _jobTypeContentMap = new Map<number, string>();
   if (data) {
     for (const jt of data as JobType[]) {
       _jobTypeLabelMap.set(jt.id, `${jt.name_mr} (${jt.name_en})`);
+      _jobTypeContentMap.set(jt.id, `${jt.name_mr} ${jt.name_en}`);
     }
   }
   return _jobTypeLabelMap;
 }
 
+async function getJobTypeContentMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, string>> {
+  if (_jobTypeContentMap) return _jobTypeContentMap;
+  await getJobTypeLabelMap(supabase); // populates both maps
+  return _jobTypeContentMap!;
+}
+
+/** Build the content string for trigram search */
+function buildContentString(
+  jobTypeContent: string,
+  district: string,
+  taluka: string,
+  description: string,
+  employerName: string
+): string {
+  return [jobTypeContent, district, taluka, description, employerName].filter(Boolean).join(" ");
+}
+
 /** Invalidate the cached map so next lookup re-reads from DB */
 function invalidateJobTypeLabelMap() {
   _jobTypeLabelMap = null;
+  _jobTypeContentMap = null;
 }
 
 /** Resolve job_type_display from DB-backed map, falling back to constants */
@@ -190,9 +212,16 @@ export function createSupabaseDb(): DbClient {
         .upsert({ phone: job.phone, name: job.employer_name }, { onConflict: "phone" });
       if (empErr) return { data: null, error: empErr.message };
 
+      // Compute content for trigram search
+      const contentMap = await getJobTypeContentMap(supabase);
+      const jobTypeContent = contentMap.get(job.job_type_id) || "";
+      const content = buildContentString(
+        jobTypeContent, job.district, job.taluka, job.description || "", job.employer_name || ""
+      );
+
       const { data, error } = await supabase
         .from("jobs")
-        .insert(job)
+        .insert({ ...job, content })
         .select(JOBS_SELECT_WITH_CLICKS)
         .single();
       if (error) return { data: null, error: error.message };
@@ -202,6 +231,22 @@ export function createSupabaseDb(): DbClient {
 
     async updateJob(id: string, job: Partial<Job>) {
       const { job_type_display: _, employer_name: __, ...updateData } = job;
+
+      // Recompute content if any content-relevant field changed
+      const contentFields = ["job_type_id", "district", "taluka", "description"];
+      if (contentFields.some((f) => f in job)) {
+        // Fetch current job to merge with updates
+        const { data: current } = await supabase.from("jobs").select("*").eq("id", id).single();
+        if (current) {
+          const merged = { ...current, ...updateData };
+          const contentMap = await getJobTypeContentMap(supabase);
+          const jobTypeContent = contentMap.get(merged.job_type_id) || "";
+          (updateData as Record<string, unknown>).content = buildContentString(
+            jobTypeContent, merged.district, merged.taluka, merged.description || "", merged.employer_name || ""
+          );
+        }
+      }
+
       const { data, error } = await supabase
         .from("jobs")
         .update(updateData)

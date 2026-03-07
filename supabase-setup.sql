@@ -152,3 +152,5 @@ INSERT INTO job_types (id, name_mr, name_en, industry_id) VALUES
 
 -- Reset industries sequence to max id
 SELECT setval('industries_id_seq', (SELECT MAX(id) FROM industries));
+
+-- NOTE: Trigram search migration is in scripts/migrate-add-trigram-search.sql

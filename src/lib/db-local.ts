@@ -19,20 +19,37 @@ function getPool(): Pool {
 
 /** Cached job type lookup from DB, refreshed on first use per server lifetime */
 let _jobTypeLabelMap: Map<number, string> | null = null;
+/** Cached job type content fragments: "name_mr name_en" */
+let _jobTypeContentMap: Map<number, string> | null = null;
 
 async function getJobTypeLabelMap(): Promise<Map<number, string>> {
   if (_jobTypeLabelMap) return _jobTypeLabelMap;
   const pool = getPool();
   const { rows } = await pool.query("SELECT id, name_mr, name_en FROM job_types ORDER BY id ASC");
   _jobTypeLabelMap = new Map<number, string>();
+  _jobTypeContentMap = new Map<number, string>();
   for (const jt of rows as JobType[]) {
     _jobTypeLabelMap.set(jt.id, `${jt.name_mr} (${jt.name_en})`);
+    _jobTypeContentMap.set(jt.id, `${jt.name_mr} ${jt.name_en}`);
   }
   return _jobTypeLabelMap;
 }
 
+async function getJobTypeContentMap(): Promise<Map<number, string>> {
+  if (_jobTypeContentMap) return _jobTypeContentMap;
+  await getJobTypeLabelMap();
+  return _jobTypeContentMap!;
+}
+
 function invalidateJobTypeLabelMap() {
   _jobTypeLabelMap = null;
+  _jobTypeContentMap = null;
+}
+
+function buildContentString(
+  jobTypeContent: string, district: string, taluka: string, description: string, employerName: string
+): string {
+  return [jobTypeContent, district, taluka, description, employerName].filter(Boolean).join(" ");
 }
 
 /** Resolve job_type_display from DB-backed map, falling back to constants */
@@ -123,6 +140,20 @@ async function ensureTablesExist() {
   `);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_job_clicks_created_at ON job_clicks(created_at)`);
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_job_clicks_job_id ON job_clicks(job_id)`);
+
+  // Trigram search support
+  await pool.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm`);
+  await pool.query(`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS content text DEFAULT ''`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_jobs_content_trgm ON jobs USING gin (content gin_trgm_ops)`);
+
+  // Backfill content for existing jobs that have empty content
+  await pool.query(`
+    UPDATE jobs j SET content = COALESCE(
+      (SELECT jt.name_mr || ' ' || jt.name_en FROM job_types jt WHERE jt.id = j.job_type_id), ''
+    ) || ' ' || COALESCE(j.district, '') || ' ' || COALESCE(j.taluka, '') || ' '
+    || COALESCE(j.description, '') || ' ' || COALESCE(j.employer_name, '')
+    WHERE j.content = '' OR j.content IS NULL
+  `);
 
   // Backfill employers from existing jobs data
   await pool.query(`
@@ -304,6 +335,13 @@ export function createLocalDb(): DbClient {
         const id = randomUUID();
         const now = new Date().toISOString();
 
+        // Compute content for trigram search
+        const contentMap = await getJobTypeContentMap();
+        const jobTypeContent = contentMap.get(job.job_type_id) || "";
+        const content = buildContentString(
+          jobTypeContent, job.district, job.taluka, job.description || "", job.employer_name || ""
+        );
+
         await client.query("BEGIN");
 
         // Upsert employer
@@ -315,8 +353,8 @@ export function createLocalDb(): DbClient {
 
         // Insert job
         await client.query(
-          `INSERT INTO jobs (id, employer_name, phone, job_type_id, state, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender, created_at, is_active, expires_at, is_scraped)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+          `INSERT INTO jobs (id, employer_name, phone, job_type_id, state, district, taluka, salary, description, minimum_education, experience_years, workers_needed, gender, created_at, is_active, expires_at, is_scraped, content)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
           [
             id,
             job.employer_name,
@@ -335,6 +373,7 @@ export function createLocalDb(): DbClient {
             job.is_active,
             (job as Record<string, unknown>).expires_at || null,
             (job as Record<string, unknown>).is_scraped ?? false,
+            content,
           ]
         );
 
@@ -357,6 +396,22 @@ export function createLocalDb(): DbClient {
     async updateJob(id: string, job: Partial<Job>) {
       try {
         await ensureTablesExist();
+        const pool = getPool();
+
+        // Recompute content if any content-relevant field changed
+        const contentFields = ["job_type_id", "district", "taluka", "description"];
+        if (contentFields.some((f) => f in job)) {
+          const { rows: currentRows } = await pool.query("SELECT * FROM jobs WHERE id = $1", [id]);
+          if (currentRows[0]) {
+            const merged = { ...currentRows[0], ...job };
+            const contentMap = await getJobTypeContentMap();
+            const jobTypeContent = contentMap.get(merged.job_type_id) || "";
+            (job as Record<string, unknown>).content = buildContentString(
+              jobTypeContent, merged.district, merged.taluka, merged.description || "", merged.employer_name || ""
+            );
+          }
+        }
+
         const fields: string[] = [];
         const values: unknown[] = [];
         let paramIdx = 1;
@@ -370,7 +425,7 @@ export function createLocalDb(): DbClient {
 
         if (fields.length > 0) {
           values.push(id);
-          await getPool().query(
+          await pool.query(
             `UPDATE jobs SET ${fields.join(", ")} WHERE id = $${paramIdx}`,
             values
           );

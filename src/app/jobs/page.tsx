@@ -52,7 +52,6 @@ export default function BrowseJobs() {
   const [filterJobType, setFilterJobType] = useState(ALL);
   const [filterDistrict, setFilterDistrict] = useState(ALL);
   const [filterTaluka, setFilterTaluka] = useState(ALL);
-  const [showFilters, setShowFilters] = useState(false);
 
   // Active filters (what's actually applied)
   const [appliedJobType, setAppliedJobType] = useState(ALL);
@@ -208,97 +207,83 @@ export default function BrowseJobs() {
         )}
       </div>
 
-      <div className="mb-3 flex items-center gap-2">
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="px-3 py-1.5 rounded-full text-sm font-medium border transition"
-          style={{
-            backgroundColor: showFilters || activeFilterCount > 0 ? "#FF6B00" : "#ffffff",
-            color: showFilters || activeFilterCount > 0 ? "#ffffff" : "#6b7280",
-            borderColor: showFilters || activeFilterCount > 0 ? "#FF6B00" : "#d1d5db",
-          }}
-        >
-          ☰ फिल्टर{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
-        </button>
-        {activeFilterCount > 0 && (
-          <button
-            onClick={clearFilters}
-            className="text-sm underline"
-            style={{ color: "#FF6B00" }}
-          >
-            काढा
-          </button>
-        )}
-      </div>
-
-      {showFilters && (
-        <div
-          className="mb-4 p-3 rounded-xl flex flex-col gap-3"
-          style={{ backgroundColor: "#ffffff", border: "1px solid #e5e7eb" }}
-        >
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                कामाचा प्रकार
-              </label>
-              <JobTypePicker
-                value={filterJobType}
-                onChange={setFilterJobType}
-                groupedJobTypes={groupedJobTypes}
-                allLabel={ALL}
-              />
-            </div>
-
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-500 mb-1">
-                जिल्हा
-              </label>
-              <select
-                value={filterDistrict}
-                onChange={(e) => { setFilterDistrict(e.target.value); setFilterTaluka(ALL); }}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
-                style={{ borderColor: filterDistrict !== ALL ? "#FF6B00" : undefined }}
-              >
-                <option value={ALL}>सर्व</option>
-                {DISTRICTS.map((d) => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
-            </div>
+      <div
+        className="mb-4 p-3 rounded-xl flex flex-col gap-3"
+        style={{ backgroundColor: "#ffffff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+      >
+        <p className="text-xs font-semibold text-gray-500">
+          कामाचा प्रकार आणि शहर निवडा
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex-1">
+            <label className="block text-[11px] text-gray-400 mb-1">
+              कामाचा प्रकार
+            </label>
+            <JobTypePicker
+              value={filterJobType}
+              onChange={setFilterJobType}
+              groupedJobTypes={groupedJobTypes}
+              allLabel={ALL}
+            />
           </div>
 
-          {filterDistrict !== ALL && (
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  तालुका
-                </label>
-                <select
-                  value={filterTaluka}
-                  onChange={(e) => setFilterTaluka(e.target.value)}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
-                  style={{ borderColor: filterTaluka !== ALL ? "#FF6B00" : undefined }}
-                >
-                  <option value={ALL}>सर्व</option>
-                  {(DISTRICT_TALUKAS[filterDistrict] || []).map((taluka) => (
-                    <option key={taluka} value={taluka}>
-                      {taluka}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          )}
+          <div className="flex-1">
+            <label className="block text-[11px] text-gray-400 mb-1">
+              जिल्हा
+            </label>
+            <select
+              value={filterDistrict}
+              onChange={(e) => { setFilterDistrict(e.target.value); setFilterTaluka(ALL); }}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
+              style={{ borderColor: filterDistrict !== ALL ? "#FF6B00" : undefined }}
+            >
+              <option value={ALL}>सर्व जिल्हे</option>
+              {DISTRICTS.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+        </div>
 
+        {filterDistrict !== ALL && (
+          <div>
+            <label className="block text-[11px] text-gray-400 mb-1">
+              तालुका
+            </label>
+            <select
+              value={filterTaluka}
+              onChange={(e) => setFilterTaluka(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
+              style={{ borderColor: filterTaluka !== ALL ? "#FF6B00" : undefined }}
+            >
+              <option value={ALL}>सर्व तालुके</option>
+              {(DISTRICT_TALUKAS[filterDistrict] || []).map((taluka) => (
+                <option key={taluka} value={taluka}>
+                  {taluka}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="flex gap-2">
           <button
             onClick={applyFilters}
-            className="w-full text-base font-semibold py-2.5 rounded-lg transition"
+            className="flex-1 text-base font-semibold py-2.5 rounded-lg transition"
             style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
           >
-            शोधा
+            नोकरी शोधा
           </button>
+          {activeFilterCount > 0 && (
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-500 transition hover:bg-gray-50"
+            >
+              रीसेट
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {error ? (
         <div className="text-center py-8">
