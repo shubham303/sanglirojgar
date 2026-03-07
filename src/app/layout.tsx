@@ -93,6 +93,7 @@ export default function RootLayout({
               <Link href="/jobs" className="text-gray-600 hover:text-orange-600 transition">नोकऱ्या</Link>
               <Link href="/job/new" className="text-gray-600 hover:text-orange-600 transition">जाहिरात द्या</Link>
               <Link href="/my-ads" className="text-gray-600 hover:text-orange-600 transition">माझ्या जाहिराती</Link>
+              <Link href="/blogs" className="text-gray-600 hover:text-orange-600 transition">ब्लॉग</Link>
               <Link href="/contact" className="text-gray-600 hover:text-orange-600 transition">संपर्क</Link>
             </div>
           </div>
