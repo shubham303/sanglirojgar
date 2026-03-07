@@ -41,6 +41,17 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
   const [submitError, setSubmitError] = useState("");
   const [duplicateJobs, setDuplicateJobs] = useState<Job[]>([]);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [savedEmployer, setSavedEmployer] = useState<{ employer_name: string; phone: string } | null>(null);
+
+  // Create mode: load saved employer info for suggestions
+  useEffect(() => {
+    if (mode === "create") {
+      try {
+        const saved = localStorage.getItem("mahajob_employer");
+        if (saved) setSavedEmployer(JSON.parse(saved));
+      } catch {}
+    }
+  }, [mode]);
 
   // Edit mode: load existing data
   useEffect(() => {
@@ -94,6 +105,9 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
       if (res.ok) {
         if (mode === "create") {
           trackEvent("job_posted", { job_type: form.job_type_id, district: form.district, taluka: form.taluka });
+          try {
+            localStorage.setItem("mahajob_employer", JSON.stringify({ employer_name: form.employer_name, phone: form.phone }));
+          } catch {}
         }
         setSuccess(true);
       } else if (res.status === 409 && mode === "create") {
@@ -206,9 +220,15 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             onChange={(e) =>
               setForm({ ...form, employer_name: e.target.value })
             }
+            list={savedEmployer?.employer_name ? "saved-names" : undefined}
             placeholder={mode === "create" ? "तुमचे नाव किंवा व्यवसायाचे नाव" : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
+          {savedEmployer?.employer_name && (
+            <datalist id="saved-names">
+              <option value={savedEmployer.employer_name} />
+            </datalist>
+          )}
         </Field>
 
         <Field label="फोन नंबर" error={errors.phone}>
@@ -220,9 +240,15 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
               const val = e.target.value.replace(/\D/g, "");
               if (val.length <= 10) setForm({ ...form, phone: val });
             }}
+            list={savedEmployer?.phone ? "saved-phones" : undefined}
             placeholder={mode === "create" ? "10 अंकी फोन नंबर" : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
+          {savedEmployer?.phone && (
+            <datalist id="saved-phones">
+              <option value={savedEmployer.phone} />
+            </datalist>
+          )}
         </Field>
 
         <Field label="कामाचा प्रकार" error={errors.job_type_id}>
