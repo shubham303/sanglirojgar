@@ -459,6 +459,13 @@ export function createSupabaseDb(): DbClient {
       return { data: stats, error: null };
     },
 
+    async upsertJobSeeker(phone: string, name: string) {
+      const { error } = await supabase
+        .from("job_seekers")
+        .upsert({ phone, name }, { onConflict: "phone" });
+      return { error: error?.message ?? null };
+    },
+
     async deleteJobType(id: string) {
       const numericId = parseInt(id);
 

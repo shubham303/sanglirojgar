@@ -171,6 +171,15 @@ async function ensureTablesExist() {
     END $$
   `);
 
+  // Job seekers table for WhatsApp alert signups
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS job_seekers (
+      phone TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
   _initialized = true;
 }
 
@@ -671,6 +680,20 @@ export function createLocalDb(): DbClient {
         return { data: stats, error: null };
       } catch (e: unknown) {
         return { data: null, error: (e as Error).message };
+      }
+    },
+
+    async upsertJobSeeker(phone: string, name: string) {
+      try {
+        await ensureTablesExist();
+        await getPool().query(
+          `INSERT INTO job_seekers (phone, name) VALUES ($1, $2)
+           ON CONFLICT (phone) DO UPDATE SET name = $2`,
+          [phone, name]
+        );
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
       }
     },
 

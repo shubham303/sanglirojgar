@@ -51,6 +51,7 @@ export interface DbClient {
   updateEmployerLastContacted(phone: string): Promise<{ error: string | null }>;
   logJobClick(jobId: string, clickType: "call" | "whatsapp"): Promise<{ error: string | null }>;
   getDailyClickStats(days: number): Promise<DbResult<DailyClickStats[]>>;
+  upsertJobSeeker(phone: string, name: string): Promise<{ error: string | null }>;
 }
 
 let _db: DbClient | null = null;

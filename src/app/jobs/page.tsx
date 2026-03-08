@@ -8,6 +8,7 @@ import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
 import JobTypePicker from "../components/JobTypePicker";
+import JobSeekerModal from "../components/JobSeekerModal";
 
 const PAGE_LIMIT = 20;
 const MAX_RETRIES = 3;
@@ -206,6 +207,13 @@ export default function BrowseJobs() {
           </span>
         )}
       </div>
+
+      <p
+        className="mb-3 px-3 py-2 rounded-lg text-sm text-gray-600"
+        style={{ backgroundColor: "#FFF7ED", borderLeft: "3px solid #FF6B00" }}
+      >
+        नवीन नोकऱ्या दररोज जोडल्या जात आहेत! तुम्हाला हवी ती नोकरी सापडली नाही? कृपया काही दिवसांनी पुन्हा भेट द्या.
+      </p>
 
       <div
         className="mb-4 p-3 rounded-xl flex flex-col gap-3"
@@ -440,6 +448,7 @@ export default function BrowseJobs() {
           </a>
         </div>
       )}
+      <JobSeekerModal />
     </div>
   );
 }
