@@ -28,7 +28,10 @@ function writeStorage(data: SeekerData) {
   }
 }
 
-export default function JobSeekerModal() {
+export default function JobSeekerModal({ forceOpen, onForceOpenHandled }: {
+  forceOpen?: boolean;
+  onForceOpenHandled?: () => void;
+}) {
   const [visible, setVisible] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -42,6 +45,13 @@ export default function JobSeekerModal() {
     const timer = setTimeout(() => setVisible(true), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (forceOpen) {
+      setVisible(true);
+      onForceOpenHandled?.();
+    }
+  }, [forceOpen, onForceOpenHandled]);
 
   const handleDismiss = () => {
     const data = readStorage();

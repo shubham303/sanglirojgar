@@ -48,6 +48,8 @@ export default function BrowseJobs() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [openSeeker, setOpenSeeker] = useState(false);
+  const handleSeekerOpened = useCallback(() => setOpenSeeker(false), []);
 
   // Filter state (applied on button press)
   const [filterJobType, setFilterJobType] = useState(ALL);
@@ -208,12 +210,19 @@ export default function BrowseJobs() {
         )}
       </div>
 
-      <p
+      <div
         className="mb-3 px-3 py-2 rounded-lg text-sm text-gray-600"
         style={{ backgroundColor: "#FFF7ED", borderLeft: "3px solid #FF6B00" }}
       >
         नवीन नोकऱ्या दररोज जोडल्या जात आहेत! तुम्हाला हवी ती नोकरी सापडली नाही? कृपया काही दिवसांनी पुन्हा भेट द्या.
-      </p>
+        <button
+          onClick={() => setOpenSeeker(true)}
+          className="block mt-1.5 text-xs font-semibold underline"
+          style={{ color: "#FF6B00" }}
+        >
+          WhatsApp वर job alerts मिळवा
+        </button>
+      </div>
 
       <div
         className="mb-4 p-3 rounded-xl flex flex-col gap-3"
@@ -448,7 +457,7 @@ export default function BrowseJobs() {
           </a>
         </div>
       )}
-      <JobSeekerModal />
+      <JobSeekerModal forceOpen={openSeeker} onForceOpenHandled={handleSeekerOpened} />
     </div>
   );
 }
