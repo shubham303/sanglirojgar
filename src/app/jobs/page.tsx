@@ -385,7 +385,7 @@ export default function BrowseJobs() {
                 </div>
 
                 {/* Action buttons — right side */}
-                <div className="flex flex-col items-center justify-center shrink-0 gap-1.5 pl-2 border-l border-gray-100">
+                <div className="flex flex-col items-center justify-center shrink-0 gap-1 pl-2 border-l border-gray-100">
                   <span
                     role="button"
                     onClick={(e) => {
@@ -399,13 +399,10 @@ export default function BrowseJobs() {
                       trackEvent("phone_click", { job_id: job.id, job_type: job.job_type_display, employer: job.employer_name });
                       window.location.href = `tel:${job.phone}`;
                     }}
-                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    className="flex items-center justify-center rounded-lg p-2 transition"
                     style={{ backgroundColor: "#f0fdf4" }}
                   >
-                    <span style={{ fontSize: "22px", lineHeight: 1 }}>📞</span>
-                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#16a34a" }}>
-                      कॉल
-                    </span>
+                    <span style={{ fontSize: "16px", lineHeight: 1 }}>📞</span>
                   </span>
                   <span
                     role="button"
@@ -421,13 +418,10 @@ export default function BrowseJobs() {
                       const waMsg = encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${job.id}`);
                       window.open(`https://wa.me/91${job.phone}?text=${waMsg}`, "_blank");
                     }}
-                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    className="flex items-center justify-center rounded-lg p-2 transition"
                     style={{ backgroundColor: "#f0fdf4" }}
                   >
-                    <span style={{ fontSize: "22px", lineHeight: 1 }}>💬</span>
-                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#25D366" }}>
-                      WA
-                    </span>
+                    <span style={{ fontSize: "16px", lineHeight: 1 }}>💬</span>
                   </span>
                   <span
                     role="button"
@@ -448,10 +442,10 @@ export default function BrowseJobs() {
                       });
                       trackEvent("copy_job", { job_id: job.id, job_type: job.job_type_display });
                     }}
-                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    className="flex items-center justify-center rounded-lg p-2 transition"
                     style={{ backgroundColor: copiedJobId === job.id ? "#e0f2fe" : "#f0f9ff" }}
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={copiedJobId === job.id ? "#16a34a" : "#2563eb"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={copiedJobId === job.id ? "#16a34a" : "#2563eb"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       {copiedJobId === job.id ? (
                         <polyline points="20 6 9 17 4 12" />
                       ) : (
@@ -461,9 +455,6 @@ export default function BrowseJobs() {
                         </>
                       )}
                     </svg>
-                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#2563eb" }}>
-                      {copiedJobId === job.id ? "कॉपी!" : "कॉपी"}
-                    </span>
                   </span>
                 </div>
               </div>
