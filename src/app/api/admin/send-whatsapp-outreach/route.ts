@@ -18,11 +18,14 @@ export async function POST() {
 
   const supabase = getSupabase();
 
-  // Fetch all pending contacts
+  const BATCH_LIMIT = 10;
+
+  // Fetch up to 10 pending contacts
   const { data: pending, error: fetchErr } = await supabase
     .from("whatsapp_outreach")
     .select("id, phone")
-    .eq("message_sent", false);
+    .eq("message_sent", false)
+    .limit(BATCH_LIMIT);
 
   if (fetchErr) {
     return NextResponse.json({ error: fetchErr.message }, { status: 500 });

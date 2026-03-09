@@ -3,6 +3,7 @@ import { getDb } from "@/lib/db";
 import { getFirstValidationError } from "@/lib/validation";
 import { prepareJobData, validateTalukaDistrict } from "@/lib/job-data";
 import { JOB_EXPIRY_MS } from "@/lib/constants";
+import { postJobToFacebook } from "@/lib/facebook-post";
 
 export const dynamic = "force-dynamic";
 
@@ -74,10 +75,16 @@ export async function POST(request: NextRequest) {
     is_active: true,
     is_deleted: false,
     expires_at: new Date(Date.now() + JOB_EXPIRY_MS).toISOString(),
+    ...(body.is_premium ? { is_premium: true } : {}),
   });
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 });
+  }
+
+  // Post to Facebook Group (non-blocking, fails silently)
+  if (data) {
+    postJobToFacebook(data).catch(() => {});
   }
 
   return NextResponse.json(data, { status: 201 });
