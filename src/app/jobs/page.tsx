@@ -49,6 +49,7 @@ export default function BrowseJobs() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [openSeeker, setOpenSeeker] = useState(false);
+  const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const handleSeekerOpened = useCallback(() => setOpenSeeker(false), []);
 
   // Filter state (applied on button press)
@@ -426,6 +427,42 @@ export default function BrowseJobs() {
                     <span style={{ fontSize: "22px", lineHeight: 1 }}>💬</span>
                     <span className="text-[10px] font-semibold mt-1" style={{ color: "#25D366" }}>
                       WA
+                    </span>
+                  </span>
+                  <span
+                    role="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const lines = [
+                        `${job.job_type_display}`,
+                        `ठिकाण: ${formatLocation(job.taluka, job.district)}`,
+                        `पगार: ₹ ${job.salary}`,
+                      ];
+                      if (job.description) lines.push(`\n${job.description.replace(/[0-9०-९]+/g, "").replace(/\s{2,}/g, " ").trim()}`);
+                      lines.push(`\nअधिक माहिती व संपर्कासाठी:\nhttps://www.mahajob.in/job/${job.id}`);
+                      lines.push(`\n— mahajob.in | महाराष्ट्रातील नोकऱ्या`);
+                      navigator.clipboard.writeText(lines.join("\n")).then(() => {
+                        setCopiedJobId(job.id);
+                        setTimeout(() => setCopiedJobId(null), 2000);
+                      });
+                      trackEvent("copy_job", { job_id: job.id, job_type: job.job_type_display });
+                    }}
+                    className="flex flex-col items-center justify-center rounded-xl px-3 py-2.5 transition"
+                    style={{ backgroundColor: copiedJobId === job.id ? "#e0f2fe" : "#f0f9ff" }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={copiedJobId === job.id ? "#16a34a" : "#2563eb"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      {copiedJobId === job.id ? (
+                        <polyline points="20 6 9 17 4 12" />
+                      ) : (
+                        <>
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                        </>
+                      )}
+                    </svg>
+                    <span className="text-[10px] font-semibold mt-1" style={{ color: "#2563eb" }}>
+                      {copiedJobId === job.id ? "कॉपी!" : "कॉपी"}
                     </span>
                   </span>
                 </div>
