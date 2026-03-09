@@ -5,7 +5,8 @@
 CREATE TABLE IF NOT EXISTS job_seekers (
   phone TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  last_contacted_at TIMESTAMPTZ
 );
 
 -- 2. RLS policies (Supabase)

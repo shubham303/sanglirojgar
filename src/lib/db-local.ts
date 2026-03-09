@@ -176,9 +176,11 @@ async function ensureTablesExist() {
     CREATE TABLE IF NOT EXISTS job_seekers (
       phone TEXT PRIMARY KEY,
       name TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      last_contacted_at TIMESTAMPTZ
     )
   `);
+  await pool.query(`ALTER TABLE job_seekers ADD COLUMN IF NOT EXISTS last_contacted_at TIMESTAMPTZ`);
 
   _initialized = true;
 }
