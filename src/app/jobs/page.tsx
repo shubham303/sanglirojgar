@@ -397,6 +397,7 @@ export default function BrowseJobs() {
                         body: JSON.stringify({ type: "call" }),
                       });
                       trackEvent("phone_click", { job_id: job.id, job_type: job.job_type_display, employer: job.employer_name });
+                      trackEvent("job_contact", { job_id: job.id, contact_method: "phone", job_type: job.job_type_display, employer: job.employer_name, page: "jobs" });
                       window.location.href = `tel:${job.phone}`;
                     }}
                     className="flex items-center justify-center rounded-lg p-2 transition"
@@ -415,6 +416,7 @@ export default function BrowseJobs() {
                         body: JSON.stringify({ type: "whatsapp" }),
                       });
                       trackEvent("whatsapp_click", { job_id: job.id, job_type: job.job_type_display, employer: job.employer_name });
+                      trackEvent("job_contact", { job_id: job.id, contact_method: "whatsapp", job_type: job.job_type_display, employer: job.employer_name, page: "jobs" });
                       const waMsg = encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${job.id}`);
                       window.open(`https://wa.me/91${job.phone}?text=${waMsg}`, "_blank");
                     }}

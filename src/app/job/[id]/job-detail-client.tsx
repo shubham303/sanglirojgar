@@ -169,6 +169,7 @@ export default function JobDetail() {
                 body: JSON.stringify({ type: "call" }),
               });
               trackEvent("phone_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
+              trackEvent("job_contact", { job_id: id, contact_method: "phone", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
             }}
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
@@ -186,6 +187,7 @@ export default function JobDetail() {
                 body: JSON.stringify({ type: "whatsapp" }),
               });
               trackEvent("whatsapp_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
+              trackEvent("job_contact", { job_id: id, contact_method: "whatsapp", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
             }}
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#25D366", color: "#ffffff" }}
