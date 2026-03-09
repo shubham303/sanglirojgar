@@ -119,6 +119,7 @@ export function createSupabaseDb(): DbClient {
 
       const offset = (filters.page - 1) * filters.limit;
       query = query
+        .order("is_premium", { ascending: false })
         .order("created_at", { ascending: false })
         .range(offset, offset + filters.limit - 1);
 

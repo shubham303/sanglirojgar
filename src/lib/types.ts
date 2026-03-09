@@ -20,6 +20,7 @@ export interface Job {
   is_deleted: boolean;
   expires_at?: string;
   is_scraped?: boolean;
+  is_premium?: boolean;
 }
 
 export interface Industry {
