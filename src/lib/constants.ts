@@ -1,5 +1,5 @@
 // Admin contact
-export const ADMIN_PHONE = "9284408873";
+export const ADMIN_PHONE = "9960739351";
 
 // Job expiry
 export const JOB_EXPIRY_DAYS = 30;
