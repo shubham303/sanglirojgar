@@ -202,9 +202,13 @@ export default function JobDetail() {
 
         <div className="mt-3 text-center">
           <a
-            href={`https://wa.me/919284408873?text=${encodeURIComponent(`Hi, I want to report a suspicious job listing on mahajob.in. Job ID: ${id} - ${job.job_type_display}`)}`}
+            href={`https://wa.me/919960739351?text=${encodeURIComponent(`Hi, I want to report a suspicious job listing on mahajob.in. Job ID: ${id} - ${job.job_type_display}`)}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              fetch(`/api/jobs/${id}/report`, { method: "POST" });
+              trackEvent("job_report", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
+            }}
             className="text-xs text-red-400 hover:text-red-500 transition"
           >
             ⚠ Report this job

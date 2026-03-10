@@ -21,6 +21,7 @@ export interface Job {
   expires_at?: string;
   is_scraped?: boolean;
   is_premium?: boolean;
+  report_count: number;
 }
 
 export interface Industry {

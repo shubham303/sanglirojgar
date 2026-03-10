@@ -648,6 +648,19 @@ export function createLocalDb(): DbClient {
       }
     },
 
+    async reportJob(jobId: string) {
+      try {
+        await ensureTablesExist();
+        await getPool().query(
+          "UPDATE jobs SET report_count = report_count + 1 WHERE id = $1",
+          [jobId]
+        );
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
+      }
+    },
+
     async logJobClick(jobId: string, clickType: "call" | "whatsapp") {
       try {
         await ensureTablesExist();

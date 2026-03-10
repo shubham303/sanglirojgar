@@ -33,7 +33,7 @@ export default function TermsPage() {
             mahajob.in हे एक मोफत job listing platform आहे. आम्ही recruiter किंवा placement agency नाही.
             नोकरीची जाहिरात देणारे (employers) त्यांच्या माहितीसाठी स्वतः जबाबदार आहेत.
             कोणत्याही नोकरीसाठी संपर्क करण्यापूर्वी employer ची माहिती स्वतः verify करा.
-            कोणालाही पैसे देऊ नका. संशयास्पद जाहिरात दिसल्यास आम्हाला WhatsApp वर कळवा: 9284408873.
+            कोणालाही पैसे देऊ नका. संशयास्पद जाहिरात दिसल्यास आम्हाला WhatsApp वर कळवा: 9960739351.
           </p>
         </div>
 
@@ -81,13 +81,13 @@ export default function TermsPage() {
               If you come across a suspicious or fraudulent job listing, please report it to us
               on WhatsApp at{" "}
               <a
-                href="https://wa.me/919284408873?text=Hi%2C%20I%20want%20to%20report%20a%20suspicious%20job%20listing%20on%20mahajob.in."
+                href="https://wa.me/919960739351?text=Hi%2C%20I%20want%20to%20report%20a%20suspicious%20job%20listing%20on%20mahajob.in."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-medium underline"
                 style={{ color: "#FF6B00" }}
               >
-                9284408873
+                9960739351
               </a>
               . We will review and take it down as soon as possible.
             </p>

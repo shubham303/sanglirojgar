@@ -422,6 +422,18 @@ export function createSupabaseDb(): DbClient {
       return { error: error?.message ?? null };
     },
 
+    async reportJob(jobId: string) {
+      const { error } = await supabase.rpc("increment_report_count", { job_id_input: jobId });
+      if (error) {
+        // Fallback: fetch current count and update
+        const { data } = await supabase.from("jobs").select("report_count").eq("id", jobId).single();
+        const current = data?.report_count ?? 0;
+        const { error: updateErr } = await supabase.from("jobs").update({ report_count: current + 1 }).eq("id", jobId);
+        return { error: updateErr?.message ?? null };
+      }
+      return { error: null };
+    },
+
     async logJobClick(jobId: string, clickType: "call" | "whatsapp") {
       const { error } = await supabase
         .from("job_clicks")

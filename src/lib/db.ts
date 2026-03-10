@@ -33,7 +33,7 @@ export interface DbClient {
   getAllJobsPaginated(filters: AdminJobFilters): Promise<DbResult<PaginatedJobs>>;
   getJobById(id: string): Promise<DbResult<Job>>;
   createJob(
-    job: Omit<Job, "id" | "created_at" | "call_count" | "whatsapp_count" | "job_type_display">
+    job: Omit<Job, "id" | "created_at" | "call_count" | "whatsapp_count" | "report_count" | "job_type_display">
   ): Promise<DbResult<Job>>;
   updateJob(id: string, job: Partial<Job>): Promise<DbResult<Job>>;
   softDeleteJob(id: string): Promise<{ error: string | null }>;
@@ -50,6 +50,7 @@ export interface DbClient {
   getEmployers(): Promise<DbResult<Employer[]>>;
   updateEmployerLastContacted(phone: string): Promise<{ error: string | null }>;
   logJobClick(jobId: string, clickType: "call" | "whatsapp"): Promise<{ error: string | null }>;
+  reportJob(jobId: string): Promise<{ error: string | null }>;
   getDailyClickStats(days: number): Promise<DbResult<DailyClickStats[]>>;
   upsertJobSeeker(phone: string, name: string): Promise<{ error: string | null }>;
 }
