@@ -99,6 +99,14 @@ export default function RootLayout({
           </div>
         </nav>
         <main className="max-w-3xl mx-auto px-4 py-5 pb-20 md:pb-5">{children}</main>
+        <footer className="max-w-3xl mx-auto px-4 pb-24 md:pb-8 text-center">
+          <p className="text-xs text-gray-400">
+            mahajob.in हे एक listing platform आहे. Employer ची माहिती verify करूनच संपर्क साधा.
+          </p>
+          <Link href="/terms" className="text-xs text-gray-400 hover:text-gray-500 underline mt-1 inline-block">
+            Terms of Use
+          </Link>
+        </footer>
         <BottomTabBar />
         <RegisterSW />
         <InstallBanner />

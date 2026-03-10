@@ -159,7 +159,11 @@ export default function JobDetail() {
           </div>
         </div>
 
-        <div className="mt-5 flex flex-col gap-2.5">
+        <p className="mt-4 text-xs text-gray-400 text-center">
+          mahajob.in हे एक listing platform आहे. Employer ची माहिती verify करूनच संपर्क साधा.
+        </p>
+
+        <div className="mt-3 flex flex-col gap-2.5">
           <a
             href={`tel:${job.phone}`}
             onClick={() => {
@@ -193,6 +197,17 @@ export default function JobDetail() {
             style={{ backgroundColor: "#25D366", color: "#ffffff" }}
           >
             💬 WhatsApp
+          </a>
+        </div>
+
+        <div className="mt-3 text-center">
+          <a
+            href={`https://wa.me/919284408873?text=${encodeURIComponent(`Hi, I want to report a suspicious job listing on mahajob.in. Job ID: ${id} - ${job.job_type_display}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-red-400 hover:text-red-500 transition"
+          >
+            ⚠ Report this job
           </a>
         </div>
       </div>
