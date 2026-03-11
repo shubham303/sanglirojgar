@@ -31,7 +31,6 @@ export default function WhatsAppOutreachPage() {
   const [seekerAdding, setSeekerAdding] = useState(false);
   const [seekers, setSeekers] = useState<Seeker[]>([]);
   const [seekerTotal, setSeekerTotal] = useState(0);
-  const [seekerLoading, setSeekerLoading] = useState(true);
   const [seekerSendResult, setSeekerSendResult] = useState("");
   const [seekerSending, setSeekerSending] = useState(false);
 
@@ -56,7 +55,6 @@ export default function WhatsAppOutreachPage() {
         setSeekerTotal(data.total);
       }
     } catch { /* ignore */ }
-    finally { setSeekerLoading(false); }
   }, []);
 
   useEffect(() => {
@@ -364,54 +362,6 @@ export default function WhatsAppOutreachPage() {
         </div>
       </div>
 
-      {/* ════════════════ JOB SEEKERS LIST ════════════════ */}
-      <div className="bg-white rounded-xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <h2 className="font-semibold text-gray-700 mb-3">
-          All Job Seekers
-          <span className="text-xs font-normal text-gray-400 ml-2">
-            {seekerTotal} total, {neverContacted} never contacted
-          </span>
-        </h2>
-
-        {seekerLoading ? (
-          <p className="text-sm text-gray-400 py-4 text-center">Loading...</p>
-        ) : seekers.length === 0 ? (
-          <p className="text-sm text-gray-400 py-4 text-center">No job seekers yet</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-gray-400 border-b">
-                  <th className="pb-1.5 pr-3">Name</th>
-                  <th className="pb-1.5 pr-3">Phone</th>
-                  <th className="pb-1.5 pr-3">Added</th>
-                  <th className="pb-1.5">Contacted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {seekers.map((s) => (
-                  <tr key={s.phone} className="border-b border-gray-50">
-                    <td className="py-1.5 pr-3 text-gray-700">{s.name || "—"}</td>
-                    <td className="py-1.5 pr-3 font-mono text-xs text-gray-500">{s.phone}</td>
-                    <td className="py-1.5 pr-3 text-xs text-gray-400">
-                      {new Date(s.created_at).toLocaleDateString("en-IN")}
-                    </td>
-                    <td className="py-1.5 text-xs">
-                      {s.last_contacted_at ? (
-                        <span className="text-green-600">
-                          {new Date(s.last_contacted_at).toLocaleDateString("en-IN")}
-                        </span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
     </div>
   );
 }
