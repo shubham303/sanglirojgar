@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import templates from "@/lib/message-templates.json";
 
 interface Seeker {
   phone: string;
@@ -20,9 +19,9 @@ export default function JobSeekersAdminPage() {
   const [uploadResult, setUploadResult] = useState("");
   const [uploading, setUploading] = useState(false);
 
-  // Message preview
-  const tpl = templates.job_seeker_intro;
-  const [message, setMessage] = useState(tpl.message);
+  // Send state
+  const [sendResult, setSendResult] = useState("");
+  const [sending, setSending] = useState(false);
 
   const fetchSeekers = useCallback(async () => {
     try {
@@ -92,6 +91,29 @@ export default function JobSeekersAdminPage() {
     }
   };
 
+  const handleSend = async () => {
+    setSending(true);
+    setSendResult("");
+    try {
+      const res = await fetch("/api/admin/send-job-seeker-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template_name: "job_seeker_intro" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSendResult(`Sent: ${data.sent}, Failed: ${data.failed}${data.errors?.length ? ` — ${data.errors.join(", ")}` : ""}`);
+        fetchSeekers();
+      } else {
+        setSendResult(data.error || "Error sending messages");
+      }
+    } catch {
+      setSendResult("Server error");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const neverContacted = seekers.filter((s) => !s.last_contacted_at).length;
 
   return (
@@ -121,23 +143,28 @@ export default function JobSeekersAdminPage() {
         )}
       </div>
 
-      {/* Message Template */}
-      <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <h2 className="font-semibold text-gray-700 mb-2">Message Template</h2>
-        <p className="text-xs text-gray-400 mb-3">
-          Use {"{name}"} to personalize. If name is empty, the generic version is used.
+      {/* Send WhatsApp */}
+      <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderLeft: "3px solid #25D366" }}>
+        <h2 className="font-semibold text-gray-700 mb-2">Send WhatsApp Message</h2>
+        <p className="text-sm text-gray-500 mb-3">
+          Not yet contacted: <span className="font-bold text-gray-800">{neverContacted}</span>
+          <span className="text-xs text-gray-400 ml-1">(sends 10 per batch using job_seeker_intro template)</span>
         </p>
 
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={10}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-400 mb-2"
-        />
+        <button
+          onClick={handleSend}
+          disabled={sending || neverContacted === 0}
+          className="w-full py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+          style={{ backgroundColor: "#25D366", color: "#fff" }}
+        >
+          {sending ? "Sending..." : `Send to ${neverContacted} Job Seekers`}
+        </button>
 
-        <p className="text-xs text-gray-400">
-          Sending will be enabled once business WhatsApp number is set up.
-        </p>
+        {sendResult && (
+          <p className={`mt-2 text-sm font-medium px-3 py-2 rounded-lg ${sendResult.includes("Failed: 0") || !sendResult.includes("Failed") ? "text-green-700 bg-green-50" : "text-amber-700 bg-amber-50"}`}>
+            {sendResult}
+          </p>
+        )}
       </div>
 
       {/* Stats & List */}

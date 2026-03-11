@@ -3,7 +3,7 @@ import { getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-// POST /api/admin/send-whatsapp-outreach — Send WhatsApp template to pending employer contacts
+// POST /api/admin/send-job-seeker-outreach — Send WhatsApp template to job seekers not yet contacted
 // Body: { template_name?: string }
 export async function POST(request: NextRequest) {
   const endpoint = process.env.WATI_ENDPOINT;
@@ -23,16 +23,16 @@ export async function POST(request: NextRequest) {
     // use default
   }
 
-  const templateName = body.template_name || "employer_outreach";
+  const templateName = body.template_name || "job_seeker_intro";
 
   const supabase = getSupabase();
   const BATCH_LIMIT = 10;
 
-  // Fetch up to 10 pending contacts
+  // Fetch up to 10 job seekers not yet contacted
   const { data: pending, error: fetchErr } = await supabase
-    .from("whatsapp_outreach")
-    .select("id, phone")
-    .eq("message_sent", false)
+    .from("job_seekers")
+    .select("phone, name")
+    .is("last_contacted_at", null)
     .limit(BATCH_LIMIT);
 
   if (fetchErr) {
@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
   let failed = 0;
   const errors: string[] = [];
 
-  for (const record of pending) {
+  for (const seeker of pending) {
     try {
-      const cleanPhone = record.phone.replace(/^\+?91/, "").replace(/\D/g, "");
+      const cleanPhone = seeker.phone.replace(/^\+?91/, "").replace(/\D/g, "");
       const url = `${endpoint}/api/v1/sendTemplateMessage?whatsappNumber=91${cleanPhone}`;
       const res = await fetch(url, {
         method: "POST",
@@ -59,20 +59,20 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           template_name: templateName,
-          broadcast_name: "employer_outreach",
+          broadcast_name: "job_seeker_outreach",
           parameters: [],
         }),
       });
 
       if (res.ok) {
         await supabase
-          .from("whatsapp_outreach")
-          .update({ message_sent: true, sent_date: new Date().toISOString() })
-          .eq("id", record.id);
+          .from("job_seekers")
+          .update({ last_contacted_at: new Date().toISOString() })
+          .eq("phone", seeker.phone);
         sent++;
       } else {
         const errData = await res.json().catch(() => ({}));
-        errors.push(`${record.phone}: ${errData?.message || res.status}`);
+        errors.push(`${seeker.phone}: ${errData?.message || res.status}`);
         failed++;
       }
     } catch {

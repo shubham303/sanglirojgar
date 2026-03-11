@@ -1,0 +1,82 @@
+============================================================
+WATI TEMPLATE SETUP GUIDE
+============================================================
+
+You need to create these 3 templates in WATI dashboard:
+  WATI Dashboard → Broadcast → Template Messages → New Template
+
+IMPORTANT: Template names must match EXACTLY (lowercase, underscores).
+Category for all: Marketing
+Language for all: Marathi (mr)
+
+============================================================
+TEMPLATE 1: hello_world_test
+============================================================
+Name: hello_world_test
+Category: Marketing
+Language: Marathi
+
+Body:
+नमस्कार! 🙏 हा mahajob.in कडून test message आहे. कृपया दुर्लक्ष करा. धन्यवाद!
+
+Buttons: None
+Header: None
+Footer: None
+
+============================================================
+TEMPLATE 2: employer_outreach
+============================================================
+Name: employer_outreach
+Category: Marketing
+Language: Marathi
+
+Body:
+नमस्कार 🙏
+मी शुभम रणदिवे.
+
+Facebook वर तुमची जाहिरात पाहिली — म्हणून हे लिहितोय.
+
+Facebook वर post टाकली की दुसऱ्या दिवशी दिसेनाशी होते — ही समस्या सोडवायला मी mahajob.in बनवलं आहे. महाराष्ट्रातील नोकरी शोधणाऱ्यांसाठी एक सोपी मराठी website — आता 200+ नोकऱ्या आहेत आणि रोज नवीन नोकरी शोधणारे भेट देतात.
+
+तुमची जाहिरात इथे 30 दिवस दिसत राहील. नोकरी शोधणारे थेट तुम्हाला call करतील — कोणताही middleman नाही. registration नाही, payment नाही, पूर्णपणे मोफत.
+
+👉 www.mahajob.in
+
+काही प्रश्न असतील तर सांगा — मी नक्की मदत करेन. 🙏
+
+Buttons (optional):
+  - Call to Action → Visit Website → "नोकऱ्या पहा" → https://www.mahajob.in
+Footer (optional): mahajob.in | महाराष्ट्रातील नोकऱ्या
+
+============================================================
+TEMPLATE 3: job_seeker_intro
+============================================================
+Name: job_seeker_intro
+Category: Marketing
+Language: Marathi
+
+Body:
+नमस्कार 🙏
+
+मी शुभम, mahajob.in चा founder. तुम्ही नोकरी शोधत आहात हे दिसलं म्हणून message केला.
+
+महाराष्ट्रातील सगळ्या जिल्ह्यांमधील नोकऱ्या एकाच ठिकाणी मिळतील — मोफत, registration नाही.
+
+उपयोग होईल असं वाटलं तर बघा 👉 mahajob.in
+
+Buttons (optional):
+  - Call to Action → Visit Website → "नोकऱ्या पहा" → https://www.mahajob.in/jobs
+Footer (optional): mahajob.in | महाराष्ट्रातील नोकऱ्या
+
+============================================================
+AFTER CREATING TEMPLATES:
+============================================================
+1. Wait for Meta to approve all 3 templates (usually 5 min - 24 hrs)
+2. Make sure your .env.local has these variables:
+
+   WATI_ENDPOINT=https://live-mt-server.wati.io/XXXXX
+   WATI_API_KEY=your_wati_api_key_here
+
+   (Get these from WATI Dashboard → API Settings)
+
+3. That's it! The admin panel handles the rest.
