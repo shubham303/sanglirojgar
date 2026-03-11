@@ -49,13 +49,20 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const rawText = await res.text();
+    let data: Record<string, unknown> = {};
+    try { data = JSON.parse(rawText); } catch { data = { raw: rawText }; }
 
     if (res.ok) {
       return NextResponse.json({ success: true, data });
     } else {
       return NextResponse.json(
-        { error: data?.message || `WATI returned ${res.status}`, data },
+        {
+          error: data?.message || `WATI returned ${res.status}`,
+          wati_status: res.status,
+          wati_url: url,
+          wati_response: data,
+        },
         { status: 502 }
       );
     }
