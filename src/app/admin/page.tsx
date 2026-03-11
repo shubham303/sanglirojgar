@@ -306,13 +306,6 @@ export default function AdminPage() {
         <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
         <div className="flex items-center gap-2">
           <Link
-            href="/admin/job-seekers"
-            className="px-3 py-1.5 text-sm font-semibold rounded-lg transition"
-            style={{ backgroundColor: "#FF6B00", color: "#fff" }}
-          >
-            Seekers
-          </Link>
-          <Link
             href="/admin/whatsapp-outreach"
             className="px-3 py-1.5 text-sm font-semibold rounded-lg transition"
             style={{ backgroundColor: "#25D366", color: "#fff" }}

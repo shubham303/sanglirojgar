@@ -1,95 +1,72 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
-const TEMPLATES = [
-  { value: "employer_message", label: "Employer Outreach" },
-  { value: "job_seeker_intro", label: "Job Seeker Intro" },
-  { value: "hello_world_test", label: "Hello World (Test)" },
-];
+interface Seeker {
+  phone: string;
+  name: string;
+  created_at: string;
+  last_contacted_at: string | null;
+}
 
 export default function WhatsAppOutreachPage() {
-  // Section 1 state
-  const [numbers, setNumbers] = useState("");
-  const [sourceGroup, setSourceGroup] = useState("");
-  const [addResult, setAddResult] = useState("");
-  const [adding, setAdding] = useState(false);
-
-  // Section 2 state
-  const [pendingCount, setPendingCount] = useState(0);
-  const [selectedTemplate, setSelectedTemplate] = useState("employer_message");
-  const [sendResult, setSendResult] = useState("");
-  const [sending, setSending] = useState(false);
-
-  // Test message state
+  // ── Test message state ──
   const [testPhone, setTestPhone] = useState("9284408873");
-  const [testTemplate, setTestTemplate] = useState("hello_world_test");
   const [testResult, setTestResult] = useState("");
   const [testSending, setTestSending] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  // ── Employer state ──
+  const [empNumbers, setEmpNumbers] = useState("");
+  const [empSource, setEmpSource] = useState("");
+  const [empAddResult, setEmpAddResult] = useState("");
+  const [empAdding, setEmpAdding] = useState(false);
+  const [empPending, setEmpPending] = useState(0);
+  const [empSendResult, setEmpSendResult] = useState("");
+  const [empSending, setEmpSending] = useState(false);
+
+  // ── Job seeker state ──
+  const seekerFileRef = useRef<HTMLInputElement>(null);
+  const [seekerNumbers, setSeekerNumbers] = useState("");
+  const [seekerAddResult, setSeekerAddResult] = useState("");
+  const [seekerAdding, setSeekerAdding] = useState(false);
+  const [seekers, setSeekers] = useState<Seeker[]>([]);
+  const [seekerTotal, setSeekerTotal] = useState(0);
+  const [seekerLoading, setSeekerLoading] = useState(true);
+  const [seekerSendResult, setSeekerSendResult] = useState("");
+  const [seekerSending, setSeekerSending] = useState(false);
+
+  // ── Fetch employer pending count ──
+  const fetchEmpData = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/whatsapp-outreach");
       if (res.ok) {
         const data = await res.json();
-        setPendingCount(data.pendingCount);
+        setEmpPending(data.pendingCount);
       }
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
+  }, []);
+
+  // ── Fetch job seekers ──
+  const fetchSeekers = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/job-seekers");
+      if (res.ok) {
+        const data = await res.json();
+        setSeekers(data.seekers);
+        setSeekerTotal(data.total);
+      }
+    } catch { /* ignore */ }
+    finally { setSeekerLoading(false); }
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchEmpData();
+    fetchSeekers();
+  }, [fetchEmpData, fetchSeekers]);
 
-  const handleAdd = async () => {
-    if (!numbers.trim()) return;
-    setAdding(true);
-    setAddResult("");
-    try {
-      const res = await fetch("/api/admin/whatsapp-outreach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numbers, source_group: sourceGroup }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setAddResult(`${data.added} added, ${data.duplicates} already existed`);
-        setNumbers("");
-        fetchData();
-      } else {
-        setAddResult(data.error || "Error adding numbers");
-      }
-    } catch {
-      setAddResult("Server error");
-    } finally {
-      setAdding(false);
-    }
-  };
+  const neverContacted = seekers.filter((s) => !s.last_contacted_at).length;
 
-  const handleSend = async () => {
-    setSending(true);
-    setSendResult("");
-    try {
-      const res = await fetch("/api/admin/send-whatsapp-outreach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_name: selectedTemplate }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSendResult(`Sent: ${data.sent}, Failed: ${data.failed}${data.errors?.length ? ` — ${data.errors.join(", ")}` : ""}`);
-        fetchData();
-      } else {
-        setSendResult(data.error || "Error sending messages");
-      }
-    } catch {
-      setSendResult("Server error");
-    } finally {
-      setSending(false);
-    }
-  };
+  // ── Handlers ──
 
   const handleTestSend = async () => {
     setTestSending(true);
@@ -98,14 +75,10 @@ export default function WhatsAppOutreachPage() {
       const res = await fetch("/api/admin/wati-send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: testPhone, template_name: testTemplate }),
+        body: JSON.stringify({ phone: testPhone, template_name: "hello_world_test" }),
       });
       const data = await res.json();
-      if (res.ok) {
-        setTestResult("Message sent successfully!");
-      } else {
-        setTestResult(`Failed: ${data.error || "Unknown error"}`);
-      }
+      setTestResult(res.ok ? "Message sent successfully!" : `Failed: ${data.error || "Unknown error"}`);
     } catch {
       setTestResult("Server error");
     } finally {
@@ -113,13 +86,162 @@ export default function WhatsAppOutreachPage() {
     }
   };
 
+  const handleEmpAdd = async () => {
+    if (!empNumbers.trim()) return;
+    setEmpAdding(true);
+    setEmpAddResult("");
+    try {
+      const res = await fetch("/api/admin/whatsapp-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numbers: empNumbers, source_group: empSource }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmpAddResult(`${data.added} added, ${data.duplicates} already existed`);
+        setEmpNumbers("");
+        fetchEmpData();
+      } else {
+        setEmpAddResult(data.error || "Error adding numbers");
+      }
+    } catch {
+      setEmpAddResult("Server error");
+    } finally {
+      setEmpAdding(false);
+    }
+  };
+
+  const handleEmpSend = async () => {
+    setEmpSending(true);
+    setEmpSendResult("");
+    try {
+      const res = await fetch("/api/admin/send-whatsapp-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template_name: "employer_message" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEmpSendResult(`Sent: ${data.sent}, Failed: ${data.failed}${data.errors?.length ? ` — ${data.errors.join(", ")}` : ""}`);
+        fetchEmpData();
+      } else {
+        setEmpSendResult(data.error || "Error sending messages");
+      }
+    } catch {
+      setEmpSendResult("Server error");
+    } finally {
+      setEmpSending(false);
+    }
+  };
+
+  const handleSeekerAddNumbers = async () => {
+    if (!seekerNumbers.trim()) return;
+    setSeekerAdding(true);
+    setSeekerAddResult("");
+    try {
+      const lines = seekerNumbers.split("\n").filter((l) => l.trim());
+      const rows = lines.map((line) => {
+        const parts = line.split(",").map((p) => p.trim().replace(/^["']|["']$/g, ""));
+        if (parts.length >= 2) return { name: parts[0], phone: parts[1] };
+        return { name: "", phone: parts[0] };
+      });
+      const res = await fetch("/api/admin/job-seekers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSeekerAddResult(`${data.added} added, ${data.duplicates} already existed`);
+        setSeekerNumbers("");
+        fetchSeekers();
+      } else {
+        setSeekerAddResult(data.error || "Error adding");
+      }
+    } catch {
+      setSeekerAddResult("Server error");
+    } finally {
+      setSeekerAdding(false);
+    }
+  };
+
+  const handleSeekerCSV = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSeekerAdding(true);
+    setSeekerAddResult("");
+    try {
+      const text = await file.text();
+      const lines = text.split("\n").filter((l) => l.trim());
+      const rows: { name: string; phone: string }[] = [];
+      for (const line of lines) {
+        const parts = line.split(",").map((p) => p.trim().replace(/^["']|["']$/g, ""));
+        if (parts.length >= 2) rows.push({ name: parts[0], phone: parts[1] });
+        else if (parts[0]) rows.push({ name: "", phone: parts[0] });
+      }
+      if (rows.length === 0) { setSeekerAddResult("No valid rows"); return; }
+      const res = await fetch("/api/admin/job-seekers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSeekerAddResult(`${data.added} added, ${data.duplicates} already existed`);
+        fetchSeekers();
+      } else {
+        setSeekerAddResult(data.error || "Upload failed");
+      }
+    } catch {
+      setSeekerAddResult("Error reading file");
+    } finally {
+      setSeekerAdding(false);
+      if (seekerFileRef.current) seekerFileRef.current.value = "";
+    }
+  };
+
+  const handleSeekerSend = async () => {
+    setSeekerSending(true);
+    setSeekerSendResult("");
+    try {
+      const res = await fetch("/api/admin/send-job-seeker-outreach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template_name: "job_seeker_intro" }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSeekerSendResult(`Sent: ${data.sent}, Failed: ${data.failed}${data.errors?.length ? ` — ${data.errors.join(", ")}` : ""}`);
+        fetchSeekers();
+      } else {
+        setSeekerSendResult(data.error || "Error sending messages");
+      }
+    } catch {
+      setSeekerSendResult("Server error");
+    } finally {
+      setSeekerSending(false);
+    }
+  };
+
+  // ── Render helpers ──
+  const ResultBanner = ({ result, success }: { result: string; success?: boolean }) => {
+    if (!result) return null;
+    const isOk = success ?? (result.includes("success") || result.includes("added") || (result.includes("Sent") && !result.includes("Failed: 1")));
+    return (
+      <p className={`mt-2 text-sm font-medium px-3 py-2 rounded-lg ${isOk ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}>
+        {result}
+      </p>
+    );
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4">
       <h1 className="text-xl font-bold mb-6">WhatsApp Outreach</h1>
 
-      {/* SECTION 0 — Test Message */}
+      {/* ════════════════ TEST MESSAGE ════════════════ */}
       <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderLeft: "3px solid #2563eb" }}>
         <h2 className="font-semibold text-gray-700 mb-3">🧪 Test Message</h2>
+        <p className="text-xs text-gray-400 mb-2">Sends <span className="font-mono">hello_world_test</span> template</p>
 
         <div className="flex gap-2 mb-3">
           <input
@@ -129,101 +251,165 @@ export default function WhatsAppOutreachPage() {
             placeholder="Phone number"
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-blue-400"
           />
-          <select
-            value={testTemplate}
-            onChange={(e) => setTestTemplate(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-400"
+          <button
+            onClick={handleTestSend}
+            disabled={testSending || !testPhone.trim()}
+            className="px-4 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+            style={{ backgroundColor: "#2563eb", color: "#fff" }}
           >
-            {TEMPLATES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+            {testSending ? "..." : "Send"}
+          </button>
         </div>
 
-        <button
-          onClick={handleTestSend}
-          disabled={testSending || !testPhone.trim()}
-          className="w-full py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-50"
-          style={{ backgroundColor: "#2563eb", color: "#fff" }}
-        >
-          {testSending ? "Sending..." : "Send Test Message"}
-        </button>
-
-        {testResult && (
-          <p className={`mt-2 text-sm font-medium px-3 py-2 rounded-lg ${testResult.includes("success") ? "text-green-700 bg-green-50" : "text-red-700 bg-red-50"}`}>
-            {testResult}
-          </p>
-        )}
+        <ResultBanner result={testResult} />
       </div>
 
-      {/* SECTION 1 — Add Numbers */}
-      <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <h2 className="font-semibold text-gray-700 mb-3">Add Employer Numbers</h2>
+      {/* ════════════════ EMPLOYERS ════════════════ */}
+      <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderLeft: "3px solid #FF6B00" }}>
+        <h2 className="font-semibold text-gray-700 mb-3">Employers</h2>
 
+        {/* Add numbers */}
         <textarea
-          value={numbers}
-          onChange={(e) => setNumbers(e.target.value)}
-          placeholder="Paste phone numbers — one per line"
-          rows={6}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-orange-400 mb-3"
+          value={empNumbers}
+          onChange={(e) => setEmpNumbers(e.target.value)}
+          placeholder="Paste employer phone numbers — one per line"
+          rows={4}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-orange-400 mb-2"
         />
-
         <input
           type="text"
-          value={sourceGroup}
-          onChange={(e) => setSourceGroup(e.target.value)}
+          value={empSource}
+          onChange={(e) => setEmpSource(e.target.value)}
           placeholder="Source group (optional — e.g. Facebook group name)"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 mb-3"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-orange-400 mb-2"
         />
-
         <button
-          onClick={handleAdd}
-          disabled={adding || !numbers.trim()}
-          className="w-full py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+          onClick={handleEmpAdd}
+          disabled={empAdding || !empNumbers.trim()}
+          className="w-full py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50 mb-2"
           style={{ backgroundColor: "#FF6B00", color: "#fff" }}
         >
-          {adding ? "Adding..." : "Submit Numbers"}
+          {empAdding ? "Adding..." : "Add Employer Numbers"}
         </button>
+        <ResultBanner result={empAddResult} />
 
-        {addResult && (
-          <p className="mt-2 text-sm font-medium text-green-700 bg-green-50 px-3 py-2 rounded-lg">
-            {addResult}
+        {/* Send to pending */}
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <p className="text-sm text-gray-500 mb-2">
+            Pending: <span className="font-bold text-gray-800">{empPending}</span>
+            <span className="text-xs text-gray-400 ml-1">(sends 10/batch · template: <span className="font-mono">employer_message</span>)</span>
           </p>
-        )}
+          <button
+            onClick={handleEmpSend}
+            disabled={empSending || empPending === 0}
+            className="w-full py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+            style={{ backgroundColor: "#25D366", color: "#fff" }}
+          >
+            {empSending ? "Sending..." : `Send to ${empPending} Employers`}
+          </button>
+          <ResultBanner result={empSendResult} />
+        </div>
       </div>
 
-      {/* SECTION 2 — Send Messages */}
-      <div className="bg-white rounded-xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
-        <h2 className="font-semibold text-gray-700 mb-3">Send to Pending Employers</h2>
+      {/* ════════════════ JOB SEEKERS ════════════════ */}
+      <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderLeft: "3px solid #25D366" }}>
+        <h2 className="font-semibold text-gray-700 mb-3">Job Seekers</h2>
 
-        <p className="text-sm text-gray-500 mb-3">
-          Pending contacts: <span className="font-bold text-gray-800">{pendingCount}</span>
-          <span className="text-xs text-gray-400 ml-1">(sends 10 per batch)</span>
-        </p>
-
-        <select
-          value={selectedTemplate}
-          onChange={(e) => setSelectedTemplate(e.target.value)}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-green-400 mb-3"
-        >
-          {TEMPLATES.map((t) => (
-            <option key={t.value} value={t.value}>{t.label}</option>
-          ))}
-        </select>
-
+        {/* Add numbers (text) */}
+        <textarea
+          value={seekerNumbers}
+          onChange={(e) => setSeekerNumbers(e.target.value)}
+          placeholder="Paste job seeker numbers — one per line, or name,phone"
+          rows={4}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-green-400 mb-2"
+        />
         <button
-          onClick={handleSend}
-          disabled={sending || pendingCount === 0}
-          className="w-full py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+          onClick={handleSeekerAddNumbers}
+          disabled={seekerAdding || !seekerNumbers.trim()}
+          className="w-full py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50 mb-2"
           style={{ backgroundColor: "#25D366", color: "#fff" }}
         >
-          {sending ? "Sending..." : `Send to ${pendingCount} Pending Contacts`}
+          {seekerAdding ? "Adding..." : "Add Job Seeker Numbers"}
         </button>
 
-        {sendResult && (
-          <p className={`mt-2 text-sm font-medium px-3 py-2 rounded-lg ${sendResult.includes("Failed: 0") || !sendResult.includes("Failed") ? "text-green-700 bg-green-50" : "text-amber-700 bg-amber-50"}`}>
-            {sendResult}
+        {/* Or CSV upload */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-gray-400">or upload CSV:</span>
+          <input
+            ref={seekerFileRef}
+            type="file"
+            accept=".csv,.txt"
+            onChange={handleSeekerCSV}
+            disabled={seekerAdding}
+            className="text-xs file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-600 hover:file:bg-green-100 disabled:opacity-50"
+          />
+        </div>
+        <ResultBanner result={seekerAddResult} />
+
+        {/* Send to pending */}
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <p className="text-sm text-gray-500 mb-2">
+            Not contacted: <span className="font-bold text-gray-800">{neverContacted}</span>
+            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (sends 10/batch · template: <span className="font-mono">job_seeker_intro</span>)</span>
           </p>
+          <button
+            onClick={handleSeekerSend}
+            disabled={seekerSending || neverContacted === 0}
+            className="w-full py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+            style={{ backgroundColor: "#25D366", color: "#fff" }}
+          >
+            {seekerSending ? "Sending..." : `Send to ${neverContacted} Job Seekers`}
+          </button>
+          <ResultBanner result={seekerSendResult} />
+        </div>
+      </div>
+
+      {/* ════════════════ JOB SEEKERS LIST ════════════════ */}
+      <div className="bg-white rounded-xl p-4" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}>
+        <h2 className="font-semibold text-gray-700 mb-3">
+          All Job Seekers
+          <span className="text-xs font-normal text-gray-400 ml-2">
+            {seekerTotal} total, {neverContacted} never contacted
+          </span>
+        </h2>
+
+        {seekerLoading ? (
+          <p className="text-sm text-gray-400 py-4 text-center">Loading...</p>
+        ) : seekers.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4 text-center">No job seekers yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-gray-400 border-b">
+                  <th className="pb-1.5 pr-3">Name</th>
+                  <th className="pb-1.5 pr-3">Phone</th>
+                  <th className="pb-1.5 pr-3">Added</th>
+                  <th className="pb-1.5">Contacted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {seekers.map((s) => (
+                  <tr key={s.phone} className="border-b border-gray-50">
+                    <td className="py-1.5 pr-3 text-gray-700">{s.name || "—"}</td>
+                    <td className="py-1.5 pr-3 font-mono text-xs text-gray-500">{s.phone}</td>
+                    <td className="py-1.5 pr-3 text-xs text-gray-400">
+                      {new Date(s.created_at).toLocaleDateString("en-IN")}
+                    </td>
+                    <td className="py-1.5 text-xs">
+                      {s.last_contacted_at ? (
+                        <span className="text-green-600">
+                          {new Date(s.last_contacted_at).toLocaleDateString("en-IN")}
+                        </span>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
