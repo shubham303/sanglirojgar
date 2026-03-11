@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 
 const TEMPLATES = [
-  { value: "employer_outreach", label: "Employer Outreach" },
+  { value: "employer_message", label: "Employer Outreach" },
   { value: "job_seeker_intro", label: "Job Seeker Intro" },
   { value: "hello_world_test", label: "Hello World (Test)" },
 ];
@@ -17,7 +17,7 @@ export default function WhatsAppOutreachPage() {
 
   // Section 2 state
   const [pendingCount, setPendingCount] = useState(0);
-  const [selectedTemplate, setSelectedTemplate] = useState("employer_outreach");
+  const [selectedTemplate, setSelectedTemplate] = useState("employer_message");
   const [sendResult, setSendResult] = useState("");
   const [sending, setSending] = useState(false);
 

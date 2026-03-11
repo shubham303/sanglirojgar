@@ -24,9 +24,9 @@ Header: None
 Footer: None
 
 ============================================================
-TEMPLATE 2: employer_outreach
+TEMPLATE 2: employer_message
 ============================================================
-Name: employer_outreach
+Name: employer_message
 Category: Marketing
 Language: Marathi
 

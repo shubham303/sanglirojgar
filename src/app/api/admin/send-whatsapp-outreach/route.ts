@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // use default
   }
 
-  const templateName = body.template_name || "employer_outreach";
+  const templateName = body.template_name || "employer_message";
 
   const supabase = getSupabase();
   const BATCH_LIMIT = 10;
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           template_name: templateName,
-          broadcast_name: "employer_outreach",
+          broadcast_name: "employer_message",
           parameters: [],
         }),
       });
