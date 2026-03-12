@@ -38,7 +38,7 @@ export function JobCardInfo({
       )}
       <div className={`${hideHeader ? "" : "mt-1.5 "}space-y-0.5 text-sm text-gray-600`}>
         <p>
-          <span className="font-medium text-gray-500">{t("card.location")}</span> {formatLocation(job.taluka, job.district)}
+          <span className="font-medium text-gray-500">{t("card.location")}</span> {formatLocation(job.taluka, job.district, lang)}
         </p>
         {showDescription && job.description && (
           <p

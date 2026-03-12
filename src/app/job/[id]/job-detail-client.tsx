@@ -7,6 +7,7 @@ import { Job } from "@/lib/types";
 import { formatDateMarathi, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
 
 export default function JobDetail() {
   const params = useParams();
@@ -104,18 +105,18 @@ export default function JobDetail() {
         <div className="mt-3 space-y-2.5 text-sm text-gray-700">
           <div className="flex items-baseline gap-2">
             <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.state")}</span>
-            <p className="text-base">{job.state || "महाराष्ट्र"}</p>
+            <p className="text-base">{lang === "en" ? "Maharashtra" : (job.state || "महाराष्ट्र")}</p>
           </div>
 
           <div className="flex items-baseline gap-2">
             <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.district")}</span>
-            <p className="text-base">{job.district || "सांगली"}</p>
+            <p className="text-base">{districtDisplayName(job.district || "सांगली", lang)}</p>
           </div>
 
           {job.taluka && job.taluka !== (job.district || "सांगली") && (
             <div className="flex items-baseline gap-2">
               <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.taluka")}</span>
-              <p className="text-base">{job.taluka}</p>
+              <p className="text-base">{talukaDisplayName(job.taluka, lang)}</p>
             </div>
           )}
 

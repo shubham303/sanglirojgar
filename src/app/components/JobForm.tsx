@@ -8,6 +8,7 @@ import { validateJobForm, JobFormErrors } from "@/lib/validation";
 import { trackEvent } from "@/lib/gtag";
 import { Job } from "@/lib/types";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
+import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
 import { Field } from "./Field";
 import { JobCardInfo } from "./JobCardInfo";
 import JobTypePicker from "./JobTypePicker";
@@ -22,7 +23,7 @@ const EXPERIENCE_OPTIONS = ["0", "1", "2", "3", "3+"];
 
 export default function JobForm({ mode, jobId }: JobFormProps) {
   const groupedJobTypes = useGroupedJobTypes();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [form, setForm] = useState({
     employer_name: "",
     phone: "",
@@ -269,7 +270,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             {DISTRICTS.map((d) => (
-              <option key={d} value={d}>{d}</option>
+              <option key={d} value={d}>{districtDisplayName(d, lang)}</option>
             ))}
           </select>
         </Field>
@@ -282,7 +283,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           >
             <option value="">{t("form.selectDefault")}</option>
             {(DISTRICT_TALUKAS[form.district] || []).map((tal) => (
-              <option key={tal} value={tal}>{tal}</option>
+              <option key={tal} value={tal}>{talukaDisplayName(tal, lang)}</option>
             ))}
           </select>
         </Field>

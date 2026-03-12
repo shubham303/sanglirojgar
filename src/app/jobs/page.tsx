@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
+import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
 import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
@@ -258,7 +259,7 @@ export default function BrowseJobs() {
             >
               <option value={ALL}>{t("jobs.allDistricts")}</option>
               {DISTRICTS.map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>{districtDisplayName(d, lang)}</option>
               ))}
             </select>
           </div>
@@ -278,7 +279,7 @@ export default function BrowseJobs() {
               <option value={ALL}>{t("jobs.allTalukas")}</option>
               {(DISTRICT_TALUKAS[filterDistrict] || []).map((taluka) => (
                 <option key={taluka} value={taluka}>
-                  {taluka}
+                  {talukaDisplayName(taluka, lang)}
                 </option>
               ))}
             </select>
@@ -352,7 +353,7 @@ export default function BrowseJobs() {
                   </div>
                   <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
                     <p>
-                      <span className="font-medium text-gray-500">{t("jobs.location")}</span> {formatLocation(job.taluka, job.district)}
+                      <span className="font-medium text-gray-500">{t("jobs.location")}</span> {formatLocation(job.taluka, job.district, lang)}
                     </p>
                     {job.description && (
                       <p
@@ -431,7 +432,7 @@ export default function BrowseJobs() {
                       e.stopPropagation();
                       const lines = [
                         `${job.job_type_display}`,
-                        `ठिकाण: ${formatLocation(job.taluka, job.district)}`,
+                        `ठिकाण: ${formatLocation(job.taluka, job.district, lang)}`,
                         `पगार: ₹ ${job.salary}`,
                       ];
                       if (job.description) lines.push(`\n${job.description.replace(/[0-9०-९]+/g, "").replace(/\s{2,}/g, " ").trim()}`);

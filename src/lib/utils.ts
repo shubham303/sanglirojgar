@@ -1,4 +1,5 @@
 import type { Language } from "./i18n/translations";
+import { districtDisplayName, talukaDisplayName } from "./i18n/locations";
 
 const MARATHI_MONTHS = [
   "जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून",
@@ -10,10 +11,12 @@ const ENGLISH_MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-export function formatLocation(taluka: string, district: string): string {
+export function formatLocation(taluka: string, district: string, lang: Language = "mr"): string {
   const d = district || "सांगली";
-  if (!taluka || taluka === d) return d;
-  return `${taluka}, ${d}`;
+  const dDisplay = districtDisplayName(d, lang);
+  if (!taluka || taluka === d) return dDisplay;
+  const tDisplay = talukaDisplayName(taluka, lang);
+  return `${tDisplay}, ${dDisplay}`;
 }
 
 export function formatDateMarathi(dateString: string, lang: Language = "mr"): string {
