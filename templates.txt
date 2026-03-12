@@ -62,7 +62,7 @@ Body:
 
 महाराष्ट्रातील सगळ्या जिल्ह्यांमधील नोकऱ्या एकाच ठिकाणी मिळतील — मोफत, registration नाही.
 
-उपयोग होईल असं वाटलं तर बघा 👉 mahajob.in
+उपयोग होईल असं वाटलं तर बघा 👉 www.mahajob.in
 
 Buttons (optional):
   - Call to Action → Visit Website → "नोकऱ्या पहा" → https://www.mahajob.in/jobs
