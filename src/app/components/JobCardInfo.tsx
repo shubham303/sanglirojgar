@@ -1,5 +1,8 @@
+"use client";
+
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 interface JobCardInfoProps {
   job: Job;
@@ -20,6 +23,7 @@ export function JobCardInfo({
   showWorkerCount = false,
   showClickCounts = false,
 }: JobCardInfoProps) {
+  const { t, lang } = useTranslation();
   return (
     <>
       {!hideHeader && (
@@ -28,13 +32,13 @@ export function JobCardInfo({
             {job.job_type_display}
           </h2>
           <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-            {formatDateMarathi(job.created_at)}
+            {formatDateMarathi(job.created_at, lang)}
           </span>
         </div>
       )}
       <div className={`${hideHeader ? "" : "mt-1.5 "}space-y-0.5 text-sm text-gray-600`}>
         <p>
-          <span className="font-medium text-gray-500">ठिकाण:</span> {formatLocation(job.taluka, job.district)}
+          <span className="font-medium text-gray-500">{t("card.location")}</span> {formatLocation(job.taluka, job.district)}
         </p>
         {showDescription && job.description && (
           <p
@@ -56,7 +60,7 @@ export function JobCardInfo({
           <p className="text-xs text-gray-500">
             {[
               job.minimum_education,
-              job.experience_years && formatExperience(job.experience_years),
+              job.experience_years && formatExperience(job.experience_years, lang),
             ].filter(Boolean).join(" · ")}
           </p>
         )}
@@ -65,7 +69,7 @@ export function JobCardInfo({
         </p>
         {showWorkerCount && (
           <p className="text-xs text-gray-400">
-            कामगार हवे: {job.workers_needed}
+            {t("card.workersNeeded")} {job.workers_needed}
           </p>
         )}
         {showEmployerName && (
@@ -75,7 +79,7 @@ export function JobCardInfo({
         )}
         {showClickCounts && (
           <p className="text-xs text-gray-400">
-            📞 {job.call_count ?? 0} कॉल &nbsp; 💬 {job.whatsapp_count ?? 0} WhatsApp
+            📞 {job.call_count ?? 0} {t("card.calls")} &nbsp; 💬 {job.whatsapp_count ?? 0} WhatsApp
           </p>
         )}
       </div>

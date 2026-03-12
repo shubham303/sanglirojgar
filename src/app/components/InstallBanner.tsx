@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -10,6 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
 const DISMISSED_KEY = "pwa-install-dismissed";
 
 export default function InstallBanner() {
+  const { t } = useTranslation();
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
@@ -17,7 +19,6 @@ export default function InstallBanner() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Already installed as PWA — hide everything
     if (window.matchMedia("(display-mode: standalone)").matches) {
       setInstalled(true);
       return;
@@ -46,7 +47,6 @@ export default function InstallBanner() {
   const isIOS = useIsIOS();
 
   const handleInstallClick = useCallback(async () => {
-    // Android / Chrome — native prompt available
     if (deferredPrompt) {
       await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -57,13 +57,11 @@ export default function InstallBanner() {
       return;
     }
 
-    // iOS — show manual instructions
     if (isIOS) {
       setShowIOSGuide(true);
       return;
     }
 
-    // Fallback for other browsers — show generic instructions
     setShowIOSGuide(true);
   }, [deferredPrompt, isIOS]);
 
@@ -74,12 +72,10 @@ export default function InstallBanner() {
 
   const isMobile = useIsMobile();
 
-  // Hide on desktop, if already installed, or if dismissed
   if (!isMobile || installed || dismissed) return null;
 
   return (
     <>
-      {/* Fixed bottom banner */}
       <div
         style={{
           position: "fixed",
@@ -99,7 +95,7 @@ export default function InstallBanner() {
         }}
       >
         <span style={{ flex: 1, lineHeight: 1.4 }}>
-          📲 हे अॅप फोनवर इन्स्टॉल करा!
+          {t("install.banner")}
         </span>
         <button
           onClick={handleInstallClick}
@@ -115,11 +111,11 @@ export default function InstallBanner() {
             whiteSpace: "nowrap",
           }}
         >
-          इन्स्टॉल करा
+          {t("install.button")}
         </button>
         <button
           onClick={handleDismiss}
-          aria-label="बंद करा"
+          aria-label="Close"
           style={{
             background: "none",
             border: "none",
@@ -135,7 +131,6 @@ export default function InstallBanner() {
         </button>
       </div>
 
-      {/* iOS / fallback instructions modal */}
       {showIOSGuide && (
         <div
           onClick={() => setShowIOSGuide(false)}
@@ -169,7 +164,7 @@ export default function InstallBanner() {
                 textAlign: "center",
               }}
             >
-              होम स्क्रीनवर जोडा
+              {t("install.addHome")}
             </h3>
 
             {isIOS ? (
@@ -243,7 +238,7 @@ export default function InstallBanner() {
                 cursor: "pointer",
               }}
             >
-              समजले
+              {t("install.ok")}
             </button>
           </div>
         </div>

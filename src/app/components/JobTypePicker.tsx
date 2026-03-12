@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { GroupedJobTypeOption } from "@/lib/job-types-cache";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 interface JobTypePickerProps {
   value: string;
@@ -15,16 +16,18 @@ export default function JobTypePicker({
   value,
   onChange,
   groupedJobTypes,
-  placeholder = "-- निवडा --",
+  placeholder,
   allLabel,
 }: JobTypePickerProps) {
+  const { t } = useTranslation();
+  const defaultPlaceholder = placeholder || t("picker.select");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Find selected label
-  let selectedLabel = allLabel || placeholder;
+  let selectedLabel = allLabel || defaultPlaceholder;
   if (value && value !== (allLabel || "")) {
     for (const group of groupedJobTypes) {
       const match = group.options.find((o) => String(o.id) === String(value));
@@ -80,7 +83,6 @@ export default function JobTypePicker({
         <div
           className="fixed inset-0 z-50 bg-white flex flex-col sm:bg-transparent sm:items-center sm:justify-center"
         >
-          {/* Desktop: overlay background */}
           <div
             className="hidden sm:block fixed inset-0"
             style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
@@ -92,9 +94,8 @@ export default function JobTypePicker({
             className="flex flex-col h-full sm:h-auto sm:max-h-[70vh] sm:w-full sm:max-w-md sm:rounded-xl sm:relative bg-white z-10"
             style={{ boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" }}
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-              <span className="font-semibold text-sm text-gray-800">कामाचा प्रकार निवडा</span>
+              <span className="font-semibold text-sm text-gray-800">{t("picker.title")}</span>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -104,7 +105,6 @@ export default function JobTypePicker({
               </button>
             </div>
 
-            {/* Search */}
             <div className="px-4 py-2 border-b border-gray-100 shrink-0">
               <input
                 ref={searchRef}
@@ -116,7 +116,6 @@ export default function JobTypePicker({
               />
             </div>
 
-            {/* Options */}
             <div className="overflow-y-auto flex-1 min-h-0">
               {allLabel && !search.trim() && (
                 <button

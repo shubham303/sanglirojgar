@@ -1,32 +1,32 @@
-import type { Metadata } from "next";
-import { ADMIN_PHONE } from "@/lib/constants";
+"use client";
 
-export const metadata: Metadata = {
-  title: "संपर्क | महा जॉब",
-  description: "महा जॉब बद्दल माहिती आणि संपर्क",
-};
+import { ADMIN_PHONE } from "@/lib/constants";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
+
 const WA_MESSAGE = encodeURIComponent("नमस्कार, मला mahajob.in बद्दल माहिती हवी आहे.");
 
 export default function ContactPage() {
+  const { t } = useTranslation();
+
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-xl font-bold text-gray-800 mb-4">महा जॉब बद्दल</h1>
+      <h1 className="text-xl font-bold text-gray-800 mb-4">{t("contact.title")}</h1>
 
       <div
         className="bg-white rounded-xl p-5 mb-5"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
       >
         <p className="text-sm text-gray-700 leading-relaxed mb-3">
-          <span className="font-semibold" style={{ color: "#FF6B00" }}>महा जॉब</span> हे महाराष्ट्रातील नोकरी शोधणारे आणि नोकरी देणारे यांना जोडणारे मोफत व्यासपीठ आहे.
+          <span className="font-semibold" style={{ color: "#FF6B00" }}>{t("nav.brand")}</span> {t("contact.aboutDesc")}
         </p>
         <ul className="text-sm text-gray-600 space-y-1.5 mb-3">
-          <li>- रजिस्ट्रेशन नाही, लॉगिन नाही</li>
-          <li>- जाहिरात देणे पूर्णपणे मोफत</li>
-          <li>- नोकरी देणाऱ्यांशी थेट फोन / WhatsApp संपर्क</li>
-          <li>- संपूर्ण महाराष्ट्रातील नोकऱ्या</li>
+          <li>- {t("contact.feature1")}</li>
+          <li>- {t("contact.feature2")}</li>
+          <li>- {t("contact.feature3")}</li>
+          <li>- {t("contact.feature4")}</li>
         </ul>
         <p className="text-sm text-gray-500">
-          काही अडचण असल्यास किंवा सूचना देण्यासाठी आम्हाला संपर्क करा.
+          {t("contact.helpText")}
         </p>
       </div>
 
@@ -34,7 +34,7 @@ export default function ContactPage() {
         className="bg-white rounded-xl p-5"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
       >
-        <p className="text-sm font-semibold text-gray-700 mb-3">संपर्क</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">{t("contact.contactLabel")}</p>
         <div className="flex gap-3">
           <a
             href={`tel:${ADMIN_PHONE}`}
@@ -42,7 +42,7 @@ export default function ContactPage() {
             style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
           >
             <span style={{ fontSize: 18 }}>📞</span>
-            कॉल करा
+            {t("contact.call")}
           </a>
           <a
             href={`https://wa.me/91${ADMIN_PHONE}?text=${WA_MESSAGE}`}

@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
 import Script from "next/script";
 import "./globals.css";
-import RegisterSW from "./components/RegisterSW";
-import InstallBanner from "./components/InstallBanner";
-import BottomTabBar from "./components/BottomTabBar";
+import ClientShell from "./components/ClientShell";
 import { SITE_URL } from "@/lib/config";
 
 const GA_ID = "G-BGYJ0D4EL9";
@@ -80,36 +77,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body className="antialiased" style={{ backgroundColor: "#f5f5f5", color: "#1a1a1a" }}>
-        {/* Desktop top nav — hidden on mobile */}
-        <nav
-          className="hidden md:block bg-white border-b border-orange-200 px-4 py-2.5"
-          style={{ position: "sticky", top: 0, zIndex: 40, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-        >
-          <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <Link href="/" className="font-bold text-lg" style={{ color: "#FF6B00" }}>
-              महा जॉब
-            </Link>
-            <div className="flex items-center gap-5 text-sm font-medium">
-              <Link href="/jobs" className="text-gray-600 hover:text-orange-600 transition">नोकऱ्या</Link>
-              <Link href="/job/new" className="text-gray-600 hover:text-orange-600 transition">जाहिरात द्या</Link>
-              <Link href="/my-ads" className="text-gray-600 hover:text-orange-600 transition">माझ्या जाहिराती</Link>
-              <Link href="/blogs" className="text-gray-600 hover:text-orange-600 transition">ब्लॉग</Link>
-              <Link href="/contact" className="text-gray-600 hover:text-orange-600 transition">संपर्क</Link>
-            </div>
-          </div>
-        </nav>
-        <main className="max-w-3xl mx-auto px-4 py-5 pb-20 md:pb-5">{children}</main>
-        <footer className="max-w-3xl mx-auto px-4 pb-24 md:pb-8 text-center">
-          <p className="text-xs text-gray-400">
-            mahajob.in हे एक listing platform आहे. Employer ची माहिती verify करूनच संपर्क साधा.
-          </p>
-          <Link href="/terms" className="text-xs text-gray-400 hover:text-gray-500 underline mt-1 inline-block">
-            Terms of Use
-          </Link>
-        </footer>
-        <BottomTabBar />
-        <RegisterSW />
-        <InstallBanner />
+        <ClientShell>{children}</ClientShell>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import JobTypePicker from "../components/JobTypePicker";
 import JobSeekerModal from "../components/JobSeekerModal";
 
@@ -40,6 +41,7 @@ function SkeletonCard() {
 
 export default function BrowseJobs() {
   const groupedJobTypes = useGroupedJobTypes();
+  const { t, lang } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -83,12 +85,12 @@ export default function BrowseJobs() {
           if (!res.ok) throw new Error("API error");
           return await res.json();
         } catch {
-          if (i === retries - 1) throw new Error("सर्व्हरशी संपर्क होऊ शकला नाही");
+          if (i === retries - 1) throw new Error(t("jobs.serverError"));
         }
       }
-      throw new Error("सर्व्हरशी संपर्क होऊ शकला नाही");
+      throw new Error(t("jobs.serverError"));
     },
-    []
+    [t]
   );
 
   // Initial load
@@ -164,7 +166,6 @@ export default function BrowseJobs() {
     setFilterJobType(ALL);
     setFilterDistrict(ALL);
     setFilterTaluka(ALL);
-    // Also apply immediately
     setAppliedJobType(ALL);
     setAppliedDistrict(ALL);
     setAppliedTaluka(ALL);
@@ -203,10 +204,10 @@ export default function BrowseJobs() {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h1 className="text-xl font-bold text-gray-800">उपलब्ध नोकऱ्या</h1>
+        <h1 className="text-xl font-bold text-gray-800">{t("jobs.title")}</h1>
         {!loading && !error && (
           <span className="text-sm text-gray-400">
-            {total} नोकऱ्या
+            {total} {t("jobs.count")}
           </span>
         )}
       </div>
@@ -215,13 +216,13 @@ export default function BrowseJobs() {
         className="mb-3 px-3 py-2 rounded-lg text-sm text-gray-600"
         style={{ backgroundColor: "#FFF7ED", borderLeft: "3px solid #FF6B00" }}
       >
-        नवीन नोकऱ्या दररोज जोडल्या जात आहेत! तुम्हाला हवी ती नोकरी सापडली नाही? कृपया काही दिवसांनी पुन्हा भेट द्या.
+        {t("jobs.newDaily")}
         <button
           onClick={() => setOpenSeeker(true)}
           className="block mt-1.5 text-xs font-semibold underline"
           style={{ color: "#FF6B00" }}
         >
-          WhatsApp वर job alerts मिळवा
+          {t("jobs.whatsappAlerts")}
         </button>
       </div>
 
@@ -230,12 +231,12 @@ export default function BrowseJobs() {
         style={{ backgroundColor: "#ffffff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
       >
         <p className="text-xs font-semibold text-gray-500">
-          कामाचा प्रकार आणि शहर निवडा
+          {t("jobs.filterHint")}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
             <label className="block text-[11px] text-gray-400 mb-1">
-              कामाचा प्रकार
+              {t("jobs.jobType")}
             </label>
             <JobTypePicker
               value={filterJobType}
@@ -247,7 +248,7 @@ export default function BrowseJobs() {
 
           <div className="flex-1">
             <label className="block text-[11px] text-gray-400 mb-1">
-              जिल्हा
+              {t("jobs.district")}
             </label>
             <select
               value={filterDistrict}
@@ -255,7 +256,7 @@ export default function BrowseJobs() {
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
               style={{ borderColor: filterDistrict !== ALL ? "#FF6B00" : undefined }}
             >
-              <option value={ALL}>सर्व जिल्हे</option>
+              <option value={ALL}>{t("jobs.allDistricts")}</option>
               {DISTRICTS.map((d) => (
                 <option key={d} value={d}>{d}</option>
               ))}
@@ -266,7 +267,7 @@ export default function BrowseJobs() {
         {filterDistrict !== ALL && (
           <div>
             <label className="block text-[11px] text-gray-400 mb-1">
-              तालुका
+              {t("jobs.taluka")}
             </label>
             <select
               value={filterTaluka}
@@ -274,7 +275,7 @@ export default function BrowseJobs() {
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none"
               style={{ borderColor: filterTaluka !== ALL ? "#FF6B00" : undefined }}
             >
-              <option value={ALL}>सर्व तालुके</option>
+              <option value={ALL}>{t("jobs.allTalukas")}</option>
               {(DISTRICT_TALUKAS[filterDistrict] || []).map((taluka) => (
                 <option key={taluka} value={taluka}>
                   {taluka}
@@ -290,14 +291,14 @@ export default function BrowseJobs() {
             className="flex-1 text-base font-semibold py-2.5 rounded-lg transition"
             style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
           >
-            नोकरी शोधा
+            {t("jobs.search")}
           </button>
           {activeFilterCount > 0 && (
             <button
               onClick={clearFilters}
               className="px-4 py-2.5 rounded-lg text-sm font-medium border border-gray-200 text-gray-500 transition hover:bg-gray-50"
             >
-              रीसेट
+              {t("jobs.reset")}
             </button>
           )}
         </div>
@@ -311,7 +312,7 @@ export default function BrowseJobs() {
             className="px-5 py-2.5 rounded-lg text-base font-medium transition"
             style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
           >
-            पुन्हा प्रयत्न करा
+            {t("jobs.retry")}
           </button>
         </div>
       ) : loading ? (
@@ -322,9 +323,7 @@ export default function BrowseJobs() {
         </div>
       ) : jobs.length === 0 ? (
         <p className="text-center text-gray-500 text-base py-8">
-          {activeFilterCount === 0
-            ? "सध्या कोणत्याही नोकऱ्या उपलब्ध नाहीत"
-            : "या फिल्टरनुसार नोकऱ्या सापडल्या नाहीत"}
+          {activeFilterCount === 0 ? t("jobs.noJobs") : t("jobs.noFilterResults")}
         </p>
       ) : (
         <div className="flex flex-col gap-3">
@@ -348,12 +347,12 @@ export default function BrowseJobs() {
                       {job.job_type_display}
                     </h2>
                     <span className="text-xs text-gray-400 whitespace-nowrap mt-0.5">
-                      {formatDateMarathi(job.created_at)}
+                      {formatDateMarathi(job.created_at, lang)}
                     </span>
                   </div>
                   <div className="mt-1.5 space-y-0.5 text-sm text-gray-600">
                     <p>
-                      <span className="font-medium text-gray-500">ठिकाण:</span> {formatLocation(job.taluka, job.district)}
+                      <span className="font-medium text-gray-500">{t("jobs.location")}</span> {formatLocation(job.taluka, job.district)}
                     </p>
                     {job.description && (
                       <p
@@ -371,7 +370,7 @@ export default function BrowseJobs() {
                       <p className="text-xs text-gray-500">
                         {[
                           job.minimum_education,
-                          job.experience_years && formatExperience(job.experience_years),
+                          job.experience_years && formatExperience(job.experience_years, lang),
                         ].filter(Boolean).join(" · ")}
                       </p>
                     )}
@@ -470,7 +469,7 @@ export default function BrowseJobs() {
               className="w-full py-3 text-base font-medium rounded-xl border transition disabled:opacity-50"
               style={{ borderColor: "#FF6B00", color: "#FF6B00", backgroundColor: "#ffffff" }}
             >
-              {loadingMore ? "लोड होत आहे..." : "अजून नोकऱ्या पहा"}
+              {loadingMore ? t("jobs.loading") : t("jobs.loadMore")}
             </button>
           )}
 
@@ -483,7 +482,7 @@ export default function BrowseJobs() {
             style={{ backgroundColor: "#25D366", color: "#ffffff" }}
           >
             <span style={{ fontSize: "20px", lineHeight: 1 }}>💬</span>
-            मित्रांना WhatsApp वर शेअर करा
+            {t("jobs.shareWA")}
           </a>
 
           {/* Facebook links */}
@@ -496,7 +495,7 @@ export default function BrowseJobs() {
               style={{ backgroundColor: "#1877F2" }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              पेज फॉलो करा
+              {t("home.fbFollow")}
             </a>
             <a
               href="https://www.facebook.com/share/g/14brFBk942x/"
@@ -506,7 +505,7 @@ export default function BrowseJobs() {
               style={{ backgroundColor: "#E7F3FF", color: "#1877F2" }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              ग्रुप जॉइन करा
+              {t("home.fbJoin")}
             </a>
           </div>
         </div>

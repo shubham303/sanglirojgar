@@ -6,10 +6,12 @@ import Link from "next/link";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function JobDetail() {
   const params = useParams();
   const id = params.id as string;
+  const { t, lang } = useTranslation();
 
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,24 +41,26 @@ export default function JobDetail() {
 
   if (loading) {
     return (
-      <p className="text-center text-gray-500 text-lg py-8">लोड होत आहे...</p>
+      <p className="text-center text-gray-500 text-lg py-8">{t("jobs.loading")}</p>
     );
   }
 
   if (notFound || !job) {
     return (
       <div className="text-center py-12">
-        <p className="text-xl text-gray-600 mb-4">जाहिरात सापडली नाही</p>
+        <p className="text-xl text-gray-600 mb-4">{t("detail.notFound")}</p>
         <Link
           href="/jobs"
           className="underline text-lg"
           style={{ color: "#FF6B00" }}
         >
-          सर्व नोकऱ्या पहा
+          {t("detail.viewAll")}
         </Link>
       </div>
     );
   }
+
+  const genderText = job.gender === "male" ? t("detail.male") : job.gender === "female" ? t("detail.female") : t("detail.both");
 
   return (
     <div>
@@ -65,7 +69,7 @@ export default function JobDetail() {
         className="inline-block mb-3 text-sm font-medium"
         style={{ color: "#FF6B00" }}
       >
-        ← सर्व नोकऱ्या
+        {t("detail.allJobs")}
       </Link>
 
       <div
@@ -83,7 +87,7 @@ export default function JobDetail() {
               rel="noopener noreferrer"
               className="flex items-center justify-center rounded-lg"
               style={{ width: 32, height: 32, backgroundColor: "#25D366" }}
-              title="ही नोकरी शेअर करा"
+              title={t("detail.shareTitle")}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
@@ -92,75 +96,73 @@ export default function JobDetail() {
               </svg>
             </a>
             <span className="text-xs text-gray-400 whitespace-nowrap">
-              {formatDateMarathi(job.created_at)}
+              {formatDateMarathi(job.created_at, lang)}
             </span>
           </div>
         </div>
 
         <div className="mt-3 space-y-2.5 text-sm text-gray-700">
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">राज्य</span>
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.state")}</span>
             <p className="text-base">{job.state || "महाराष्ट्र"}</p>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">जिल्हा</span>
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.district")}</span>
             <p className="text-base">{job.district || "सांगली"}</p>
           </div>
 
           {job.taluka && job.taluka !== (job.district || "सांगली") && (
             <div className="flex items-baseline gap-2">
-              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">तालुका</span>
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.taluka")}</span>
               <p className="text-base">{job.taluka}</p>
             </div>
           )}
 
           {job.description && (
             <div className="flex items-baseline gap-2">
-              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">कामाचे स्वरूप</span>
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.workNature")}</span>
               <p className="text-base whitespace-pre-wrap">{job.description}</p>
             </div>
           )}
 
           {job.minimum_education && (
             <div className="flex items-baseline gap-2">
-              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">किमान शिक्षण</span>
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.education")}</span>
               <p className="text-base">{job.minimum_education}</p>
             </div>
           )}
 
           {job.experience_years && (
             <div className="flex items-baseline gap-2">
-              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">अनुभव</span>
-              <p className="text-base">{formatExperience(job.experience_years)}</p>
+              <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.experience")}</span>
+              <p className="text-base">{formatExperience(job.experience_years, lang)}</p>
             </div>
           )}
 
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">पगार / मजुरी</span>
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.salary")}</span>
             <p className="text-base font-semibold text-gray-800">₹ {job.salary}</p>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">कामगार हवे</span>
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.workersNeeded")}</span>
             <p className="text-base">{job.workers_needed}</p>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">लिंग</span>
-            <p className="text-base">
-              {job.gender === "male" ? "पुरुष" : job.gender === "female" ? "महिला" : "दोन्ही"}
-            </p>
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.gender")}</span>
+            <p className="text-base">{genderText}</p>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">नोकरी देणारा</span>
+            <span className="font-medium text-gray-400 text-xs w-24 shrink-0">{t("detail.employer")}</span>
             <p className="text-base">{job.employer_name}</p>
           </div>
         </div>
 
         <p className="mt-4 text-xs text-gray-400 text-center">
-          mahajob.in हे एक listing platform आहे. Employer ची माहिती verify करूनच संपर्क साधा.
+          {t("detail.disclaimer")}
         </p>
 
         <div className="mt-3 flex flex-col gap-2.5">
@@ -178,7 +180,7 @@ export default function JobDetail() {
             className="text-base font-semibold py-3 rounded-xl transition text-center"
             style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
           >
-            📞 फोन करा: {job.phone}
+            {t("detail.call")} {job.phone}
           </a>
           <a
             href={`https://wa.me/91${job.phone}?text=${encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${id}`)}`}

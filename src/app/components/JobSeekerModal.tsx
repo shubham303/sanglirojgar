@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 const LS_KEY = "mahajob_seeker";
 
@@ -32,6 +33,7 @@ export default function JobSeekerModal({ forceOpen, onForceOpenHandled }: {
   forceOpen?: boolean;
   onForceOpenHandled?: () => void;
 }) {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -66,11 +68,11 @@ export default function JobSeekerModal({ forceOpen, onForceOpenHandled }: {
     const trimmedPhone = phone.trim();
 
     if (!trimmedName) {
-      setError("नाव टाका");
+      setError(t("seeker.nameError"));
       return;
     }
     if (!/^\d{10}$/.test(trimmedPhone)) {
-      setError("10 अंकी फोन नंबर टाका");
+      setError(t("seeker.phoneError"));
       return;
     }
 
@@ -83,13 +85,13 @@ export default function JobSeekerModal({ forceOpen, onForceOpenHandled }: {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "काहीतरी चूक झाली");
+        setError(data.error || t("seeker.genericError"));
         return;
       }
       writeStorage({ submitted: true, phone: trimmedPhone });
       setVisible(false);
     } catch {
-      setError("सर्व्हरशी संपर्क होऊ शकला नाही");
+      setError(t("seeker.genericError"));
     } finally {
       setSubmitting(false);
     }
@@ -99,40 +101,37 @@ export default function JobSeekerModal({ forceOpen, onForceOpenHandled }: {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Overlay */}
       <div
         className="absolute inset-0 bg-black/50"
         onClick={handleDismiss}
       />
-      {/* Card */}
       <div
         className="relative w-full max-w-sm rounded-2xl p-5 bg-white"
         style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.12)" }}
       >
-        {/* Close button */}
         <button
           onClick={handleDismiss}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl leading-none"
-          aria-label="बंद करा"
+          aria-label="Close"
         >
           ✕
         </button>
 
         <p className="text-sm font-semibold text-gray-700 mb-4 pr-6">
-          WhatsApp वर job alerts साठी कृपया आपला नाव आणि नंबर द्या
+          {t("seeker.prompt")}
         </p>
 
         <div className="flex flex-col gap-3">
           <input
             type="text"
-            placeholder="तुमचे नाव"
+            placeholder={t("seeker.namePlaceholder")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none focus:border-orange-400"
           />
           <input
             type="tel"
-            placeholder="फोन नंबर (10 अंकी)"
+            placeholder={t("seeker.phonePlaceholder")}
             value={phone}
             onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
             className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none focus:border-orange-400"
@@ -148,7 +147,7 @@ export default function JobSeekerModal({ forceOpen, onForceOpenHandled }: {
             className="w-full py-2.5 text-base font-semibold rounded-lg transition disabled:opacity-50"
             style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
           >
-            {submitting ? "पाठवत आहे..." : "माहिती पाठवा"}
+            {submitting ? t("seeker.submitting") : t("seeker.submit")}
           </button>
         </div>
       </div>

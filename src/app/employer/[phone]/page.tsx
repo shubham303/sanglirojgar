@@ -6,10 +6,12 @@ import Link from "next/link";
 import { Job } from "@/lib/types";
 import { JobCardInfo } from "@/app/components/JobCardInfo";
 import { trackEvent } from "@/lib/gtag";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function EmployerJobs() {
   const params = useParams();
   const phoneFromUrl = params.phone as string;
+  const { t } = useTranslation();
 
   const [phone, setPhone] = useState(phoneFromUrl || "");
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -92,7 +94,7 @@ export default function EmployerJobs() {
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-800 mb-3">
-        माझ्या जाहिराती
+        {t("myAds.title")}
       </h1>
 
       <form
@@ -110,7 +112,7 @@ export default function EmployerJobs() {
             const val = e.target.value.replace(/\D/g, "");
             if (val.length <= 10) setPhone(val);
           }}
-          placeholder="10 अंकी फोन नंबर"
+          placeholder={t("form.phonePlaceholder")}
           className="flex-1 min-w-0 border border-gray-200 rounded-xl px-3 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
         />
         <button
@@ -119,7 +121,7 @@ export default function EmployerJobs() {
           className="px-4 py-2.5 rounded-xl text-base font-medium disabled:opacity-50 transition shrink-0"
           style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
-          शोधा
+          {t("myAds.search")}
         </button>
       </form>
 
@@ -128,17 +130,17 @@ export default function EmployerJobs() {
           className="text-sm text-gray-600 rounded-xl px-4 py-3 mb-4"
           style={{ backgroundColor: "#eff6ff", borderLeft: "3px solid #93c5fd" }}
         >
-          30 दिवसांपेक्षा जुन्या जाहिराती आपोआप बंद होतात. कृपया जुन्या किंवा अनावश्यक जाहिराती काढून टाका.
+          {t("myAds.expireNote")}
         </div>
       )}
 
       {loading ? (
         <p className="text-center text-gray-400 text-base py-8">
-          लोड होत आहे...
+          {t("jobs.loading")}
         </p>
       ) : searched && jobs.length === 0 ? (
         <p className="text-center text-gray-400 text-base py-8">
-          या नंबरवर कोणतीही जाहिरात नोंदवलेली नाही
+          {t("myAds.noAds")}
         </p>
       ) : (
         <div className="flex flex-col gap-3">
@@ -165,7 +167,7 @@ export default function EmployerJobs() {
                       className="text-xs font-semibold px-2 py-0.5 rounded-full"
                       style={{ backgroundColor: "#fef2f2", color: "#dc2626" }}
                     >
-                      बंद
+                      {t("myAds.closed")}
                     </span>
                   )}
                 </div>
@@ -186,7 +188,7 @@ export default function EmployerJobs() {
                       className="px-3.5 py-1.5 rounded-lg text-sm font-medium transition"
                       style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
                     >
-                      बदल करा
+                      {t("myAds.edit")}
                     </Link>
                     <button
                       onClick={() => handleToggleActive(job.id, false)}
@@ -194,7 +196,7 @@ export default function EmployerJobs() {
                       className="px-3.5 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-50"
                       style={{ backgroundColor: "#fef3c7", color: "#92400e" }}
                     >
-                      {togglingId === job.id ? "..." : "बंद करा"}
+                      {togglingId === job.id ? "..." : t("myAds.deactivate")}
                     </button>
                   </>
                 ) : (
@@ -205,24 +207,24 @@ export default function EmployerJobs() {
                       className="px-3.5 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-50"
                       style={{ backgroundColor: "#dcfce7", color: "#15803d" }}
                     >
-                      {togglingId === job.id ? "..." : "पुन्हा सुरू करा"}
+                      {togglingId === job.id ? "..." : t("myAds.reactivate")}
                     </button>
                     {confirmDeleteId === job.id ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">कायमचे काढायचे?</span>
+                        <span className="text-xs text-gray-500">{t("myAds.deleteConfirm")}</span>
                         <button
                           onClick={() => handleDelete(job.id)}
                           disabled={deletingId === job.id}
                           className="px-3 py-1.5 rounded-lg text-xs font-medium"
                           style={{ backgroundColor: "#dc2626", color: "#ffffff" }}
                         >
-                          हो
+                          {t("myAds.yes")}
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(null)}
                           className="bg-gray-200 text-gray-600 px-3 py-1.5 rounded-lg text-xs font-medium"
                         >
-                          नाही
+                          {t("myAds.no")}
                         </button>
                       </div>
                     ) : (
@@ -231,7 +233,7 @@ export default function EmployerJobs() {
                         className="px-3.5 py-1.5 rounded-lg text-sm font-medium transition"
                         style={{ backgroundColor: "#fef2f2", color: "#b91c1c" }}
                       >
-                        काढून टाका
+                        {t("myAds.delete")}
                       </button>
                     )}
                   </>

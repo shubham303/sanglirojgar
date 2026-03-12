@@ -7,6 +7,7 @@ import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 import { trackEvent } from "@/lib/gtag";
 import { Job } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { Field } from "./Field";
 import { JobCardInfo } from "./JobCardInfo";
 import JobTypePicker from "./JobTypePicker";
@@ -21,6 +22,7 @@ const EXPERIENCE_OPTIONS = ["0", "1", "2", "3", "3+"];
 
 export default function JobForm({ mode, jobId }: JobFormProps) {
   const groupedJobTypes = useGroupedJobTypes();
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     employer_name: "",
     phone: "",
@@ -43,7 +45,6 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [savedEmployer, setSavedEmployer] = useState<{ employer_name: string; phone: string } | null>(null);
 
-  // Create mode: load saved employer info for suggestions
   useEffect(() => {
     if (mode === "create") {
       try {
@@ -53,7 +54,6 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     }
   }, [mode]);
 
-  // Edit mode: load existing data
   useEffect(() => {
     if (mode === "edit" && jobId) {
       fetch(`/api/jobs/${jobId}`)
@@ -116,19 +116,17 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           setDuplicateJobs(data.duplicates);
           setShowDuplicateWarning(true);
         } else {
-          setSubmitError(data?.error || "जाहिरात नोंदवता आली नाही. कृपया पुन्हा प्रयत्न करा.");
+          setSubmitError(data?.error || t("form.submitError"));
         }
       } else {
         const data = await res.json().catch(() => null);
         setSubmitError(
           data?.error ||
-            (mode === "create"
-              ? "जाहिरात नोंदवता आली नाही. कृपया पुन्हा प्रयत्न करा."
-              : "बदल जतन करता आले नाहीत. कृपया पुन्हा प्रयत्न करा.")
+            (mode === "create" ? t("form.submitError") : t("form.editError"))
         );
       }
     } catch {
-      setSubmitError("सर्व्हरशी संपर्क होऊ शकला नाही. कृपया पुन्हा प्रयत्न करा.");
+      setSubmitError(t("form.serverError"));
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +134,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
 
   if (loading) {
     return (
-      <p className="text-center text-gray-500 text-lg py-8">लोड होत आहे...</p>
+      <p className="text-center text-gray-500 text-lg py-8">{t("jobs.loading")}</p>
     );
   }
 
@@ -148,9 +146,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
         >
           <p className="text-lg font-semibold mb-5" style={{ color: "#15803d" }}>
-            {mode === "create"
-              ? "तुमची जाहिरात यशस्वीरीत्या नोंदवली गेली!"
-              : "बदल यशस्वीरीत्या जतन केले!"}
+            {mode === "create" ? t("form.success") : t("form.editSuccess")}
           </p>
           <div className="flex flex-col gap-2.5">
             <Link
@@ -158,7 +154,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
               className="text-sm font-semibold py-3 rounded-xl text-center transition block"
               style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
             >
-              माझ्या जाहिराती {mode === "create" ? "पहा" : ""}
+              {t("form.viewMyAds")}
             </Link>
             {mode === "create" && (
               <Link
@@ -166,7 +162,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
                 className="text-sm py-2.5 rounded-xl text-center transition font-medium"
                 style={{ color: "#6b7280" }}
               >
-                मुख्य पानावर जा
+                {t("form.goHome")}
               </Link>
             )}
           </div>
@@ -179,10 +175,10 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     <div>
       <div className="mb-4">
         <h1 className="text-xl font-bold text-gray-800">
-          {mode === "create" ? "नोकरी जाहिरात द्या" : "जाहिरात बदला"}
+          {mode === "create" ? t("form.createTitle") : t("form.editTitle")}
         </h1>
         {mode === "create" && (
-          <p className="text-sm text-gray-400 mt-1">2 मिनिटांत मोफत जाहिरात — कोणतेही चार्जेस नाहीत</p>
+          <p className="text-sm text-gray-400 mt-1">{t("form.createSubtitle")}</p>
         )}
       </div>
 
@@ -203,7 +199,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             </svg>
           </span>
           <p className="text-xs text-gray-600">
-            जाहिरात देताना काही अडचण आल्यास, आम्हाला <span className="font-semibold" style={{ color: "#25D366" }}>WhatsApp</span> वर संपर्क करा
+            {t("form.waHelp")} <span className="font-semibold" style={{ color: "#25D366" }}>{t("form.waHelpLink")}</span> {t("form.waHelpSuffix")}
           </p>
         </a>
       )}
@@ -213,15 +209,13 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         className="space-y-4 bg-white rounded-xl p-4"
         style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
       >
-        <Field label="नोकरी देणाऱ्याचे नाव" error={errors.employer_name}>
+        <Field label={t("form.employerName")} error={errors.employer_name ? t(errors.employer_name) : undefined}>
           <input
             type="text"
             value={form.employer_name}
-            onChange={(e) =>
-              setForm({ ...form, employer_name: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, employer_name: e.target.value })}
             list={savedEmployer?.employer_name ? "saved-names" : undefined}
-            placeholder={mode === "create" ? "तुमचे नाव किंवा व्यवसायाचे नाव" : undefined}
+            placeholder={mode === "create" ? t("form.employerPlaceholder") : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
           {savedEmployer?.employer_name && (
@@ -231,7 +225,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           )}
         </Field>
 
-        <Field label="फोन नंबर" error={errors.phone}>
+        <Field label={t("form.phone")} error={errors.phone ? t(errors.phone) : undefined}>
           <input
             type="tel"
             inputMode="numeric"
@@ -241,7 +235,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
               if (val.length <= 10) setForm({ ...form, phone: val });
             }}
             list={savedEmployer?.phone ? "saved-phones" : undefined}
-            placeholder={mode === "create" ? "10 अंकी फोन नंबर" : undefined}
+            placeholder={mode === "create" ? t("form.phonePlaceholder") : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
           {savedEmployer?.phone && (
@@ -251,7 +245,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           )}
         </Field>
 
-        <Field label="कामाचा प्रकार" error={errors.job_type_id}>
+        <Field label={t("form.jobType")} error={errors.job_type_id ? t(errors.job_type_id) : undefined}>
           <JobTypePicker
             value={form.job_type_id}
             onChange={(val) => setForm({ ...form, job_type_id: val })}
@@ -259,7 +253,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           />
         </Field>
 
-        <Field label="राज्य">
+        <Field label={t("form.state")}>
           <input
             type="text"
             value="महाराष्ट्र"
@@ -268,48 +262,42 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           />
         </Field>
 
-        <Field label="जिल्हा" error={errors.district}>
+        <Field label={t("form.district")} error={errors.district ? t(errors.district) : undefined}>
           <select
             value={form.district}
             onChange={(e) => setForm({ ...form, district: e.target.value, taluka: "" })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
             {DISTRICTS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
+              <option key={d} value={d}>{d}</option>
             ))}
           </select>
         </Field>
 
-        <Field label="तालुका" error={errors.taluka}>
+        <Field label={t("form.taluka")} error={errors.taluka ? t(errors.taluka) : undefined}>
           <select
             value={form.taluka}
             onChange={(e) => setForm({ ...form, taluka: e.target.value })}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none focus:border-[#FF6B00]"
           >
-            <option value="">-- निवडा --</option>
-            {(DISTRICT_TALUKAS[form.district] || []).map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
+            <option value="">{t("form.selectDefault")}</option>
+            {(DISTRICT_TALUKAS[form.district] || []).map((tal) => (
+              <option key={tal} value={tal}>{tal}</option>
             ))}
           </select>
         </Field>
 
-        <Field label="कामाचे स्वरूप" error={errors.description}>
+        <Field label={t("form.description")} error={errors.description ? t(errors.description) : undefined}>
           <textarea
             value={form.description}
-            onChange={(e) =>
-              setForm({ ...form, description: e.target.value })
-            }
-            placeholder="कामाबद्दल थोडक्यात माहिती लिहा (ऐच्छिक)"
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder={t("form.descPlaceholder")}
             rows={3}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00] resize-vertical"
           />
         </Field>
 
-        <Field label="किमान शिक्षण" error={errors.minimum_education}>
+        <Field label={t("form.education")} error={errors.minimum_education ? t(errors.minimum_education) : undefined}>
           <select
             value={form.minimum_education}
             onChange={(e) => setForm({ ...form, minimum_education: e.target.value })}
@@ -321,7 +309,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           </select>
         </Field>
 
-        <Field label="अनुभव (वर्षे)" error={errors.experience_years}>
+        <Field label={t("form.experience")} error={errors.experience_years ? t(errors.experience_years) : undefined}>
           <select
             value={form.experience_years}
             onChange={(e) => setForm({ ...form, experience_years: e.target.value })}
@@ -333,17 +321,17 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           </select>
         </Field>
 
-        <Field label="पगार / मजुरी" error={errors.salary}>
+        <Field label={t("form.salary")} error={errors.salary ? t(errors.salary) : undefined}>
           <input
             type="text"
             value={form.salary}
             onChange={(e) => setForm({ ...form, salary: e.target.value })}
-            placeholder={mode === "create" ? "उदा. 500 रुपये प्रतिदिन" : undefined}
+            placeholder={mode === "create" ? t("form.salaryPlaceholder") : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
 
-        <Field label="लिंग" error={errors.gender}>
+        <Field label={t("form.gender")} error={errors.gender ? t(errors.gender) : undefined}>
           <select
             value={form.gender}
             onChange={(e) => setForm({ ...form, gender: e.target.value })}
@@ -357,16 +345,14 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           </select>
         </Field>
 
-        <Field label="किती कामगार हवे" error={errors.workers_needed}>
+        <Field label={t("form.workersNeeded")} error={errors.workers_needed ? t(errors.workers_needed) : undefined}>
           <input
             type="number"
             inputMode="numeric"
             value={form.workers_needed}
-            onChange={(e) =>
-              setForm({ ...form, workers_needed: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, workers_needed: e.target.value })}
             min="1"
-            placeholder={mode === "create" ? "किमान 1" : undefined}
+            placeholder={mode === "create" ? t("form.workersPlaceholder") : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
         </Field>
@@ -384,17 +370,17 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
         >
           {submitting
-            ? (mode === "create" ? "नोंदवत आहे..." : "जतन होत आहे...")
-            : (mode === "create" ? "जाहिरात नोंदवा" : "बदल जतन करा")}
+            ? (mode === "create" ? t("form.submitting") : t("form.saving"))
+            : (mode === "create" ? t("form.submit") : t("form.saveChanges"))}
         </button>
 
         {mode === "create" && (
           <div className="flex items-center justify-center gap-4 pt-2 text-xs text-gray-400">
-            <span>100% मोफत</span>
+            <span>{t("form.free")}</span>
             <span style={{ color: "#d1d5db" }}>|</span>
-            <span>लॉगिन नाही</span>
+            <span>{t("form.noLogin")}</span>
             <span style={{ color: "#d1d5db" }}>|</span>
-            <span>तात्काळ प्रकाशित</span>
+            <span>{t("form.instant")}</span>
           </div>
         )}
       </form>
@@ -403,10 +389,10 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
           <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5" style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}>
             <h2 className="text-lg font-bold text-gray-800 mb-2">
-              सारखी जाहिरात आधीच आहे
+              {t("form.dupTitle")}
             </h2>
             <p className="text-sm text-gray-600 mb-4">
-              या फोन नंबरवर हाच कामाचा प्रकार आणि तालुका असलेली जाहिरात आधीच सक्रिय आहे. कृपया आधी तुमच्या जाहिराती तपासा.
+              {t("form.dupDesc")}
             </p>
 
             <div className="space-y-3 mb-4">
@@ -432,7 +418,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
                 className="text-sm font-semibold py-3 rounded-xl text-center transition block"
                 style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
               >
-                माझ्या जाहिराती पहा आणि व्यवस्थापित करा
+                {t("form.manageAds")}
               </Link>
               <button
                 onClick={() => {
@@ -443,14 +429,14 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
                 className="text-sm font-medium py-2.5 rounded-xl text-center transition border border-gray-300 disabled:opacity-50"
                 style={{ color: "#374151" }}
               >
-                {submitting ? "नोंदवत आहे..." : "तरीही नवीन जाहिरात द्या"}
+                {submitting ? t("form.submitting") : t("form.postAnyway")}
               </button>
               <button
                 onClick={() => setShowDuplicateWarning(false)}
                 className="text-sm py-2 rounded-xl text-center transition"
                 style={{ color: "#6b7280" }}
               >
-                रद्द करा
+                {t("form.cancel")}
               </button>
             </div>
           </div>
