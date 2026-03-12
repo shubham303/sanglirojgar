@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { template_name?: string } = {};
+  let body: { template_name?: string; batch_size?: number } = {};
   try {
     body = await request.json();
   } catch {
@@ -24,16 +24,16 @@ export async function POST(request: NextRequest) {
   }
 
   const templateName = body.template_name || "job_seeker_intro";
+  const batchSize = Math.min(Math.max(body.batch_size || 1, 1), 500);
 
   const supabase = getSupabase();
-  const BATCH_LIMIT = 50;
 
   // Fetch up to 10 job seekers not yet contacted
   const { data: pending, error: fetchErr } = await supabase
     .from("job_seekers")
     .select("phone, name")
     .is("last_contacted_at", null)
-    .limit(BATCH_LIMIT);
+    .limit(batchSize);
 
   if (fetchErr) {
     return NextResponse.json({ error: fetchErr.message }, { status: 500 });

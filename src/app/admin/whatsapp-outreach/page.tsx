@@ -23,6 +23,7 @@ export default function WhatsAppOutreachPage() {
   const [empPending, setEmpPending] = useState(0);
   const [empSendResult, setEmpSendResult] = useState("");
   const [empSending, setEmpSending] = useState(false);
+  const [empBatchSize, setEmpBatchSize] = useState("1");
 
   // ── Job seeker state ──
   const seekerFileRef = useRef<HTMLInputElement>(null);
@@ -33,6 +34,7 @@ export default function WhatsAppOutreachPage() {
   const [seekerTotal, setSeekerTotal] = useState(0);
   const [seekerSendResult, setSeekerSendResult] = useState("");
   const [seekerSending, setSeekerSending] = useState(false);
+  const [seekerBatchSize, setSeekerBatchSize] = useState("1");
 
   // ── Fetch employer pending count ──
   const fetchEmpData = useCallback(async () => {
@@ -116,7 +118,7 @@ export default function WhatsAppOutreachPage() {
       const res = await fetch("/api/admin/send-whatsapp-outreach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_name: "employer_message" }),
+        body: JSON.stringify({ template_name: "employer_message", batch_size: parseInt(empBatchSize) || 1 }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -205,7 +207,7 @@ export default function WhatsAppOutreachPage() {
       const res = await fetch("/api/admin/send-job-seeker-outreach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_name: "job_seeker_intro" }),
+        body: JSON.stringify({ template_name: "job_seeker_intro", batch_size: parseInt(seekerBatchSize) || 1 }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -295,16 +297,26 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Pending: <span className="font-bold text-gray-800">{empPending}</span>
-            <span className="text-xs text-gray-400 ml-1">(sends 50/batch · template: <span className="font-mono">employer_message</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">(template: <span className="font-mono">employer_message</span>)</span>
           </p>
-          <button
-            onClick={handleEmpSend}
-            disabled={empSending || empPending === 0}
-            className="w-full py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
-            style={{ backgroundColor: "#25D366", color: "#fff" }}
-          >
-            {empSending ? "Sending..." : `Send to ${empPending} Employers`}
-          </button>
+          <div className="flex gap-2 items-center">
+            <input
+              type="number"
+              min={1}
+              max={500}
+              value={empBatchSize}
+              onChange={(e) => setEmpBatchSize(e.target.value)}
+              className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-orange-400"
+            />
+            <button
+              onClick={handleEmpSend}
+              disabled={empSending || empPending === 0}
+              className="flex-1 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+              style={{ backgroundColor: "#25D366", color: "#fff" }}
+            >
+              {empSending ? "Sending..." : `Send to Employers`}
+            </button>
+          </div>
           <ResultBanner result={empSendResult} />
         </div>
       </div>
@@ -348,16 +360,26 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Not contacted: <span className="font-bold text-gray-800">{neverContacted}</span>
-            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (sends 50/batch · template: <span className="font-mono">job_seeker_intro</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (template: <span className="font-mono">job_seeker_intro</span>)</span>
           </p>
-          <button
-            onClick={handleSeekerSend}
-            disabled={seekerSending || neverContacted === 0}
-            className="w-full py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
-            style={{ backgroundColor: "#25D366", color: "#fff" }}
-          >
-            {seekerSending ? "Sending..." : `Send to ${neverContacted} Job Seekers`}
-          </button>
+          <div className="flex gap-2 items-center">
+            <input
+              type="number"
+              min={1}
+              max={500}
+              value={seekerBatchSize}
+              onChange={(e) => setSeekerBatchSize(e.target.value)}
+              className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-green-400"
+            />
+            <button
+              onClick={handleSeekerSend}
+              disabled={seekerSending || neverContacted === 0}
+              className="flex-1 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+              style={{ backgroundColor: "#25D366", color: "#fff" }}
+            >
+              {seekerSending ? "Sending..." : `Send to Job Seekers`}
+            </button>
+          </div>
           <ResultBanner result={seekerSendResult} />
         </div>
       </div>
