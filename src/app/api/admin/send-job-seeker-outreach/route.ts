@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const templateName = body.template_name || "job_seeker_intro";
 
   const supabase = getSupabase();
-  const BATCH_LIMIT = 10;
+  const BATCH_LIMIT = 50;
 
   // Fetch up to 10 job seekers not yet contacted
   const { data: pending, error: fetchErr } = await supabase

@@ -295,7 +295,7 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Pending: <span className="font-bold text-gray-800">{empPending}</span>
-            <span className="text-xs text-gray-400 ml-1">(sends 10/batch · template: <span className="font-mono">employer_message</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">(sends 50/batch · template: <span className="font-mono">employer_message</span>)</span>
           </p>
           <button
             onClick={handleEmpSend}
@@ -348,7 +348,7 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Not contacted: <span className="font-bold text-gray-800">{neverContacted}</span>
-            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (sends 10/batch · template: <span className="font-mono">job_seeker_intro</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (sends 50/batch · template: <span className="font-mono">job_seeker_intro</span>)</span>
           </p>
           <button
             onClick={handleSeekerSend}

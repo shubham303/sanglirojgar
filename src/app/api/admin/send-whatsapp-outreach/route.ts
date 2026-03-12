@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   const templateName = body.template_name || "employer_message";
 
   const supabase = getSupabase();
-  const BATCH_LIMIT = 10;
+  const BATCH_LIMIT = 50;
 
   // Fetch up to 10 pending contacts
   const { data: pending, error: fetchErr } = await supabase
