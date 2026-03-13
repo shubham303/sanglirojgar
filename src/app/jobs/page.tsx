@@ -70,7 +70,13 @@ export default function BrowseJobs() {
       const params = new URLSearchParams();
       params.set("page", String(pageNum));
       params.set("limit", String(PAGE_LIMIT));
-      if (jobType !== ALL) params.set("job_type_id", jobType);
+      if (jobType !== ALL) {
+        if (jobType.startsWith("industry:")) {
+          params.set("industry_id", jobType.replace("industry:", ""));
+        } else {
+          params.set("job_type_id", jobType);
+        }
+      }
       if (district !== ALL) params.set("district", district);
       if (taluka !== ALL) params.set("taluka", taluka);
       return `/api/jobs?${params.toString()}`;

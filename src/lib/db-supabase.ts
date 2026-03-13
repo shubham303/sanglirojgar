@@ -105,6 +105,18 @@ export function createSupabaseDb(): DbClient {
       if (filters.job_type_id) {
         query = query.eq("job_type_id", filters.job_type_id);
       }
+      if (filters.industry_id) {
+        const { data: jtData } = await supabase
+          .from("job_types")
+          .select("id")
+          .eq("industry_id", filters.industry_id);
+        const jtIds = (jtData || []).map((jt) => jt.id);
+        if (jtIds.length > 0) {
+          query = query.in("job_type_id", jtIds);
+        } else {
+          return { data: { jobs: [], total: 0, page: filters.page, limit: filters.limit, hasMore: false }, error: null };
+        }
+      }
       if (filters.district) {
         query = query.eq("district", filters.district);
       }
@@ -338,10 +350,13 @@ export function createSupabaseDb(): DbClient {
       };
     },
 
-    async addJobType(name: string) {
+    async addJobType(name: string, name_en?: string, industry_id?: number) {
+      const insertData: Record<string, unknown> = { name_mr: name };
+      if (name_en) insertData.name_en = name_en;
+      if (industry_id) insertData.industry_id = industry_id;
       const { data, error } = await supabase
         .from("job_types")
-        .insert({ name_mr: name })
+        .insert(insertData)
         .select()
         .single();
       if (!error) invalidateJobTypeLabelMap();
@@ -505,6 +520,44 @@ export function createSupabaseDb(): DbClient {
         .delete()
         .eq("id", numericId);
       if (!error) invalidateJobTypeLabelMap();
+      return { error: error?.message ?? null };
+    },
+
+    async addIndustry(name_mr: string, name_en: string) {
+      const { data, error } = await supabase
+        .from("industries")
+        .insert({ name_mr, name_en })
+        .select()
+        .single();
+      return {
+        data: data as import("./types").Industry | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async deleteIndustry(id: string) {
+      const numericId = parseInt(id);
+
+      // Check if any job types use this industry
+      const { count, error: countErr } = await supabase
+        .from("job_types")
+        .select("id", { count: "exact", head: true })
+        .eq("industry_id", numericId);
+
+      if (countErr) {
+        return { error: countErr.message };
+      }
+
+      if (count && count > 0) {
+        return {
+          error: `हा उद्योग काढता येणार नाही — ${count} कामाचे प्रकार या उद्योगात आहेत`,
+        };
+      }
+
+      const { error } = await supabase
+        .from("industries")
+        .delete()
+        .eq("id", numericId);
       return { error: error?.message ?? null };
     },
   };

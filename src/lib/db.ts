@@ -9,6 +9,7 @@ export interface JobFilters {
   page: number;
   limit: number;
   job_type_id?: number;
+  industry_id?: number;
   district?: string;
   taluka?: string;
   search?: string;
@@ -43,8 +44,10 @@ export interface DbClient {
   getAllJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
   getJobTypes(): Promise<DbResult<JobType[]>>;
   getIndustries(): Promise<DbResult<Industry[]>>;
-  addJobType(name: string): Promise<DbResult<JobType>>;
+  addJobType(name: string, name_en?: string, industry_id?: number): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
+  addIndustry(name_mr: string, name_en: string): Promise<DbResult<Industry>>;
+  deleteIndustry(id: string): Promise<{ error: string | null }>;
   expireOldJobs(): Promise<DbResult<Job[]>>;
   upsertEmployer(phone: string, name: string): Promise<DbResult<Employer>>;
   getEmployers(): Promise<DbResult<Employer[]>>;

@@ -189,6 +189,11 @@ export const translations: Record<Language, Record<string, string>> = {
     // JobTypePicker
     "picker.title": "कामाचा प्रकार निवडा",
     "picker.select": "-- निवडा --",
+    "picker.back": "← मागे",
+    "picker.searchPlaceholder": "शोधा (मराठी / English)...",
+    "picker.noResults": "काहीही सापडले नाही",
+    "picker.types": "प्रकार",
+    "picker.allInIndustry": "सर्व",
   },
 
   en: {
@@ -379,5 +384,10 @@ export const translations: Record<Language, Record<string, string>> = {
     // JobTypePicker
     "picker.title": "Select Job Type",
     "picker.select": "-- Select --",
+    "picker.back": "← Back",
+    "picker.searchPlaceholder": "Search (मराठी / English)...",
+    "picker.noResults": "No results found",
+    "picker.types": "types",
+    "picker.allInIndustry": "All",
   },
 };

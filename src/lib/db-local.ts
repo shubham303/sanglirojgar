@@ -200,6 +200,11 @@ export function createLocalDb(): DbClient {
           values.push(filters.job_type_id);
           paramIdx++;
         }
+        if (filters.industry_id) {
+          conditions.push(`j.job_type_id IN (SELECT id FROM job_types WHERE industry_id = $${paramIdx})`);
+          values.push(filters.industry_id);
+          paramIdx++;
+        }
         if (filters.district) {
           conditions.push(`j.district = $${paramIdx}`);
           values.push(filters.district);
@@ -543,19 +548,19 @@ export function createLocalDb(): DbClient {
       }
     },
 
-    async addJobType(name: string) {
+    async addJobType(name: string, name_en?: string, industry_id?: number) {
       try {
         await ensureTablesExist();
-        // Find max ID and add 1
-        const { rows: maxRows } = await getPool().query(
+        const pool = getPool();
+        const { rows: maxRows } = await pool.query(
           "SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM job_types"
         );
         const nextId = parseInt(maxRows[0].next_id);
-        await getPool().query(
-          "INSERT INTO job_types (id, name_mr, name_en) VALUES ($1, $2, $3)",
-          [nextId, name, name]
+        await pool.query(
+          "INSERT INTO job_types (id, name_mr, name_en, industry_id) VALUES ($1, $2, $3, $4)",
+          [nextId, name, name_en || name, industry_id || 1]
         );
-        const { rows } = await getPool().query(
+        const { rows } = await pool.query(
           "SELECT * FROM job_types WHERE id = $1",
           [nextId]
         );
@@ -732,6 +737,56 @@ export function createLocalDb(): DbClient {
 
         await pool.query("DELETE FROM job_types WHERE id = $1", [numericId]);
         invalidateJobTypeLabelMap();
+        return { error: null };
+      } catch (e: unknown) {
+        return { error: (e as Error).message };
+      }
+    },
+
+    async addIndustry(name_mr: string, name_en: string) {
+      try {
+        await ensureTablesExist();
+        const pool = getPool();
+        const { rows: maxRows } = await pool.query(
+          "SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM industries"
+        );
+        const nextId = parseInt(maxRows[0].next_id);
+        await pool.query(
+          "INSERT INTO industries (id, name_mr, name_en) VALUES ($1, $2, $3)",
+          [nextId, name_mr, name_en]
+        );
+        const { rows } = await pool.query(
+          "SELECT * FROM industries WHERE id = $1",
+          [nextId]
+        );
+        return { data: rows[0] as import("./types").Industry, error: null };
+      } catch (e: unknown) {
+        const msg = (e as Error).message;
+        if (msg.includes("unique") || msg.includes("duplicate")) {
+          return { data: null, error: "हा उद्योग आधीच अस्तित्वात आहे" };
+        }
+        return { data: null, error: msg };
+      }
+    },
+
+    async deleteIndustry(id: string) {
+      try {
+        await ensureTablesExist();
+        const pool = getPool();
+        const numericId = parseInt(id);
+
+        const { rows: countRows } = await pool.query(
+          "SELECT COUNT(*) as cnt FROM job_types WHERE industry_id = $1",
+          [numericId]
+        );
+        const count = parseInt(countRows[0].cnt);
+        if (count > 0) {
+          return {
+            error: `हा उद्योग काढता येणार नाही — ${count} कामाचे प्रकार या उद्योगात आहेत`,
+          };
+        }
+
+        await pool.query("DELETE FROM industries WHERE id = $1", [numericId]);
         return { error: null };
       } catch (e: unknown) {
         return { error: (e as Error).message };

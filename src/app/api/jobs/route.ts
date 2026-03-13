@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
   const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") || "20")));
   const job_type_id_raw = searchParams.get("job_type_id");
   const job_type_id = job_type_id_raw ? parseInt(job_type_id_raw) : undefined;
+  const industry_id_raw = searchParams.get("industry_id");
+  const industry_id = industry_id_raw ? parseInt(industry_id_raw) : undefined;
   const district = searchParams.get("district") || undefined;
   const taluka = searchParams.get("taluka") || undefined;
   const search = searchParams.get("search") || undefined;
@@ -24,6 +26,7 @@ export async function GET(request: NextRequest) {
     page,
     limit,
     job_type_id,
+    industry_id,
     district,
     taluka,
     search,

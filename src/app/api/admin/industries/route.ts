@@ -4,44 +4,47 @@ import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/admin/job-types — List all job types (admin only)
+// GET /api/admin/industries — List all industries (admin only)
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const db = getDb();
-  const { data, error } = await db.getJobTypes();
+  const { data, error } = await db.getIndustries();
 
   if (error || !data) {
-    return NextResponse.json({ error: error || "Failed to fetch job types" }, { status: 500 });
+    return NextResponse.json({ error: error || "Failed to fetch industries" }, { status: 500 });
   }
 
   return NextResponse.json(data);
 }
 
-// POST /api/admin/job-types — Add a new job type (admin only)
+// POST /api/admin/industries — Add a new industry (admin only)
 export async function POST(request: NextRequest) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
-  const { name, name_en, industry_id } = body;
+  const { name_mr, name_en } = body;
 
-  if (!name || !name.trim()) {
+  if (!name_mr || !name_mr.trim()) {
     return NextResponse.json(
-      { error: "कामाचा प्रकार रिकामा ठेवता येणार नाही" },
+      { error: "उद्योगाचे मराठी नाव रिकामे ठेवता येणार नाही" },
+      { status: 400 }
+    );
+  }
+
+  if (!name_en || !name_en.trim()) {
+    return NextResponse.json(
+      { error: "उद्योगाचे इंग्रजी नाव रिकामे ठेवता येणार नाही" },
       { status: 400 }
     );
   }
 
   const db = getDb();
-  const { data, error } = await db.addJobType(
-    name.trim(),
-    name_en?.trim() || undefined,
-    industry_id || undefined
-  );
+  const { data, error } = await db.addIndustry(name_mr.trim(), name_en.trim());
 
   if (error) {
     return NextResponse.json({ error }, { status: 400 });
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(data, { status: 201 });
 }
 
-// DELETE /api/admin/job-types — Delete a job type (admin only)
+// DELETE /api/admin/industries — Delete an industry (admin only)
 export async function DELETE(request: NextRequest) {
   if (!(await isAdminAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,13 +64,13 @@ export async function DELETE(request: NextRequest) {
 
   if (!id) {
     return NextResponse.json(
-      { error: "Job type ID आवश्यक आहे" },
+      { error: "Industry ID आवश्यक आहे" },
       { status: 400 }
     );
   }
 
   const db = getDb();
-  const { error } = await db.deleteJobType(id);
+  const { error } = await db.deleteIndustry(id);
 
   if (error) {
     return NextResponse.json({ error }, { status: 400 });
