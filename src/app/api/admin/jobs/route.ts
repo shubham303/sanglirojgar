@@ -41,6 +41,10 @@ export async function GET(request: NextRequest) {
   if (isDeleted === "true") filters.is_deleted = true;
   else if (isDeleted === "false") filters.is_deleted = false;
 
+  const isReviewed = searchParams.get("is_reviewed");
+  if (isReviewed === "true") filters.is_reviewed = true;
+  else if (isReviewed === "false") filters.is_reviewed = false;
+
   const db = getDb();
   const { data, error } = await db.getAllJobsPaginated(filters);
 

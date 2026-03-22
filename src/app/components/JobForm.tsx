@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ADMIN_PHONE, DISTRICTS, DISTRICT_TALUKAS, GENDERS } from "@/lib/constants";
-import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { validateJobForm, JobFormErrors } from "@/lib/validation";
 import { trackEvent } from "@/lib/gtag";
 import { Job } from "@/lib/types";
@@ -12,6 +11,7 @@ import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
 import { Field } from "./Field";
 import { JobCardInfo } from "./JobCardInfo";
 import JobTypePicker from "./JobTypePicker";
+import TagPicker from "./TagPicker";
 
 interface JobFormProps {
   mode: "create" | "edit";
@@ -22,7 +22,6 @@ const EDUCATION_OPTIONS = ["शिक्षण नाही", "10वी", "12व
 const EXPERIENCE_OPTIONS = ["0", "1", "2", "3", "3+"];
 
 export default function JobForm({ mode, jobId }: JobFormProps) {
-  const groupedJobTypes = useGroupedJobTypes();
   const { t, lang } = useTranslation();
   const [form, setForm] = useState({
     employer_name: "",
@@ -36,6 +35,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     experience_years: "0",
     workers_needed: "",
     gender: "both",
+    tags: [] as string[],
   });
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [loading, setLoading] = useState(mode === "edit");
@@ -72,6 +72,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             experience_years: data.experience_years || "0",
             workers_needed: String(data.workers_needed || ""),
             gender: data.gender || "both",
+            tags: data.tags || [],
           });
           setLoading(false);
         })
@@ -94,6 +95,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         ...form,
         job_type_id: parseInt(form.job_type_id),
         workers_needed: parseInt(form.workers_needed),
+        tags: form.tags,
       };
       if (mode === "create" && skipDuplicateCheck) {
         payload.skip_duplicate_check = true;
@@ -250,7 +252,14 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           <JobTypePicker
             value={form.job_type_id}
             onChange={(val) => setForm({ ...form, job_type_id: val })}
-            groupedJobTypes={groupedJobTypes}
+          />
+        </Field>
+
+        <Field label="टॅग्स (Tags)">
+          <TagPicker
+            value={form.tags}
+            onChange={(tags) => setForm({ ...form, tags })}
+            jobTypeId={form.job_type_id}
           />
         </Field>
 

@@ -21,7 +21,9 @@ export interface Job {
   expires_at?: string;
   is_scraped?: boolean;
   is_premium?: boolean;
+  is_reviewed?: boolean;
   report_count: number;
+  tags?: string[];
 }
 
 export interface Industry {
@@ -34,7 +36,7 @@ export interface JobType {
   id: number;
   name_mr: string;
   name_en: string;
-  industry_id: number;
+  category_id?: number;
 }
 
 export interface Employer {
@@ -55,4 +57,27 @@ export interface DailyClickStats {
   date: string; // YYYY-MM-DD
   call_count: number;
   whatsapp_count: number;
+}
+
+export interface JobCategory {
+  id: number;
+  name_en: string;
+  name_mr: string;
+  slug: string;
+}
+
+export interface JobSeeker {
+  phone: string;
+  name: string;
+  created_at?: string;
+  last_contacted_at?: string | null;
+}
+
+export interface WhatsappOutreach {
+  id: string;
+  phone: string;
+  source_group?: string | null;
+  added_date?: string;
+  message_sent: boolean;
+  sent_date?: string | null;
 }

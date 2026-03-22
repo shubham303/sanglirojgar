@@ -2,19 +2,23 @@ import { getSupabase } from "./supabase";
 import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
 
-/** Cached job type lookup from DB, refreshed on first use per server lifetime */
+/** Cached job type lookup from DB, refreshed periodically */
 let _jobTypeLabelMap: Map<number, string> | null = null;
 /** Cached job type content fragments: "name_mr name_en" */
 let _jobTypeContentMap: Map<number, string> | null = null;
+let _jobTypeMapLastFetch = 0;
+const JOB_TYPE_MAP_TTL_MS = 2 * 60 * 1000; // 2 minutes
 
 async function getJobTypeLabelMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, string>> {
-  if (_jobTypeLabelMap) return _jobTypeLabelMap;
+  const now = Date.now();
+  if (_jobTypeLabelMap && now - _jobTypeMapLastFetch < JOB_TYPE_MAP_TTL_MS) return _jobTypeLabelMap;
   const { data } = await supabase
     .from("job_types")
     .select("id, name_mr, name_en")
     .order("id", { ascending: true });
   _jobTypeLabelMap = new Map<number, string>();
   _jobTypeContentMap = new Map<number, string>();
+  _jobTypeMapLastFetch = Date.now();
   if (data) {
     for (const jt of data as JobType[]) {
       _jobTypeLabelMap.set(jt.id, `${jt.name_mr} (${jt.name_en})`);
@@ -25,26 +29,29 @@ async function getJobTypeLabelMap(supabase: ReturnType<typeof getSupabase>): Pro
 }
 
 async function getJobTypeContentMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, string>> {
-  if (_jobTypeContentMap) return _jobTypeContentMap;
+  const now = Date.now();
+  if (_jobTypeContentMap && now - _jobTypeMapLastFetch < JOB_TYPE_MAP_TTL_MS) return _jobTypeContentMap;
   await getJobTypeLabelMap(supabase); // populates both maps
   return _jobTypeContentMap!;
 }
 
-/** Build the content string for trigram search */
+/** Build the content string for trigram/ILIKE search */
 function buildContentString(
   jobTypeContent: string,
   district: string,
   taluka: string,
   description: string,
-  employerName: string
+  employerName: string,
+  tags: string[] = []
 ): string {
-  return [jobTypeContent, district, taluka, description, employerName].filter(Boolean).join(" ");
+  return [jobTypeContent, ...tags, district, taluka, description, employerName].filter(Boolean).join(" ");
 }
 
 /** Invalidate the cached map so next lookup re-reads from DB */
 function invalidateJobTypeLabelMap() {
   _jobTypeLabelMap = null;
   _jobTypeContentMap = null;
+  _jobTypeMapLastFetch = 0;
 }
 
 /** Resolve job_type_display from DB-backed map, falling back to constants */
@@ -105,18 +112,6 @@ export function createSupabaseDb(): DbClient {
       if (filters.job_type_id) {
         query = query.eq("job_type_id", filters.job_type_id);
       }
-      if (filters.industry_id) {
-        const { data: jtData } = await supabase
-          .from("job_types")
-          .select("id")
-          .eq("industry_id", filters.industry_id);
-        const jtIds = (jtData || []).map((jt) => jt.id);
-        if (jtIds.length > 0) {
-          query = query.in("job_type_id", jtIds);
-        } else {
-          return { data: { jobs: [], total: 0, page: filters.page, limit: filters.limit, hasMore: false }, error: null };
-        }
-      }
       if (filters.district) {
         query = query.eq("district", filters.district);
       }
@@ -124,9 +119,7 @@ export function createSupabaseDb(): DbClient {
         query = query.eq("taluka", filters.taluka);
       }
       if (filters.search) {
-        query = query.or(
-          `employer_name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`
-        );
+        query = query.ilike("content", `%${filters.search}%`);
       }
 
       const offset = (filters.page - 1) * filters.limit;
@@ -165,6 +158,9 @@ export function createSupabaseDb(): DbClient {
       }
       if (filters.is_active !== undefined) {
         query = query.eq("is_active", filters.is_active);
+      }
+      if (filters.is_reviewed !== undefined) {
+        query = query.eq("is_reviewed", filters.is_reviewed);
       }
       if (filters.phone) {
         query = query.eq("phone", filters.phone);
@@ -229,7 +225,7 @@ export function createSupabaseDb(): DbClient {
       const contentMap = await getJobTypeContentMap(supabase);
       const jobTypeContent = contentMap.get(job.job_type_id) || "";
       const content = buildContentString(
-        jobTypeContent, job.district, job.taluka, job.description || "", job.employer_name || ""
+        jobTypeContent, job.district, job.taluka, job.description || "", job.employer_name || "", job.tags || []
       );
 
       const { data, error } = await supabase
@@ -246,16 +242,15 @@ export function createSupabaseDb(): DbClient {
       const { job_type_display: _, employer_name: __, ...updateData } = job;
 
       // Recompute content if any content-relevant field changed
-      const contentFields = ["job_type_id", "district", "taluka", "description"];
+      const contentFields = ["job_type_id", "district", "taluka", "description", "tags"];
       if (contentFields.some((f) => f in job)) {
-        // Fetch current job to merge with updates
         const { data: current } = await supabase.from("jobs").select("*").eq("id", id).single();
         if (current) {
           const merged = { ...current, ...updateData };
           const contentMap = await getJobTypeContentMap(supabase);
           const jobTypeContent = contentMap.get(merged.job_type_id) || "";
           (updateData as Record<string, unknown>).content = buildContentString(
-            jobTypeContent, merged.district, merged.taluka, merged.description || "", merged.employer_name || ""
+            jobTypeContent, merged.district, merged.taluka, merged.description || "", merged.employer_name || "", merged.tags || []
           );
         }
       }
@@ -331,7 +326,7 @@ export function createSupabaseDb(): DbClient {
     async getJobTypes() {
       const { data, error } = await supabase
         .from("job_types")
-        .select("id, name_mr, name_en, industry_id")
+        .select("id, name_mr, name_en, category_id")
         .order("id", { ascending: true });
       return {
         data: data as import("./types").JobType[] | null,
@@ -350,10 +345,10 @@ export function createSupabaseDb(): DbClient {
       };
     },
 
-    async addJobType(name: string, name_en?: string, industry_id?: number) {
+    async addJobType(name: string, name_en?: string, category_id?: number) {
       const insertData: Record<string, unknown> = { name_mr: name };
       if (name_en) insertData.name_en = name_en;
-      if (industry_id) insertData.industry_id = industry_id;
+      if (category_id) insertData.category_id = category_id;
       const { data, error } = await supabase
         .from("job_types")
         .insert(insertData)
@@ -494,6 +489,20 @@ export function createSupabaseDb(): DbClient {
       return { error: error?.message ?? null };
     },
 
+    async updateJobType(id: number, fields: { name_mr?: string; name_en?: string; category_id?: number }) {
+      const { data, error } = await supabase
+        .from("job_types")
+        .update(fields)
+        .eq("id", id)
+        .select()
+        .single();
+      if (!error) invalidateJobTypeLabelMap();
+      return {
+        data: data as import("./types").JobType | null,
+        error: error?.message ?? null,
+      };
+    },
+
     async deleteJobType(id: string) {
       const numericId = parseInt(id);
 
@@ -535,6 +544,19 @@ export function createSupabaseDb(): DbClient {
       };
     },
 
+    async updateIndustry(id: number, name_mr: string, name_en: string) {
+      const { data, error } = await supabase
+        .from("industries")
+        .update({ name_mr, name_en })
+        .eq("id", id)
+        .select()
+        .single();
+      return {
+        data: data as import("./types").Industry | null,
+        error: error?.message ?? null,
+      };
+    },
+
     async deleteIndustry(id: string) {
       const numericId = parseInt(id);
 
@@ -558,6 +580,246 @@ export function createSupabaseDb(): DbClient {
         .from("industries")
         .delete()
         .eq("id", numericId);
+      return { error: error?.message ?? null };
+    },
+
+    async getJobSeekers() {
+      const { data, error } = await supabase
+        .from("job_seekers")
+        .select("phone, name, created_at, last_contacted_at")
+        .order("created_at", { ascending: false });
+      return {
+        data: data as import("./types").JobSeeker[] | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async getJobSeekerByPhone(phone: string) {
+      const { data, error } = await supabase
+        .from("job_seekers")
+        .select("phone, name, created_at, last_contacted_at")
+        .eq("phone", phone)
+        .single();
+      return {
+        data: data as import("./types").JobSeeker | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async updateJobSeeker(phone: string, name: string) {
+      const { data, error } = await supabase
+        .from("job_seekers")
+        .update({ name })
+        .eq("phone", phone)
+        .select("phone, name, created_at, last_contacted_at")
+        .single();
+      return {
+        data: data as import("./types").JobSeeker | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async deleteJobSeeker(phone: string) {
+      const { error } = await supabase
+        .from("job_seekers")
+        .delete()
+        .eq("phone", phone);
+      return { error: error?.message ?? null };
+    },
+
+    async createEmployer(phone: string, name: string) {
+      const { data, error } = await supabase
+        .from("employers")
+        .insert({ phone, name })
+        .select("phone, name, created_at, last_contacted_by_admin_at, jobs(count)")
+        .single();
+      if (error) return { data: null, error: error.message };
+      const row = data as Record<string, unknown>;
+      const jobsData = row.jobs as { count: number }[] | null;
+      return {
+        data: {
+          phone: row.phone as string,
+          employer_name: row.name as string,
+          job_count: jobsData?.[0]?.count ?? 0,
+          created_at: row.created_at as string | undefined,
+          last_contacted_by_admin_at: row.last_contacted_by_admin_at as string | null | undefined,
+        } as import("./types").Employer,
+        error: null,
+      };
+    },
+
+    async getEmployerByPhone(phone: string) {
+      const { data, error } = await supabase
+        .from("employers")
+        .select("phone, name, created_at, last_contacted_by_admin_at, jobs(count)")
+        .eq("phone", phone)
+        .single();
+      if (error) return { data: null, error: error.message };
+      const row = data as Record<string, unknown>;
+      const jobsData = row.jobs as { count: number }[] | null;
+      return {
+        data: {
+          phone: row.phone as string,
+          employer_name: row.name as string,
+          job_count: jobsData?.[0]?.count ?? 0,
+          created_at: row.created_at as string | undefined,
+          last_contacted_by_admin_at: row.last_contacted_by_admin_at as string | null | undefined,
+        } as import("./types").Employer,
+        error: null,
+      };
+    },
+
+    async updateEmployer(phone: string, name: string) {
+      const { data, error } = await supabase
+        .from("employers")
+        .update({ name })
+        .eq("phone", phone)
+        .select("phone, name, created_at, last_contacted_by_admin_at, jobs(count)")
+        .single();
+      if (error) return { data: null, error: error.message };
+      const row = data as Record<string, unknown>;
+      const jobsData = row.jobs as { count: number }[] | null;
+      return {
+        data: {
+          phone: row.phone as string,
+          employer_name: row.name as string,
+          job_count: jobsData?.[0]?.count ?? 0,
+          created_at: row.created_at as string | undefined,
+          last_contacted_by_admin_at: row.last_contacted_by_admin_at as string | null | undefined,
+        } as import("./types").Employer,
+        error: null,
+      };
+    },
+
+    async deleteEmployer(phone: string) {
+      const { error } = await supabase
+        .from("employers")
+        .delete()
+        .eq("phone", phone);
+      return { error: error?.message ?? null };
+    },
+
+    async getWhatsappOutreach(filters?: { page?: number; limit?: number; message_sent?: boolean }) {
+      const page = filters?.page ?? 1;
+      const limit = filters?.limit ?? 50;
+      const offset = (page - 1) * limit;
+
+      let query = supabase
+        .from("whatsapp_outreach")
+        .select("id, phone, source_group, added_date, message_sent, sent_date", { count: "exact" })
+        .order("added_date", { ascending: false });
+
+      if (filters?.message_sent !== undefined) {
+        query = query.eq("message_sent", filters.message_sent);
+      }
+
+      query = query.range(offset, offset + limit - 1);
+
+      const { data, error, count } = await query;
+      if (error) return { data: null, error: error.message };
+      return {
+        data: { records: (data ?? []) as import("./types").WhatsappOutreach[], total: count ?? 0 },
+        error: null,
+      };
+    },
+
+    async getWhatsappOutreachById(id: string) {
+      const { data, error } = await supabase
+        .from("whatsapp_outreach")
+        .select("id, phone, source_group, added_date, message_sent, sent_date")
+        .eq("id", id)
+        .single();
+      return {
+        data: data as import("./types").WhatsappOutreach | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async updateWhatsappOutreach(id: string, fields: Partial<Pick<import("./types").WhatsappOutreach, "phone" | "source_group" | "message_sent" | "sent_date">>) {
+      const { data, error } = await supabase
+        .from("whatsapp_outreach")
+        .update(fields)
+        .eq("id", id)
+        .select("id, phone, source_group, added_date, message_sent, sent_date")
+        .single();
+      return {
+        data: data as import("./types").WhatsappOutreach | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async deleteWhatsappOutreach(id: string) {
+      const { error } = await supabase
+        .from("whatsapp_outreach")
+        .delete()
+        .eq("id", id);
+      return { error: error?.message ?? null };
+    },
+
+    async getJobCategories() {
+      const { data, error } = await supabase
+        .from("job_categories")
+        .select("id, name_en, name_mr, slug")
+        .order("id", { ascending: true });
+      return {
+        data: data as import("./types").JobCategory[] | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async getJobCategoryById(id: number) {
+      const { data, error } = await supabase
+        .from("job_categories")
+        .select("id, name_en, name_mr, slug")
+        .eq("id", id)
+        .single();
+      return {
+        data: data as import("./types").JobCategory | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async createJobCategory(name_en: string, name_mr: string, slug: string) {
+      const { data, error } = await supabase
+        .from("job_categories")
+        .insert({ name_en, name_mr, slug })
+        .select()
+        .single();
+      return {
+        data: data as import("./types").JobCategory | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async updateJobCategory(id: number, fields: Partial<Pick<import("./types").JobCategory, "name_en" | "name_mr" | "slug">>) {
+      const { data, error } = await supabase
+        .from("job_categories")
+        .update(fields)
+        .eq("id", id)
+        .select()
+        .single();
+      return {
+        data: data as import("./types").JobCategory | null,
+        error: error?.message ?? null,
+      };
+    },
+
+    async deleteJobCategory(id: number) {
+      const { count, error: countErr } = await supabase
+        .from("job_types")
+        .select("id", { count: "exact", head: true })
+        .eq("category_id", id);
+
+      if (countErr) return { error: countErr.message };
+
+      if (count && count > 0) {
+        return { error: `हा प्रकार काढता येणार नाही — ${count} कामाचे प्रकार या श्रेणीत आहेत` };
+      }
+
+      const { error } = await supabase
+        .from("job_categories")
+        .delete()
+        .eq("id", id);
       return { error: error?.message ?? null };
     },
   };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Job } from "@/lib/types";
 import { Employer } from "@/lib/types";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
-import { useGroupedJobTypes } from "@/lib/useJobTypes";
+import { useCategoryGroupedJobTypes } from "@/lib/useJobTypes";
 import { formatDateMarathi, formatLocation } from "@/lib/utils";
 import DailyClicksChart from "@/app/components/DailyClicksChart";
 
@@ -22,7 +22,7 @@ interface PaginatedJobs {
 }
 
 export default function AdminPage() {
-  const groupedJobTypes = useGroupedJobTypes();
+  const categoryGroupedJobTypes = useCategoryGroupedJobTypes();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checking, setChecking] = useState(true);
   const [activeTab, setActiveTab] = useState<AdminTab>("all_jobs");
@@ -306,6 +306,13 @@ export default function AdminPage() {
         <h1 className="text-xl font-bold text-gray-800">Admin Panel</h1>
         <div className="flex items-center gap-2">
           <Link
+            href="/admin/review"
+            className="px-3 py-1.5 text-sm font-semibold rounded-lg transition"
+            style={{ backgroundColor: "#FF6B00", color: "#fff" }}
+          >
+            Review Jobs
+          </Link>
+          <Link
             href="/admin/whatsapp-outreach"
             className="px-3 py-1.5 text-sm font-semibold rounded-lg transition"
             style={{ backgroundColor: "#25D366", color: "#fff" }}
@@ -365,8 +372,8 @@ export default function AdminPage() {
                 className="border border-gray-200 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:border-[#FF6B00]"
               >
                 <option value="">सर्व कामे</option>
-                {groupedJobTypes.map((group) => (
-                  <optgroup key={group.industry_id} label={`${group.industry_mr} (${group.industry_en})`}>
+                {categoryGroupedJobTypes.map((group) => (
+                  <optgroup key={group.category_id} label={`${group.category_mr} (${group.category_en})`}>
                     {group.options.map((opt) => (
                       <option key={opt.id} value={opt.id}>{opt.label}</option>
                     ))}

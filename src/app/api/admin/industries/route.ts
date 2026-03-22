@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+// Note: DELETE and GET/PUT by ID are handled in /[id]/route.ts
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getDb } from "@/lib/db";
 
@@ -53,28 +54,3 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(data, { status: 201 });
 }
 
-// DELETE /api/admin/industries — Delete an industry (admin only)
-export async function DELETE(request: NextRequest) {
-  if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await request.json();
-  const { id } = body;
-
-  if (!id) {
-    return NextResponse.json(
-      { error: "Industry ID आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-
-  const db = getDb();
-  const { error } = await db.deleteIndustry(id);
-
-  if (error) {
-    return NextResponse.json({ error }, { status: 400 });
-  }
-
-  return NextResponse.json({ success: true });
-}

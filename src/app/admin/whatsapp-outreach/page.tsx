@@ -39,7 +39,7 @@ export default function WhatsAppOutreachPage() {
   // ── Fetch employer pending count ──
   const fetchEmpData = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/whatsapp-outreach");
+      const res = await fetch("/api/admin/whatsapp-outreach?view=today");
       if (res.ok) {
         const data = await res.json();
         setEmpPending(data.pendingCount);

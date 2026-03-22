@@ -1,0 +1,54 @@
+# Job Tags
+# Attached to job postings to describe WHERE or in WHAT CONTEXT the job is.
+# Used for text search — e.g. searching "school" shows all jobs tagged School.
+# Shown as autocomplete suggestions. Employers can also add custom tags.
+
+# --- Work Location (most common in data) ---
+Restaurant
+MIDC
+Canteen
+Cafe
+Shop
+Showroom
+Bank
+School
+College
+Hotel
+Mall
+Hospital
+Airport
+Clinic
+Petrol Pump
+IT Park
+Farm
+Warehouse
+Construction Site
+Government Office
+Home / Residential
+Office Building
+Salon / Parlour
+Gym
+
+# --- Sector / Industry ---
+Government
+Private Company
+NGO / Trust
+Real Estate
+Automobile
+Facility Management
+Agriculture
+Security Agency
+Transport Company
+IT Company
+Manufacturing Company
+
+# --- Work Conditions ---
+Part Time
+Full Time
+Night Shift
+Day Shift
+Permanent
+Contract
+Work From Home
+Live-in (Food & Stay Provided)
+Two Wheeler Required

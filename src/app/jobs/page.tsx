@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
 import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
-import { useGroupedJobTypes } from "@/lib/useJobTypes";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
-import JobTypePicker from "../components/JobTypePicker";
+import SmartSearchBox, { SearchSelection } from "../components/SmartSearchBox";
 import JobSeekerModal from "../components/JobSeekerModal";
 
 const PAGE_LIMIT = 20;
@@ -41,7 +40,6 @@ function SkeletonCard() {
 }
 
 export default function BrowseJobs() {
-  const groupedJobTypes = useGroupedJobTypes();
   const { t, lang } = useTranslation();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
@@ -55,28 +53,23 @@ export default function BrowseJobs() {
   const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const handleSeekerOpened = useCallback(() => setOpenSeeker(false), []);
 
-  // Filter state (applied on button press)
-  const [filterJobType, setFilterJobType] = useState(ALL);
+  // Filter state
+  const [searchSelection, setSearchSelection] = useState<SearchSelection | null>(null);
   const [filterDistrict, setFilterDistrict] = useState(ALL);
   const [filterTaluka, setFilterTaluka] = useState(ALL);
 
-  // Active filters (what's actually applied)
-  const [appliedJobType, setAppliedJobType] = useState(ALL);
+  // Applied filters (what's actually fetched)
+  const [appliedSelection, setAppliedSelection] = useState<SearchSelection | null>(null);
   const [appliedDistrict, setAppliedDistrict] = useState(ALL);
   const [appliedTaluka, setAppliedTaluka] = useState(ALL);
 
   const buildUrl = useCallback(
-    (pageNum: number, jobType: string, district: string, taluka: string) => {
+    (pageNum: number, selection: SearchSelection | null, district: string, taluka: string) => {
       const params = new URLSearchParams();
       params.set("page", String(pageNum));
       params.set("limit", String(PAGE_LIMIT));
-      if (jobType !== ALL) {
-        if (jobType.startsWith("industry:")) {
-          params.set("industry_id", jobType.replace("industry:", ""));
-        } else {
-          params.set("job_type_id", jobType);
-        }
-      }
+      if (selection?.type === "job_type") params.set("job_type_id", String(selection.id));
+      else if (selection?.type === "text" && selection.query.trim()) params.set("search", selection.query.trim());
       if (district !== ALL) params.set("district", district);
       if (taluka !== ALL) params.set("taluka", taluka);
       return `/api/jobs?${params.toString()}`;
@@ -106,7 +99,7 @@ export default function BrowseJobs() {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchWithRetry(buildUrl(1, ALL, ALL, ALL));
+        const data = await fetchWithRetry(buildUrl(1, null, ALL, ALL));
         setJobs(data.jobs);
         setTotal(data.total);
         setHasMore(data.hasMore);
@@ -120,21 +113,39 @@ export default function BrowseJobs() {
     load();
   }, [buildUrl, fetchWithRetry]);
 
-  // Apply filters (search button press)
+  // SmartSearchBox fires this automatically (debounced internally)
+  const handleSearchSelect = async (selection: SearchSelection | null) => {
+    setSearchSelection(selection);
+    setAppliedSelection(selection);
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchWithRetry(buildUrl(1, selection, appliedDistrict, appliedTaluka));
+      setJobs(data.jobs);
+      setTotal(data.total);
+      setHasMore(data.hasMore);
+      setPage(1);
+    } catch (e: unknown) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Apply district/taluka filters (search button press)
   const applyFilters = async () => {
     setLoading(true);
     setError("");
-    setAppliedJobType(filterJobType);
     setAppliedDistrict(filterDistrict);
     setAppliedTaluka(filterTaluka);
+    setAppliedSelection(searchSelection);
     trackEvent("filter_used", {
-      job_type: filterJobType,
       district: filterDistrict,
       taluka: filterTaluka,
     });
     try {
       const data = await fetchWithRetry(
-        buildUrl(1, filterJobType, filterDistrict, filterTaluka)
+        buildUrl(1, searchSelection, filterDistrict, filterTaluka)
       );
       setJobs(data.jobs);
       setTotal(data.total);
@@ -153,7 +164,7 @@ export default function BrowseJobs() {
     setLoadingMore(true);
     try {
       const data = await fetchWithRetry(
-        buildUrl(nextPage, appliedJobType, appliedDistrict, appliedTaluka)
+        buildUrl(nextPage, appliedSelection, appliedDistrict, appliedTaluka)
       );
       setJobs((prev) => {
         const existingIds = new Set(prev.map((j) => j.id));
@@ -170,15 +181,15 @@ export default function BrowseJobs() {
   };
 
   const clearFilters = () => {
-    setFilterJobType(ALL);
+    setSearchSelection(null);
     setFilterDistrict(ALL);
     setFilterTaluka(ALL);
-    setAppliedJobType(ALL);
+    setAppliedSelection(null);
     setAppliedDistrict(ALL);
     setAppliedTaluka(ALL);
     setLoading(true);
     setError("");
-    fetchWithRetry(buildUrl(1, ALL, ALL, ALL))
+    fetchWithRetry(buildUrl(1, null, ALL, ALL))
       .then((data) => {
         setJobs(data.jobs);
         setTotal(data.total);
@@ -190,14 +201,14 @@ export default function BrowseJobs() {
   };
 
   const activeFilterCount =
-    (appliedJobType !== ALL ? 1 : 0) +
+    (appliedSelection ? 1 : 0) +
     (appliedDistrict !== ALL ? 1 : 0) +
     (appliedTaluka !== ALL ? 1 : 0);
 
   const retryLoad = () => {
     setLoading(true);
     setError("");
-    fetchWithRetry(buildUrl(1, appliedJobType, appliedDistrict, appliedTaluka))
+    fetchWithRetry(buildUrl(1, appliedSelection, appliedDistrict, appliedTaluka))
       .then((data) => {
         setJobs(data.jobs);
         setTotal(data.total);
@@ -237,22 +248,13 @@ export default function BrowseJobs() {
         className="mb-4 p-3 rounded-xl flex flex-col gap-3"
         style={{ backgroundColor: "#ffffff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
       >
+        {/* Smart search — job type + tag + free text */}
+        <SmartSearchBox onSelect={handleSearchSelect} />
+
         <p className="text-xs font-semibold text-gray-500">
           {t("jobs.filterHint")}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1">
-            <label className="block text-[11px] text-gray-400 mb-1">
-              {t("jobs.jobType")}
-            </label>
-            <JobTypePicker
-              value={filterJobType}
-              onChange={setFilterJobType}
-              groupedJobTypes={groupedJobTypes}
-              allLabel={ALL}
-            />
-          </div>
-
           <div className="flex-1">
             <label className="block text-[11px] text-gray-400 mb-1">
               {t("jobs.district")}
@@ -268,7 +270,7 @@ export default function BrowseJobs() {
                 <option key={d} value={d}>{districtDisplayName(d, lang)}</option>
               ))}
             </select>
-          </div>
+        </div>
         </div>
 
         {filterDistrict !== ALL && (

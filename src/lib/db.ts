@@ -1,4 +1,4 @@
-import { DailyClickStats, Employer, Industry, Job, JobType } from "./types";
+import { DailyClickStats, Employer, Industry, Job, JobCategory, JobSeeker, JobType, WhatsappOutreach } from "./types";
 
 export interface DbResult<T> {
   data: T | null;
@@ -9,7 +9,6 @@ export interface JobFilters {
   page: number;
   limit: number;
   job_type_id?: number;
-  industry_id?: number;
   district?: string;
   taluka?: string;
   search?: string;
@@ -27,6 +26,7 @@ export interface AdminJobFilters extends JobFilters {
   phone?: string;
   is_active?: boolean;
   is_deleted?: boolean;
+  is_reviewed?: boolean;
 }
 
 export interface DbClient {
@@ -44,7 +44,7 @@ export interface DbClient {
   getAllJobsByPhone(phone: string): Promise<DbResult<Job[]>>;
   getJobTypes(): Promise<DbResult<JobType[]>>;
   getIndustries(): Promise<DbResult<Industry[]>>;
-  addJobType(name: string, name_en?: string, industry_id?: number): Promise<DbResult<JobType>>;
+  addJobType(name: string, name_en?: string, category_id?: number): Promise<DbResult<JobType>>;
   deleteJobType(id: string): Promise<{ error: string | null }>;
   addIndustry(name_mr: string, name_en: string): Promise<DbResult<Industry>>;
   deleteIndustry(id: string): Promise<{ error: string | null }>;
@@ -56,6 +56,25 @@ export interface DbClient {
   reportJob(jobId: string): Promise<{ error: string | null }>;
   getDailyClickStats(days: number): Promise<DbResult<DailyClickStats[]>>;
   upsertJobSeeker(phone: string, name: string): Promise<{ error: string | null }>;
+  getJobSeekers(): Promise<DbResult<JobSeeker[]>>;
+  getJobSeekerByPhone(phone: string): Promise<DbResult<JobSeeker>>;
+  updateJobSeeker(phone: string, name: string): Promise<DbResult<JobSeeker>>;
+  deleteJobSeeker(phone: string): Promise<{ error: string | null }>;
+  updateIndustry(id: number, name_mr: string, name_en: string): Promise<DbResult<Industry>>;
+  updateJobType(id: number, fields: { name_mr?: string; name_en?: string; category_id?: number }): Promise<DbResult<JobType>>;
+  createEmployer(phone: string, name: string): Promise<DbResult<Employer>>;
+  getEmployerByPhone(phone: string): Promise<DbResult<Employer>>;
+  updateEmployer(phone: string, name: string): Promise<DbResult<Employer>>;
+  deleteEmployer(phone: string): Promise<{ error: string | null }>;
+  getWhatsappOutreach(filters?: { page?: number; limit?: number; message_sent?: boolean }): Promise<DbResult<{ records: WhatsappOutreach[]; total: number }>>;
+  getWhatsappOutreachById(id: string): Promise<DbResult<WhatsappOutreach>>;
+  updateWhatsappOutreach(id: string, fields: Partial<Pick<WhatsappOutreach, "phone" | "source_group" | "message_sent" | "sent_date">>): Promise<DbResult<WhatsappOutreach>>;
+  deleteWhatsappOutreach(id: string): Promise<{ error: string | null }>;
+  getJobCategories(): Promise<DbResult<JobCategory[]>>;
+  getJobCategoryById(id: number): Promise<DbResult<JobCategory>>;
+  createJobCategory(name_en: string, name_mr: string, slug: string): Promise<DbResult<JobCategory>>;
+  updateJobCategory(id: number, fields: Partial<Pick<JobCategory, "name_en" | "name_mr" | "slug">>): Promise<DbResult<JobCategory>>;
+  deleteJobCategory(id: number): Promise<{ error: string | null }>;
 }
 
 let _db: DbClient | null = null;

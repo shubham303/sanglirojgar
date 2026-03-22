@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import {
   fetchJobTypeOptions,
   getJobTypeOptionsSync,
-  fetchGroupedJobTypeOptions,
-  getGroupedJobTypeOptionsSync,
+  fetchPopularJobTypes,
+  getPopularJobTypesSync,
+  fetchCategoryGroupedJobTypes,
+  getCategoryGroupedJobTypesSync,
   JobTypeOption,
-  GroupedJobTypeOption,
+  CategoryGroupedJobTypeOption,
 } from "./job-types-cache";
 
 export function useJobTypes(): JobTypeOption[] {
@@ -20,12 +22,22 @@ export function useJobTypes(): JobTypeOption[] {
   return options;
 }
 
-export function useGroupedJobTypes(): GroupedJobTypeOption[] {
-  const [grouped, setGrouped] = useState<GroupedJobTypeOption[]>(getGroupedJobTypeOptionsSync);
+export function useCategoryGroupedJobTypes(): CategoryGroupedJobTypeOption[] {
+  const [grouped, setGrouped] = useState<CategoryGroupedJobTypeOption[]>(getCategoryGroupedJobTypesSync);
 
   useEffect(() => {
-    fetchGroupedJobTypeOptions().then(setGrouped);
+    fetchCategoryGroupedJobTypes().then(setGrouped);
   }, []);
 
   return grouped;
+}
+
+export function usePopularJobTypes(): JobTypeOption[] {
+  const [popular, setPopular] = useState<JobTypeOption[]>(getPopularJobTypesSync);
+
+  useEffect(() => {
+    fetchPopularJobTypes().then(setPopular);
+  }, []);
+
+  return popular;
 }

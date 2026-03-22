@@ -194,6 +194,8 @@ export const translations: Record<Language, Record<string, string>> = {
     "picker.noResults": "काहीही सापडले नाही",
     "picker.types": "प्रकार",
     "picker.allInIndustry": "सर्व",
+    "picker.popular": "लोकप्रिय",
+    "picker.all": "सर्व प्रकार",
   },
 
   en: {
@@ -389,5 +391,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "picker.noResults": "No results found",
     "picker.types": "types",
     "picker.allInIndustry": "All",
+    "picker.popular": "Popular",
+    "picker.all": "All Types",
   },
 };

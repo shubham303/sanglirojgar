@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { GroupedJobTypeOption } from "@/lib/job-types-cache";
+import { useJobTypes, usePopularJobTypes, useCategoryGroupedJobTypes } from "@/lib/useJobTypes";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 interface JobTypePickerProps {
   value: string;
   onChange: (value: string) => void;
-  groupedJobTypes: GroupedJobTypeOption[];
   placeholder?: string;
   allLabel?: string;
 }
@@ -15,68 +14,50 @@ interface JobTypePickerProps {
 export default function JobTypePicker({
   value,
   onChange,
-  groupedJobTypes,
-  placeholder,
   allLabel,
+  placeholder,
 }: JobTypePickerProps) {
   const { t } = useTranslation();
-  const defaultPlaceholder = placeholder || t("picker.select");
+  const allJobTypes = useJobTypes();
+  const popularJobTypes = usePopularJobTypes();
+  const categoryGrouped = useCategoryGroupedJobTypes();
+
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedIndustry, setSelectedIndustry] = useState<number | null>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Find selected label
-  let selectedLabel = allLabel || defaultPlaceholder;
-  if (value && value !== (allLabel || "")) {
-    if (value.startsWith("industry:")) {
-      // "All in industry" selection — show industry name
-      const indId = parseInt(value.replace("industry:", ""));
-      const group = groupedJobTypes.find((g) => g.industry_id === indId);
-      if (group) {
-        selectedLabel = `${t("picker.allInIndustry")} - ${group.industry_mr}`;
-      }
-    } else {
-      for (const group of groupedJobTypes) {
-        const match = group.options.find((o) => String(o.id) === String(value));
-        if (match) {
-          selectedLabel = match.label;
-          break;
-        }
-      }
-    }
-  }
+  // Selected label for the trigger button
+  const selectedType = allJobTypes.find((jt) => String(jt.id) === String(value));
+  const selectedLabel = selectedType
+    ? `${selectedType.name_mr} (${selectedType.name_en})`
+    : value === allLabel
+    ? allLabel
+    : placeholder || t("picker.select");
 
-  // Filter groups by search query (searches both Marathi and English in labels + industry names)
-  const filteredGroups = useMemo(() => {
-    if (!search.trim()) return groupedJobTypes;
+  // Filter all job types by search query
+  const filteredTypes = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return groupedJobTypes
-      .map((group) => ({
-        ...group,
-        options: group.options.filter((opt) =>
-          opt.label.toLowerCase().includes(q) ||
-          group.industry_en.toLowerCase().includes(q) ||
-          group.industry_mr.includes(q)
-        ),
-      }))
-      .filter((group) => group.options.length > 0);
-  }, [groupedJobTypes, search]);
+    if (!q) return allJobTypes;
+    return allJobTypes.filter(
+      (jt) =>
+        jt.name_mr.toLowerCase().includes(q) ||
+        jt.name_en.toLowerCase().includes(q)
+    );
+  }, [allJobTypes, search]);
 
-  const isSearching = search.trim().length > 0;
+  // Popular types that are not already in filtered results (avoid duplicate rows)
+  const popularToShow = useMemo(() => {
+    if (search.trim()) return [];
+    return popularJobTypes;
+  }, [popularJobTypes, search]);
 
-  // Get job types for the selected industry (step 2)
-  const selectedGroup = selectedIndustry !== null
-    ? groupedJobTypes.find((g) => g.industry_id === selectedIndustry)
-    : null;
+  // Popular ids set (to skip them in the category-grouped section)
+  const popularIds = new Set(popularJobTypes.map((p) => p.id));
 
-  // Prevent body scroll when open
   useEffect(() => {
     if (open) {
       document.body.style.overflow = "hidden";
       setSearch("");
-      setSelectedIndustry(null);
       setTimeout(() => searchRef.current?.focus(), 100);
     } else {
       document.body.style.overflow = "";
@@ -84,24 +65,52 @@ export default function JobTypePicker({
     return () => { document.body.style.overflow = ""; };
   }, [open]);
 
+  const select = (id: string) => {
+    onChange(id);
+    setOpen(false);
+  };
+
+  const isSelected = (id: number) => String(id) === String(value);
+
+  const JobTypeRow = ({ jt }: { jt: { id: number; name_mr: string; name_en: string } }) => (
+    <button
+      type="button"
+      onClick={() => select(String(jt.id))}
+      className="w-full text-left px-4 py-3 flex items-center justify-between transition hover:bg-gray-50 active:bg-orange-50"
+      style={{
+        backgroundColor: isSelected(jt.id) ? "#FFF3E6" : undefined,
+        borderLeft: isSelected(jt.id) ? "3px solid #FF6B00" : "3px solid transparent",
+      }}
+    >
+      <div>
+        <div className="text-sm font-medium text-gray-800">{jt.name_mr}</div>
+        <div className="text-xs text-gray-400">{jt.name_en}</div>
+      </div>
+      {isSelected(jt.id) && (
+        <span style={{ color: "#FF6B00" }} className="text-sm">✓</span>
+      )}
+    </button>
+  );
+
   return (
     <>
+      {/* Trigger button */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base bg-white focus:outline-none text-left flex items-center justify-between"
-        style={{ borderColor: value && value !== (allLabel || "") ? "#FF6B00" : undefined }}
+        className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base bg-white focus:outline-none text-left flex items-center justify-between"
+        style={{ borderColor: selectedType ? "#FF6B00" : undefined }}
       >
-        <span className="text-gray-800">
+        <span className={selectedType ? "text-gray-800 font-medium" : "text-gray-400"}>
           {selectedLabel}
         </span>
-        <span className="text-gray-400 text-xs">▼</span>
+        <span className="text-gray-400 text-xs ml-2">▼</span>
       </button>
 
+      {/* Modal / bottom sheet */}
       {open && (
-        <div
-          className="fixed inset-0 z-50 bg-white flex flex-col sm:bg-transparent sm:items-center sm:justify-center"
-        >
+        <div className="fixed inset-0 z-50 bg-white flex flex-col sm:bg-transparent sm:items-center sm:justify-center">
+          {/* Backdrop (desktop) */}
           <div
             className="hidden sm:block fixed inset-0"
             style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
@@ -109,29 +118,12 @@ export default function JobTypePicker({
           />
 
           <div
-            ref={modalRef}
-            className="flex flex-col h-full sm:h-auto sm:max-h-[70vh] sm:w-full sm:max-w-md sm:rounded-xl sm:relative bg-white z-10"
+            className="flex flex-col h-full sm:h-auto sm:max-h-[80vh] sm:w-full sm:max-w-md sm:rounded-xl sm:relative bg-white z-10"
             style={{ boxShadow: "0 -4px 20px rgba(0,0,0,0.15)" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-              <div className="flex items-center gap-2">
-                {selectedIndustry !== null && !isSearching && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedIndustry(null)}
-                    className="text-sm font-medium px-2 py-0.5 rounded hover:bg-gray-100 transition"
-                    style={{ color: "#FF6B00" }}
-                  >
-                    {t("picker.back")}
-                  </button>
-                )}
-                <span className="font-semibold text-sm text-gray-800">
-                  {selectedIndustry !== null && !isSearching && selectedGroup
-                    ? selectedGroup.industry_mr
-                    : t("picker.title")}
-                </span>
-              </div>
+              <span className="font-semibold text-sm text-gray-800">{t("picker.title")}</span>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
@@ -142,132 +134,68 @@ export default function JobTypePicker({
             </div>
 
             {/* Search */}
-            <div className="px-4 py-2 border-b border-gray-100 shrink-0">
+            <div className="px-4 py-3 border-b border-gray-100 shrink-0">
               <input
                 ref={searchRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("picker.searchPlaceholder")}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:border-[#FF6B00]"
+                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm bg-white focus:outline-none focus:border-[#FF6B00]"
               />
             </div>
 
-            {/* Content */}
+            {/* List */}
             <div className="overflow-y-auto flex-1 min-h-0">
-              {/* "All" option — show on step 1 when not searching */}
-              {allLabel && !isSearching && selectedIndustry === null && (
+
+              {/* "All" option for filter mode */}
+              {allLabel && !search.trim() && (
                 <button
                   type="button"
-                  onClick={() => { onChange(allLabel); setOpen(false); }}
-                  className="w-full text-left px-4 py-2.5 text-sm transition hover:bg-gray-100"
-                  style={{
-                    backgroundColor: value === allLabel ? "#FFF3E6" : undefined,
-                    color: value === allLabel ? "#FF6B00" : "#374151",
-                    fontWeight: value === allLabel ? 600 : 400,
-                  }}
+                  onClick={() => select(allLabel)}
+                  className="w-full text-left px-4 py-3 text-sm border-b border-gray-100 transition hover:bg-gray-50"
+                  style={{ color: value === allLabel ? "#FF6B00" : "#374151", fontWeight: value === allLabel ? 600 : 400 }}
                 >
                   {allLabel}
                 </button>
               )}
 
-              {/* STEP 1: Industry grid (when not searching and no industry selected) */}
-              {!isSearching && selectedIndustry === null && (
-                <div className="grid grid-cols-2 gap-2 p-3">
-                  {groupedJobTypes.map((group) => (
-                    <button
-                      key={group.industry_id}
-                      type="button"
-                      onClick={() => setSelectedIndustry(group.industry_id)}
-                      className="text-left rounded-lg border border-gray-200 p-3 transition hover:border-[#FF6B00] hover:bg-orange-50 active:bg-orange-100"
-                    >
-                      <div className="font-semibold text-sm text-gray-800 leading-tight">
-                        {group.industry_mr}
-                      </div>
-                      <div className="text-[11px] text-gray-400 mt-0.5">
-                        {group.industry_en}
-                      </div>
-                      <div className="text-[11px] mt-1" style={{ color: "#FF6B00" }}>
-                        {group.options.length} {t("picker.types")}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* STEP 2: Job types within selected industry */}
-              {!isSearching && selectedIndustry !== null && selectedGroup && (
+              {/* Search results */}
+              {search.trim() ? (
                 <>
-                  {/* "All in this industry" option — only in filter mode */}
-                  {allLabel && (
-                    <button
-                      type="button"
-                      onClick={() => { onChange(`industry:${selectedIndustry}`); setOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-sm transition hover:bg-gray-100 border-b border-gray-100"
-                      style={{
-                        backgroundColor: value === `industry:${selectedIndustry}` ? "#FFF3E6" : undefined,
-                        color: value === `industry:${selectedIndustry}` ? "#FF6B00" : "#374151",
-                        fontWeight: value === `industry:${selectedIndustry}` ? 600 : 400,
-                      }}
-                    >
-                      {t("picker.allInIndustry")} - {selectedGroup.industry_mr}
-                    </button>
+                  {filteredTypes.length === 0 && (
+                    <p className="text-center text-gray-400 text-sm py-8">{t("picker.noResults")}</p>
                   )}
-                  {selectedGroup.options.map((opt) => (
-                    <button
-                      type="button"
-                      key={opt.id}
-                      onClick={() => { onChange(String(opt.id)); setOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-[13px] transition hover:bg-gray-100"
-                      style={{
-                        backgroundColor: String(opt.id) === String(value) ? "#FFF3E6" : undefined,
-                        color: String(opt.id) === String(value) ? "#FF6B00" : "#374151",
-                        fontWeight: String(opt.id) === String(value) ? 600 : 400,
-                      }}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                  {filteredTypes.map((jt) => <JobTypeRow key={jt.id} jt={jt} />)}
                 </>
-              )}
-
-              {/* SEARCH RESULTS: Flat filtered list grouped by industry */}
-              {isSearching && (
+              ) : (
                 <>
-                  {filteredGroups.length === 0 && (
-                    <p className="text-center text-gray-400 text-sm py-6">{t("picker.noResults")}</p>
-                  )}
-                  {filteredGroups.map((group) => (
-                    <div key={group.industry_id}>
-                      <div
-                        className="px-4 py-1.5 sticky top-0"
-                        style={{ backgroundColor: "#f9fafb", borderBottom: "1px solid #f3f4f6" }}
-                      >
-                        <span className="font-bold text-xs" style={{ color: "#FF6B00" }}>
-                          {group.industry_mr}
-                        </span>
-                        <span className="text-[10px] text-gray-400 ml-1">
-                          ({group.industry_en})
+                  {/* Popular section */}
+                  {popularToShow.length > 0 && (
+                    <>
+                      <div className="px-4 py-2 sticky top-0 bg-gray-50 border-b border-gray-100">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          {t("picker.popular")}
                         </span>
                       </div>
-                      {group.options.map((opt) => (
-                        <button
-                          type="button"
-                          key={opt.id}
-                          onClick={() => { onChange(String(opt.id)); setOpen(false); }}
-                          className="w-full text-left px-4 py-2 text-[13px] transition hover:bg-gray-100"
-                          style={{
-                            backgroundColor: String(opt.id) === String(value) ? "#FFF3E6" : undefined,
-                            color: String(opt.id) === String(value) ? "#FF6B00" : "#374151",
-                            fontWeight: String(opt.id) === String(value) ? 600 : 400,
-                            paddingLeft: "1.5rem",
-                          }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  ))}
+                      {popularToShow.map((jt) => <JobTypeRow key={jt.id} jt={jt} />)}
+                    </>
+                  )}
+
+                  {/* All types grouped by category */}
+                  {categoryGrouped.map((group) => {
+                    const options = group.options.filter((jt) => !popularIds.has(jt.id));
+                    if (options.length === 0) return null;
+                    return (
+                      <div key={group.category_id}>
+                        <div className="px-4 py-2 sticky top-0 bg-gray-50 border-b border-gray-100 border-t">
+                          <span className="text-xs font-semibold text-gray-700">{group.category_mr}</span>
+                          <span className="text-[11px] text-gray-400 ml-1.5">{group.category_en}</span>
+                        </div>
+                        {options.map((jt) => <JobTypeRow key={jt.id} jt={jt} />)}
+                      </div>
+                    );
+                  })}
                 </>
               )}
             </div>

@@ -1,20 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { getDb } from "@/lib/db";
 import { cleanPhone } from "@/lib/clean-phone";
+import { getSupabase } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/admin/job-seekers — Get job seekers stats
+// GET /api/admin/job-seekers — List all job seekers (admin only)
 export async function GET() {
-  const supabase = getSupabase();
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { data, error } = await supabase
-    .from("job_seekers")
-    .select("phone, name, created_at, last_contacted_at")
-    .order("created_at", { ascending: false });
+  const db = getDb();
+  const { data, error } = await db.getJobSeekers();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error }, { status: 500 });
   }
 
   return NextResponse.json({
@@ -23,8 +25,12 @@ export async function GET() {
   });
 }
 
-// POST /api/admin/job-seekers — Bulk add job seekers from CSV data
+// POST /api/admin/job-seekers — Bulk add job seekers from CSV data (admin only)
 export async function POST(request: NextRequest) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { rows } = body as { rows: { name: string; phone: string }[] };
 

@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, name_en, industry_id } = body;
+  const { name, name_en, category_id } = body;
 
   if (!name || !name.trim()) {
     return NextResponse.json(
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await db.addJobType(
     name.trim(),
     name_en?.trim() || undefined,
-    industry_id || undefined
+    category_id || undefined
   );
 
   if (error) {
@@ -50,28 +50,3 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(data, { status: 201 });
 }
 
-// DELETE /api/admin/job-types — Delete a job type (admin only)
-export async function DELETE(request: NextRequest) {
-  if (!(await isAdminAuthenticated())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const body = await request.json();
-  const { id } = body;
-
-  if (!id) {
-    return NextResponse.json(
-      { error: "Job type ID आवश्यक आहे" },
-      { status: 400 }
-    );
-  }
-
-  const db = getDb();
-  const { error } = await db.deleteJobType(id);
-
-  if (error) {
-    return NextResponse.json({ error }, { status: 400 });
-  }
-
-  return NextResponse.json({ success: true });
-}

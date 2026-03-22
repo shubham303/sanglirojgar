@@ -200,11 +200,6 @@ export function createLocalDb(): DbClient {
           values.push(filters.job_type_id);
           paramIdx++;
         }
-        if (filters.industry_id) {
-          conditions.push(`j.job_type_id IN (SELECT id FROM job_types WHERE industry_id = $${paramIdx})`);
-          values.push(filters.industry_id);
-          paramIdx++;
-        }
         if (filters.district) {
           conditions.push(`j.district = $${paramIdx}`);
           values.push(filters.district);
@@ -792,5 +787,26 @@ export function createLocalDb(): DbClient {
         return { error: (e as Error).message };
       }
     },
+
+    // Stubs for methods not implemented in local DB (Supabase-only features)
+    async getJobSeekers() { return { data: [], error: null }; },
+    async getJobSeekerByPhone(_phone: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async updateJobSeeker(_phone: string, _name: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async deleteJobSeeker(_phone: string) { return { error: "Not implemented in local DB" }; },
+    async updateIndustry(_id: number, _name_mr: string, _name_en: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async updateJobType(_id: number, _fields: object) { return { data: null, error: "Not implemented in local DB" }; },
+    async createEmployer(_phone: string, _name: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async getEmployerByPhone(_phone: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async updateEmployer(_phone: string, _name: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async deleteEmployer(_phone: string) { return { error: "Not implemented in local DB" }; },
+    async getWhatsappOutreach() { return { data: { records: [], total: 0 }, error: null }; },
+    async getWhatsappOutreachById(_id: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async updateWhatsappOutreach(_id: string, _fields: object) { return { data: null, error: "Not implemented in local DB" }; },
+    async deleteWhatsappOutreach(_id: string) { return { error: "Not implemented in local DB" }; },
+    async getJobCategories() { return { data: [], error: null }; },
+    async getJobCategoryById(_id: number) { return { data: null, error: "Not implemented in local DB" }; },
+    async createJobCategory(_name_en: string, _name_mr: string, _slug: string) { return { data: null, error: "Not implemented in local DB" }; },
+    async updateJobCategory(_id: number, _fields: object) { return { data: null, error: "Not implemented in local DB" }; },
+    async deleteJobCategory(_id: number) { return { error: "Not implemented in local DB" }; },
   };
 }
