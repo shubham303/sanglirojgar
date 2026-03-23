@@ -2,7 +2,9 @@ import { DISTRICT_TALUKAS } from "./constants";
 
 interface RawJobBody {
   employer_name: string;
-  phone: string;
+  phone?: string;
+  email?: string;
+  application_link?: string;
   job_type_id: string | number;
   district?: string;
   taluka: string;
@@ -17,7 +19,9 @@ interface RawJobBody {
 
 interface PreparedJobData {
   employer_name: string;
-  phone: string;
+  phone?: string | null;
+  email?: string | null;
+  application_link?: string | null;
   job_type_id: number;
   state: string;
   district: string;
@@ -35,7 +39,9 @@ interface PreparedJobData {
 export function prepareJobData(body: RawJobBody): PreparedJobData {
   const data: PreparedJobData = {
     employer_name: body.employer_name.trim(),
-    phone: body.phone,
+    phone: body.phone || null,
+    email: body.email ? body.email.trim().toLowerCase() : null,
+    application_link: body.application_link ? body.application_link.trim() : null,
     job_type_id:
       typeof body.job_type_id === "string"
         ? parseInt(body.job_type_id)

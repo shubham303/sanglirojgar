@@ -215,11 +215,13 @@ export function createSupabaseDb(): DbClient {
     },
 
     async createJob(job) {
-      // Upsert employer before inserting job (idempotent)
-      const { error: empErr } = await supabase
-        .from("employers")
-        .upsert({ phone: job.phone, name: job.employer_name }, { onConflict: "phone" });
-      if (empErr) return { data: null, error: empErr.message };
+      // Upsert employer before inserting job (only when phone is provided)
+      if (job.phone) {
+        const { error: empErr } = await supabase
+          .from("employers")
+          .upsert({ phone: job.phone, name: job.employer_name }, { onConflict: "phone" });
+        if (empErr) return { data: null, error: empErr.message };
+      }
 
       // Compute content for trigram search
       const contentMap = await getJobTypeContentMap(supabase);

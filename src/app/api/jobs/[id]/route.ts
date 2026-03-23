@@ -55,8 +55,8 @@ export async function PUT(
     return NextResponse.json({ error: talukaError }, { status: 400 });
   }
 
-  // Update employer name in employers table if provided
-  if (jobData.employer_name && existing) {
+  // Update employer name in employers table if provided and phone is available
+  if (jobData.employer_name && existing?.phone) {
     await db.upsertEmployer(existing.phone, jobData.employer_name);
   }
 

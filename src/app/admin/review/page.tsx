@@ -413,7 +413,7 @@ export default function AdminReviewPage() {
             </div>
             <div className="px-5 py-4 space-y-3">
               <DetailRow label="नोकरी देणारे" value={detailJob.employer_name || "—"} />
-              <DetailRow label="फोन" value={detailJob.phone} />
+              <DetailRow label="फोन" value={detailJob.phone || "—"} />
               <DetailRow label="कामाचा प्रकार" value={detailJob.job_type_display || String(detailJob.job_type_id)} highlight />
               <DetailRow label="ठिकाण" value={`${detailJob.taluka}, ${detailJob.district}`} />
               <DetailRow label="पगार" value={detailJob.salary} />

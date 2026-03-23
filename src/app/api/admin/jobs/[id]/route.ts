@@ -85,8 +85,8 @@ export async function PUT(
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
   }
 
-  // Sync employer name if changed
-  if (updateData.employer_name && typeof updateData.employer_name === "string") {
+  // Sync employer name if changed and phone is available
+  if (updateData.employer_name && typeof updateData.employer_name === "string" && existing.phone) {
     await db.upsertEmployer(existing.phone, updateData.employer_name);
   }
 

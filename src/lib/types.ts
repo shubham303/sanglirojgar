@@ -1,7 +1,9 @@
 export interface Job {
   id: string;
   employer_name?: string; // populated via JOIN from employers table
-  phone: string;
+  phone?: string | null;
+  email?: string | null;
+  application_link?: string | null;
   job_type_id: number;
   job_type_display?: string; // populated via JOIN: "मराठी (English)"
   state: string;

@@ -1,6 +1,8 @@
 export interface JobFormData {
   employer_name: string;
-  phone: string;
+  phone?: string;
+  email?: string;
+  application_link?: string;
   job_type_id: string | number;
   district: string;
   taluka: string;
@@ -15,6 +17,9 @@ export interface JobFormData {
 export interface JobFormErrors {
   employer_name?: string;
   phone?: string;
+  email?: string;
+  application_link?: string;
+  contact?: string;
   job_type_id?: string;
   district?: string;
   taluka?: string;
@@ -34,8 +39,20 @@ export function validateJobForm(form: JobFormData): JobFormErrors {
     errs.employer_name = "validation.nameMin";
   }
 
-  if (!form.phone || !/^\d{10}$/.test(form.phone)) {
+  const hasPhone = form.phone && /^\d{10}$/.test(form.phone);
+  const hasEmail = form.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim());
+  const hasLink = form.application_link && form.application_link.trim().length > 0;
+
+  if (form.phone && !hasPhone) {
     errs.phone = "validation.phoneDigits";
+  }
+
+  if (form.email && !hasEmail) {
+    errs.email = "validation.emailInvalid";
+  }
+
+  if (!hasPhone && !hasEmail && !hasLink) {
+    errs.contact = "validation.contactRequired";
   }
 
   const jtId = typeof form.job_type_id === "string" ? parseInt(form.job_type_id) : form.job_type_id;
@@ -71,6 +88,8 @@ export function getFirstValidationError(form: JobFormData): string | null {
   const keyMap: Record<string, string> = {
     "validation.nameMin": "नाव किमान 2 अक्षरे असणे आवश्यक आहे",
     "validation.phoneDigits": "फोन नंबर 10 अंकी असणे आवश्यक आहे",
+    "validation.emailInvalid": "ईमेल पत्ता योग्य नाही",
+    "validation.contactRequired": "फोन नंबर, ईमेल किंवा अर्ज लिंक यापैकी किमान एक द्यावे",
     "validation.required": "हे क्षेत्र रिकामे ठेवता येणार नाही",
     "validation.minWorkers": "किमान 1 कामगार आवश्यक आहे",
   };

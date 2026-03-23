@@ -8,6 +8,7 @@ import { formatDateMarathi, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
+import { DEFAULT_CONTACT_PHONE } from "@/lib/constants";
 
 export default function JobDetail() {
   const params = useParams();
@@ -166,41 +167,77 @@ export default function JobDetail() {
           {t("detail.disclaimer")}
         </p>
 
+        {/* Contact buttons — dynamic based on what the employer provided */}
         <div className="mt-3 flex flex-col gap-2.5">
-          <a
-            href={`tel:${job.phone}`}
-            onClick={() => {
-              fetch(`/api/jobs/${id}/click`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "call" }),
-              });
-              trackEvent("phone_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
-              trackEvent("job_contact", { job_id: id, contact_method: "phone", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
-            }}
-            className="text-base font-semibold py-3 rounded-xl transition text-center"
-            style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
-          >
-            {t("detail.call")} {job.phone}
-          </a>
-          <a
-            href={`https://wa.me/91${job.phone}?text=${encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${id}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              fetch(`/api/jobs/${id}/click`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type: "whatsapp" }),
-              });
-              trackEvent("whatsapp_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
-              trackEvent("job_contact", { job_id: id, contact_method: "whatsapp", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
-            }}
-            className="text-base font-semibold py-3 rounded-xl transition text-center"
-            style={{ backgroundColor: "#25D366", color: "#ffffff" }}
-          >
-            💬 WhatsApp
-          </a>
+          {(() => {
+            const contactPhone = job.phone || DEFAULT_CONTACT_PHONE;
+            return (
+              <>
+                <a
+                  href={`tel:${contactPhone}`}
+                  onClick={() => {
+                    fetch(`/api/jobs/${id}/click`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ type: "call" }),
+                    });
+                    trackEvent("phone_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
+                    trackEvent("job_contact", { job_id: id, contact_method: "phone", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
+                  }}
+                  className="text-base font-semibold py-3 rounded-xl transition text-center"
+                  style={{ backgroundColor: "#16a34a", color: "#ffffff" }}
+                >
+                  {t("detail.call")} {contactPhone}
+                </a>
+                <a
+                  href={`https://wa.me/91${contactPhone}?text=${encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${id}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => {
+                    fetch(`/api/jobs/${id}/click`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ type: "whatsapp" }),
+                    });
+                    trackEvent("whatsapp_click", { job_id: id, job_type: job.job_type_display, employer: job.employer_name });
+                    trackEvent("job_contact", { job_id: id, contact_method: "whatsapp", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
+                  }}
+                  className="text-base font-semibold py-3 rounded-xl transition text-center"
+                  style={{ backgroundColor: "#25D366", color: "#ffffff" }}
+                >
+                  💬 WhatsApp
+                </a>
+              </>
+            );
+          })()}
+
+          {job.email && (
+            <a
+              href={`mailto:${job.email}`}
+              onClick={() => {
+                trackEvent("job_contact", { job_id: id, contact_method: "email", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
+              }}
+              className="text-base font-semibold py-3 rounded-xl transition text-center"
+              style={{ backgroundColor: "#2563eb", color: "#ffffff" }}
+            >
+              {t("detail.email")}: {job.email}
+            </a>
+          )}
+
+          {job.application_link && (
+            <a
+              href={job.application_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                trackEvent("job_contact", { job_id: id, contact_method: "application_link", job_type: job.job_type_display, employer: job.employer_name, page: "job_detail" });
+              }}
+              className="text-base font-semibold py-3 rounded-xl transition text-center"
+              style={{ backgroundColor: "#7c3aed", color: "#ffffff" }}
+            >
+              {t("detail.apply")}
+            </a>
+          )}
         </div>
 
         <div className="mt-3 text-center">

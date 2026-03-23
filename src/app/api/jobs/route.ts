@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: talukaError }, { status: 400 });
   }
 
-  // Duplicate check (skip if explicitly requested)
-  if (!body.skip_duplicate_check) {
+  // Duplicate check (skip if explicitly requested, only applicable when phone is provided)
+  if (!body.skip_duplicate_check && jobData.phone) {
     const dupResult = await db.findDuplicateJobs(jobData.phone, jobData.job_type_id, jobData.taluka);
     if (dupResult.error) {
       console.error("Duplicate check failed, proceeding:", dupResult.error);

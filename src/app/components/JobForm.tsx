@@ -26,6 +26,8 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
   const [form, setForm] = useState({
     employer_name: "",
     phone: "",
+    email: "",
+    application_link: "",
     job_type_id: "",
     district: "सांगली",
     taluka: "",
@@ -63,6 +65,8 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           setForm({
             employer_name: data.employer_name || "",
             phone: data.phone || "",
+            email: data.email || "",
+            application_link: data.application_link || "",
             job_type_id: String(data.job_type_id || ""),
             district: data.district || "सांगली",
             taluka: data.taluka || "",
@@ -109,7 +113,9 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         if (mode === "create") {
           trackEvent("job_posted", { job_type: form.job_type_id, district: form.district, taluka: form.taluka });
           try {
-            localStorage.setItem("mahajob_employer", JSON.stringify({ employer_name: form.employer_name, phone: form.phone }));
+            if (form.phone) {
+              localStorage.setItem("mahajob_employer", JSON.stringify({ employer_name: form.employer_name, phone: form.phone }));
+            }
           } catch {}
         }
         setSuccess(true);
@@ -152,13 +158,15 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             {mode === "create" ? t("form.success") : t("form.editSuccess")}
           </p>
           <div className="flex flex-col gap-2.5">
-            <Link
-              href={`/employer/${form.phone}`}
-              className="text-sm font-semibold py-3 rounded-xl text-center transition block"
-              style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-            >
-              {t("form.viewMyAds")}
-            </Link>
+            {form.phone && (
+              <Link
+                href={`/employer/${form.phone}`}
+                className="text-sm font-semibold py-3 rounded-xl text-center transition block"
+                style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
+              >
+                {t("form.viewMyAds")}
+              </Link>
+            )}
             {mode === "create" && (
               <Link
                 href="/"
@@ -228,25 +236,49 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
           )}
         </Field>
 
-        <Field label={t("form.phone")} error={errors.phone ? t(errors.phone) : undefined}>
-          <input
-            type="tel"
-            inputMode="numeric"
-            value={form.phone}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "");
-              if (val.length <= 10) setForm({ ...form, phone: val });
-            }}
-            list={savedEmployer?.phone ? "saved-phones" : undefined}
-            placeholder={mode === "create" ? t("form.phonePlaceholder") : undefined}
-            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
-          />
-          {savedEmployer?.phone && (
-            <datalist id="saved-phones">
-              <option value={savedEmployer.phone} />
-            </datalist>
-          )}
-        </Field>
+        <div className="space-y-3 rounded-xl p-3" style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa" }}>
+          <p className="text-xs font-medium" style={{ color: "#9a3412" }}>{t("form.contactHint")}</p>
+
+          <Field label={t("form.phone")} error={errors.phone ? t(errors.phone) : (errors.contact ? t(errors.contact) : undefined)}>
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={form.phone}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "");
+                if (val.length <= 10) setForm({ ...form, phone: val });
+              }}
+              list={savedEmployer?.phone ? "saved-phones" : undefined}
+              placeholder={mode === "create" ? t("form.phonePlaceholder") : undefined}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
+            />
+            {savedEmployer?.phone && (
+              <datalist id="saved-phones">
+                <option value={savedEmployer.phone} />
+              </datalist>
+            )}
+          </Field>
+
+          <Field label={t("form.email")} error={errors.email ? t(errors.email) : undefined}>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder={mode === "create" ? t("form.emailPlaceholder") : undefined}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
+            />
+          </Field>
+
+          <Field label={t("form.applicationLink")} error={errors.application_link ? t(errors.application_link) : undefined}>
+            <input
+              type="url"
+              value={form.application_link}
+              onChange={(e) => setForm({ ...form, application_link: e.target.value })}
+              placeholder={mode === "create" ? t("form.applicationLinkPlaceholder") : undefined}
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
+            />
+          </Field>
+        </div>
 
         <Field label={t("form.jobType")} error={errors.job_type_id ? t(errors.job_type_id) : undefined}>
           <JobTypePicker
@@ -423,13 +455,15 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             </div>
 
             <div className="flex flex-col gap-2.5">
-              <Link
-                href={`/employer/${form.phone}`}
-                className="text-sm font-semibold py-3 rounded-xl text-center transition block"
-                style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
-              >
-                {t("form.manageAds")}
-              </Link>
+              {form.phone && (
+                <Link
+                  href={`/employer/${form.phone}`}
+                  className="text-sm font-semibold py-3 rounded-xl text-center transition block"
+                  style={{ backgroundColor: "#FF6B00", color: "#ffffff" }}
+                >
+                  {t("form.manageAds")}
+                </Link>
+              )}
               <button
                 onClick={() => {
                   setShowDuplicateWarning(false);
