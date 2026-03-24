@@ -25,6 +25,32 @@ export async function GET() {
   });
 }
 
+// PATCH /api/admin/job-seekers — Bulk mark job seekers as contacted (admin only)
+export async function PATCH(request: NextRequest) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { phones } = body as { phones: string[] };
+
+  if (!phones || !Array.isArray(phones) || phones.length === 0) {
+    return NextResponse.json({ error: "No phones provided" }, { status: 400 });
+  }
+
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("job_seekers")
+    .update({ last_contacted_at: new Date().toISOString() })
+    .in("phone", phones);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ marked: phones.length });
+}
+
 // POST /api/admin/job-seekers — Bulk add job seekers from CSV data (admin only)
 export async function POST(request: NextRequest) {
   if (!(await isAdminAuthenticated())) {

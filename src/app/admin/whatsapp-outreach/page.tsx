@@ -36,6 +36,11 @@ export default function WhatsAppOutreachPage() {
   const [seekerSending, setSeekerSending] = useState(false);
   const [seekerBatchSize, setSeekerBatchSize] = useState("1");
 
+  // ── Broadcast state ──
+  const [broadcastSize, setBroadcastSize] = useState("30");
+  const [broadcastMarking, setBroadcastMarking] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState("");
+
   // ── Fetch employer pending count ──
   const fetchEmpData = useCallback(async () => {
     try {
@@ -65,6 +70,39 @@ export default function WhatsAppOutreachPage() {
   }, [fetchEmpData, fetchSeekers]);
 
   const neverContacted = seekers.filter((s) => !s.last_contacted_at).length;
+  const broadcastBatch = seekers
+    .filter((s) => !s.last_contacted_at)
+    .slice(0, Math.max(1, parseInt(broadcastSize) || 30));
+
+  const handleCopyBroadcast = () => {
+    const nums = broadcastBatch.map((s) => s.phone).join("\n");
+    navigator.clipboard.writeText(nums);
+    setBroadcastResult(`Copied ${broadcastBatch.length} numbers to clipboard`);
+  };
+
+  const handleMarkBroadcastContacted = async () => {
+    if (broadcastBatch.length === 0) return;
+    setBroadcastMarking(true);
+    setBroadcastResult("");
+    try {
+      const res = await fetch("/api/admin/job-seekers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phones: broadcastBatch.map((s) => s.phone) }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setBroadcastResult(`Marked ${data.marked} as contacted`);
+        fetchSeekers();
+      } else {
+        setBroadcastResult(data.error || "Error");
+      }
+    } catch {
+      setBroadcastResult("Server error");
+    } finally {
+      setBroadcastMarking(false);
+    }
+  };
 
   // ── Handlers ──
 
@@ -207,7 +245,7 @@ export default function WhatsAppOutreachPage() {
       const res = await fetch("/api/admin/send-job-seeker-outreach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_name: "job_seeker_intro", batch_size: parseInt(seekerBatchSize) || 1 }),
+        body: JSON.stringify({ template_name: "job_seeker_poster", batch_size: parseInt(seekerBatchSize) || 1 }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -360,7 +398,7 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Not contacted: <span className="font-bold text-gray-800">{neverContacted}</span>
-            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (template: <span className="font-mono">job_seeker_intro</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (template: <span className="font-mono">job_seeker_poster</span>)</span>
           </p>
           <div className="flex gap-2 items-center">
             <input
@@ -382,6 +420,54 @@ export default function WhatsAppOutreachPage() {
           </div>
           <ResultBanner result={seekerSendResult} />
         </div>
+      </div>
+
+      {/* ════════════════ BROADCAST ════════════════ */}
+      <div className="bg-white rounded-xl p-4 mb-6" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.08)", borderLeft: "3px solid #7c3aed" }}>
+        <h2 className="font-semibold text-gray-700 mb-1">Personal Broadcast</h2>
+        <p className="text-xs text-gray-400 mb-3">Copy numbers → paste in your WhatsApp broadcast → come back and mark as contacted</p>
+
+        <div className="flex gap-2 items-center mb-3">
+          <label className="text-sm text-gray-500 whitespace-nowrap">Batch size:</label>
+          <input
+            type="number"
+            min={1}
+            max={256}
+            value={broadcastSize}
+            onChange={(e) => setBroadcastSize(e.target.value)}
+            className="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:border-purple-400"
+          />
+          <span className="text-xs text-gray-400">{broadcastBatch.length} ready</span>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-3 mb-3 max-h-40 overflow-y-auto font-mono text-xs text-gray-700 select-all">
+          {broadcastBatch.length === 0
+            ? <span className="text-gray-400">No uncontacted seekers</span>
+            : broadcastBatch.map((s) => (
+                <div key={s.phone}>{s.phone}{s.name ? ` — ${s.name}` : ""}</div>
+              ))
+          }
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={handleCopyBroadcast}
+            disabled={broadcastBatch.length === 0}
+            className="flex-1 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+            style={{ backgroundColor: "#7c3aed", color: "#fff" }}
+          >
+            Copy Numbers
+          </button>
+          <button
+            onClick={handleMarkBroadcastContacted}
+            disabled={broadcastMarking || broadcastBatch.length === 0}
+            className="flex-1 py-2 text-sm font-semibold rounded-lg transition disabled:opacity-50"
+            style={{ backgroundColor: "#e5e7eb", color: "#374151" }}
+          >
+            {broadcastMarking ? "Marking..." : "Mark as Contacted"}
+          </button>
+        </div>
+        <ResultBanner result={broadcastResult} />
       </div>
 
     </div>
