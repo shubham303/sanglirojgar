@@ -235,13 +235,15 @@ export default function BrowseJobs() {
         style={{ backgroundColor: "#FFF7ED", borderLeft: "3px solid #FF6B00" }}
       >
         {t("jobs.newDaily")}
-        <button
-          onClick={() => setOpenSeeker(true)}
+        <a
+          href="https://whatsapp.com/channel/0029Vb7ZWJj1dAvzashsa01K"
+          target="_blank"
+          rel="noopener noreferrer"
           className="block mt-1.5 text-xs font-semibold underline"
           style={{ color: "#FF6B00" }}
         >
           {t("jobs.whatsappAlerts")}
-        </button>
+        </a>
       </div>
 
       <div
