@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function HomeClient() {
@@ -50,24 +51,26 @@ export default function HomeClient() {
       {/* Who is this for */}
       <div className="w-full max-w-md mt-2 mb-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div
-            className="bg-white rounded-xl p-4 text-left"
+          <Link
+            href="/jobs"
+            className="bg-white rounded-xl p-4 text-left block hover:shadow-md transition-shadow"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
           >
-            <p className="font-semibold text-gray-800 text-base mb-1">{t("home.forWorkers")}</p>
+            <p className="font-semibold text-gray-800 text-base mb-1">{t("home.forWorkers")} →</p>
             <p className="text-sm text-gray-500 leading-relaxed">
               {t("home.forWorkersDesc")}
             </p>
-          </div>
-          <div
-            className="bg-white rounded-xl p-4 text-left"
+          </Link>
+          <Link
+            href="/employer"
+            className="bg-white rounded-xl p-4 text-left block hover:shadow-md transition-shadow"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
           >
-            <p className="font-semibold text-gray-800 text-base mb-1">{t("home.forOwners")}</p>
+            <p className="font-semibold text-gray-800 text-base mb-1">{t("home.forOwners")} →</p>
             <p className="text-sm text-gray-500 leading-relaxed">
               {t("home.forOwnersDesc")}
             </p>
-          </div>
+          </Link>
         </div>
       </div>
 
