@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatExperience } from "@/lib/utils";
@@ -12,6 +12,7 @@ import { DEFAULT_CONTACT_PHONE } from "@/lib/constants";
 
 export default function JobDetail() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const { t, lang } = useTranslation();
 
@@ -66,13 +67,13 @@ export default function JobDetail() {
 
   return (
     <div>
-      <Link
-        href="/jobs"
-        className="inline-block mb-3 text-sm font-medium"
+      <button
+        onClick={() => router.back()}
+        className="inline-block mb-3 text-sm font-medium cursor-pointer bg-transparent border-none p-0"
         style={{ color: "#FF6B00" }}
       >
         {t("detail.allJobs")}
-      </Link>
+      </button>
 
       <div
         className="bg-white rounded-xl p-4 sm:p-5"
