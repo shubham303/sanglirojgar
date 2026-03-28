@@ -156,7 +156,7 @@ export default function WhatsAppOutreachPage() {
       const res = await fetch("/api/admin/send-whatsapp-outreach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_name: "user_outreach", batch_size: parseInt(empBatchSize) || 1 }),
+        body: JSON.stringify({ template_name: "user_outreach_2", batch_size: parseInt(empBatchSize) || 1 }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -245,7 +245,7 @@ export default function WhatsAppOutreachPage() {
       const res = await fetch("/api/admin/send-job-seeker-outreach", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ template_name: "user_outreach", batch_size: parseInt(seekerBatchSize) || 1 }),
+        body: JSON.stringify({ template_name: "user_outreach_2", batch_size: parseInt(seekerBatchSize) || 1 }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -335,7 +335,7 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Pending: <span className="font-bold text-gray-800">{empPending}</span>
-            <span className="text-xs text-gray-400 ml-1">(template: <span className="font-mono">user_outreach</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">(template: <span className="font-mono">user_outreach_2</span>)</span>
           </p>
           <div className="flex gap-2 items-center">
             <input
@@ -398,7 +398,7 @@ export default function WhatsAppOutreachPage() {
         <div className="mt-4 pt-3 border-t border-gray-100">
           <p className="text-sm text-gray-500 mb-2">
             Not contacted: <span className="font-bold text-gray-800">{neverContacted}</span>
-            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (template: <span className="font-mono">user_outreach</span>)</span>
+            <span className="text-xs text-gray-400 ml-1">/ {seekerTotal} total (template: <span className="font-mono">user_outreach_2</span>)</span>
           </p>
           <div className="flex gap-2 items-center">
             <input

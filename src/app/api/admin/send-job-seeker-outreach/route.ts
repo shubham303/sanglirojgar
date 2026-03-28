@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     // use default
   }
 
-  const templateName = body.template_name || "user_outreach";
+  const templateName = body.template_name || "user_outreach_2";
   const batchSize = Math.min(Math.max(body.batch_size || 1, 1), 500);
 
   const supabase = getSupabase();
