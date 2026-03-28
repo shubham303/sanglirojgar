@@ -62,7 +62,7 @@ export default function HomeClient() {
             </p>
           </Link>
           <Link
-            href="/employer"
+            href="/job/new"
             className="bg-white rounded-xl p-4 text-left block hover:shadow-md transition-shadow"
             style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
           >
