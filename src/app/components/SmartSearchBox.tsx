@@ -45,15 +45,20 @@ export type SearchSelection =
 interface SmartSearchBoxProps {
   onSelect: (selection: SearchSelection | null) => void;
   placeholder?: string;
+  initialSelection?: SearchSelection | null;
 }
 
-export default function SmartSearchBox({ onSelect, placeholder }: SmartSearchBoxProps) {
+export default function SmartSearchBox({ onSelect, placeholder, initialSelection }: SmartSearchBoxProps) {
   const allJobTypes = useJobTypes();
   const popularJobTypes = usePopularJobTypes();
   const categoryGrouped = useCategoryGroupedJobTypes();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(() => {
+    if (initialSelection?.type === "job_type") return initialSelection.label;
+    if (initialSelection?.type === "text") return initialSelection.query;
+    return "";
+  });
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<SearchSelection | null>(null);
+  const [selected, setSelected] = useState<SearchSelection | null>(initialSelection ?? null);
   const [history, setHistory] = useState<SearchSelection[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);

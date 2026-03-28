@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { Suspense, useEffect, useState, useCallback, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
 import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
@@ -39,8 +40,31 @@ function SkeletonCard() {
   );
 }
 
-export default function BrowseJobs() {
+export default function BrowseJobsPage() {
+  return (
+    <Suspense fallback={<div className="flex flex-col gap-3">{[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}</div>}>
+      <BrowseJobs />
+    </Suspense>
+  );
+}
+
+function BrowseJobs() {
   const { t, lang } = useTranslation();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Parse initial filters from URL
+  const initialSelection = (() => {
+    const jobTypeId = searchParams.get("job_type_id");
+    const jobTypeLabel = searchParams.get("job_type_label");
+    const search = searchParams.get("search");
+    if (jobTypeId && jobTypeLabel) return { type: "job_type" as const, id: Number(jobTypeId), label: jobTypeLabel };
+    if (search) return { type: "text" as const, query: search };
+    return null;
+  })();
+  const initialDistrict = searchParams.get("district") || ALL;
+  const initialTaluka = searchParams.get("taluka") || ALL;
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -54,14 +78,14 @@ export default function BrowseJobs() {
   const handleSeekerOpened = useCallback(() => setOpenSeeker(false), []);
 
   // Filter state
-  const [searchSelection, setSearchSelection] = useState<SearchSelection | null>(null);
-  const [filterDistrict, setFilterDistrict] = useState(ALL);
-  const [filterTaluka, setFilterTaluka] = useState(ALL);
+  const [searchSelection, setSearchSelection] = useState<SearchSelection | null>(initialSelection);
+  const [filterDistrict, setFilterDistrict] = useState(initialDistrict);
+  const [filterTaluka, setFilterTaluka] = useState(initialTaluka);
 
   // Applied filters (what's actually fetched)
-  const [appliedSelection, setAppliedSelection] = useState<SearchSelection | null>(null);
-  const [appliedDistrict, setAppliedDistrict] = useState(ALL);
-  const [appliedTaluka, setAppliedTaluka] = useState(ALL);
+  const [appliedSelection, setAppliedSelection] = useState<SearchSelection | null>(initialSelection);
+  const [appliedDistrict, setAppliedDistrict] = useState(initialDistrict);
+  const [appliedTaluka, setAppliedTaluka] = useState(initialTaluka);
 
   const buildUrl = useCallback(
     (pageNum: number, selection: SearchSelection | null, district: string, taluka: string) => {
@@ -75,6 +99,24 @@ export default function BrowseJobs() {
       return `/api/jobs?${params.toString()}`;
     },
     []
+  );
+
+  // Sync applied filters to URL (replaces current history entry)
+  const syncFiltersToUrl = useCallback(
+    (selection: SearchSelection | null, district: string, taluka: string) => {
+      const params = new URLSearchParams();
+      if (selection?.type === "job_type") {
+        params.set("job_type_id", String(selection.id));
+        params.set("job_type_label", selection.label);
+      } else if (selection?.type === "text" && selection.query.trim()) {
+        params.set("search", selection.query.trim());
+      }
+      if (district !== ALL) params.set("district", district);
+      if (taluka !== ALL) params.set("taluka", taluka);
+      const qs = params.toString();
+      router.replace(qs ? `/jobs?${qs}` : "/jobs", { scroll: false });
+    },
+    [router]
   );
 
   const fetchWithRetry = useCallback(
@@ -93,13 +135,16 @@ export default function BrowseJobs() {
     [t]
   );
 
-  // Initial load
+  // Initial load (uses filters from URL if present)
+  const initialLoadDone = useRef(false);
   useEffect(() => {
+    if (initialLoadDone.current) return;
+    initialLoadDone.current = true;
     const load = async () => {
       setLoading(true);
       setError("");
       try {
-        const data = await fetchWithRetry(buildUrl(1, null, ALL, ALL));
+        const data = await fetchWithRetry(buildUrl(1, initialSelection, initialDistrict, initialTaluka));
         setJobs(data.jobs);
         setTotal(data.total);
         setHasMore(data.hasMore);
@@ -111,12 +156,14 @@ export default function BrowseJobs() {
       }
     };
     load();
-  }, [buildUrl, fetchWithRetry]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // SmartSearchBox fires this automatically (debounced internally)
   const handleSearchSelect = async (selection: SearchSelection | null) => {
     setSearchSelection(selection);
     setAppliedSelection(selection);
+    syncFiltersToUrl(selection, appliedDistrict, appliedTaluka);
     setLoading(true);
     setError("");
     try {
@@ -139,6 +186,7 @@ export default function BrowseJobs() {
     setAppliedDistrict(filterDistrict);
     setAppliedTaluka(filterTaluka);
     setAppliedSelection(searchSelection);
+    syncFiltersToUrl(searchSelection, filterDistrict, filterTaluka);
     trackEvent("filter_used", {
       district: filterDistrict,
       taluka: filterTaluka,
@@ -187,6 +235,7 @@ export default function BrowseJobs() {
     setAppliedSelection(null);
     setAppliedDistrict(ALL);
     setAppliedTaluka(ALL);
+    syncFiltersToUrl(null, ALL, ALL);
     setLoading(true);
     setError("");
     fetchWithRetry(buildUrl(1, null, ALL, ALL))
@@ -251,7 +300,7 @@ export default function BrowseJobs() {
         style={{ backgroundColor: "#ffffff", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
       >
         {/* Smart search — job type + tag + free text */}
-        <SmartSearchBox onSelect={handleSearchSelect} />
+        <SmartSearchBox onSelect={handleSearchSelect} initialSelection={initialSelection} />
 
         <p className="text-xs font-semibold text-gray-500">
           {t("jobs.filterHint")}
