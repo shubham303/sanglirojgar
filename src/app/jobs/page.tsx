@@ -93,7 +93,9 @@ function BrowseJobs() {
       params.set("page", String(pageNum));
       params.set("limit", String(PAGE_LIMIT));
       if (selection?.type === "job_type") params.set("job_type_id", String(selection.id));
-      else if (selection?.type === "text" && selection.query.trim()) params.set("search", selection.query.trim());
+      else if (selection?.type === "text" && selection.query.trim()) {
+        params.set("search", selection.query.trim());
+      }
       if (district !== ALL) params.set("district", district);
       if (taluka !== ALL) params.set("taluka", taluka);
       return `/api/jobs?${params.toString()}`;

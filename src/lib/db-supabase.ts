@@ -6,6 +6,8 @@ import { Job, JobType } from "./types";
 let _jobTypeLabelMap: Map<number, string> | null = null;
 /** Cached job type content fragments: "name_mr name_en" */
 let _jobTypeContentMap: Map<number, string> | null = null;
+/** Cached individual job type names for search */
+let _jobTypeNameMap: Map<number, { name_mr: string; name_en: string }> | null = null;
 let _jobTypeMapLastFetch = 0;
 const JOB_TYPE_MAP_TTL_MS = 2 * 60 * 1000; // 2 minutes
 
@@ -18,14 +20,23 @@ async function getJobTypeLabelMap(supabase: ReturnType<typeof getSupabase>): Pro
     .order("id", { ascending: true });
   _jobTypeLabelMap = new Map<number, string>();
   _jobTypeContentMap = new Map<number, string>();
+  _jobTypeNameMap = new Map<number, { name_mr: string; name_en: string }>();
   _jobTypeMapLastFetch = Date.now();
   if (data) {
     for (const jt of data as JobType[]) {
       _jobTypeLabelMap.set(jt.id, `${jt.name_mr} (${jt.name_en})`);
       _jobTypeContentMap.set(jt.id, `${jt.name_mr} ${jt.name_en}`);
+      _jobTypeNameMap.set(jt.id, { name_mr: jt.name_mr, name_en: jt.name_en });
     }
   }
   return _jobTypeLabelMap;
+}
+
+async function getJobTypeNameMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, { name_mr: string; name_en: string }>> {
+  const now = Date.now();
+  if (_jobTypeNameMap && now - _jobTypeMapLastFetch < JOB_TYPE_MAP_TTL_MS) return _jobTypeNameMap;
+  await getJobTypeLabelMap(supabase); // populates all maps
+  return _jobTypeNameMap!;
 }
 
 async function getJobTypeContentMap(supabase: ReturnType<typeof getSupabase>): Promise<Map<number, string>> {
@@ -51,6 +62,7 @@ function buildContentString(
 function invalidateJobTypeLabelMap() {
   _jobTypeLabelMap = null;
   _jobTypeContentMap = null;
+  _jobTypeNameMap = null;
   _jobTypeMapLastFetch = 0;
 }
 
@@ -110,7 +122,17 @@ export function createSupabaseDb(): DbClient {
         .gt("expires_at", new Date().toISOString());
 
       if (filters.job_type_id) {
-        query = query.eq("job_type_id", filters.job_type_id);
+        // Search content field for both Marathi and English job type names
+        // so jobs mentioning the term in description/tags are also found
+        const nameMap = await getJobTypeNameMap(supabase);
+        const names = nameMap.get(filters.job_type_id);
+        if (names) {
+          query = query.or(
+            `job_type_id.eq.${filters.job_type_id},content.ilike.%${names.name_en}%,content.ilike.%${names.name_mr}%`
+          );
+        } else {
+          query = query.eq("job_type_id", filters.job_type_id);
+        }
       }
       if (filters.district) {
         query = query.eq("district", filters.district);

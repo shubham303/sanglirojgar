@@ -167,11 +167,7 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
           onKeyDown={(e) => {
             if (e.key === "Enter" && input.trim()) {
               e.preventDefault();
-              if (matchingJobTypes.length > 0 && !matchingTags.length) {
-                pick({ type: "job_type", id: matchingJobTypes[0].id, label: `${matchingJobTypes[0].name_mr} (${matchingJobTypes[0].name_en})` });
-              } else {
-                pick({ type: "text", query: input.trim() });
-              }
+              pick({ type: "text", query: input.trim() });
             }
             if (e.key === "Escape") { setOpen(false); }
           }}
@@ -302,6 +298,22 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
             </>
           )}
 
+          {/* Free text search option — shown first so Enter matches */}
+          {input.trim() && (
+            <button
+              type="button"
+              onMouseDown={() => pick({ type: "text", query: input.trim() })}
+              className="w-full text-left px-4 py-2.5 border-b border-gray-100 hover:bg-orange-50 transition flex items-center gap-3"
+            >
+              <span className="text-gray-300">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </span>
+              <span className="text-sm text-gray-500">
+                &quot;<span className="font-medium text-gray-700">{input.trim()}</span>&quot; शोधा
+              </span>
+            </button>
+          )}
+
           {/* Job types */}
           {matchingJobTypes.length > 0 && (
             <>
@@ -349,21 +361,6 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
             </>
           )}
 
-          {/* Free text search option */}
-          {input.trim() && (
-            <button
-              type="button"
-              onMouseDown={() => pick({ type: "text", query: input.trim() })}
-              className="w-full text-left px-4 py-2.5 border-t border-gray-100 hover:bg-orange-50 transition flex items-center gap-3"
-            >
-              <span className="text-gray-300">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </span>
-              <span className="text-sm text-gray-500">
-                &quot;<span className="font-medium text-gray-700">{input.trim()}</span>&quot; शोधा
-              </span>
-            </button>
-          )}
         </div>
       )}
     </div>
