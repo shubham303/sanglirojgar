@@ -264,7 +264,7 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
                     <button
                       key={jt.id}
                       type="button"
-                      onMouseDown={() => pick({ type: "job_type", id: jt.id, label: `${jt.name_mr} (${jt.name_en})` })}
+                      onMouseDown={() => pick({ type: "job_type", id: jt.id, label: jt.name_en })}
                       className="w-full text-left px-4 py-2.5 hover:bg-orange-50 transition flex items-center gap-3"
                     >
                       <span className="text-gray-300">
@@ -289,7 +289,7 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
                     <button
                       key={jt.id}
                       type="button"
-                      onMouseDown={() => pick({ type: "job_type", id: jt.id, label: `${jt.name_mr} (${jt.name_en})` })}
+                      onMouseDown={() => pick({ type: "job_type", id: jt.id, label: jt.name_en })}
                       className="w-full text-left px-4 py-2.5 hover:bg-orange-50 transition flex items-center gap-3"
                     >
                       <span className="text-gray-300">
@@ -332,7 +332,7 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
                 <button
                   key={jt.id}
                   type="button"
-                  onMouseDown={() => pick({ type: "job_type", id: jt.id, label: `${jt.name_mr} (${jt.name_en})` })}
+                  onMouseDown={() => pick({ type: "job_type", id: jt.id, label: jt.name_en })}
                   className="w-full text-left px-4 py-2.5 hover:bg-orange-50 transition flex items-center gap-3"
                 >
                   <span className="text-sm text-gray-300">

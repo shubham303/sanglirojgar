@@ -459,6 +459,28 @@ export const TALUKA_NAME_EN: Record<string, string> = {
   "सेनगाव": "Sengaon",
 };
 
+// Reverse maps: English name → Marathi name
+const DISTRICT_NAME_MR: Record<string, string> = Object.fromEntries(
+  Object.entries(DISTRICT_NAME_EN).map(([mr, en]) => [en, mr])
+);
+const TALUKA_NAME_MR: Record<string, string> = Object.fromEntries(
+  Object.entries(TALUKA_NAME_EN).map(([mr, en]) => [en, mr])
+);
+
+// Slug maps: lowercase English slug ↔ Marathi name
+const DISTRICT_SLUG_TO_MR: Record<string, string> = Object.fromEntries(
+  Object.entries(DISTRICT_NAME_EN).map(([mr, en]) => [en.toLowerCase().replace(/\s+/g, "-"), mr])
+);
+const DISTRICT_MR_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(DISTRICT_NAME_EN).map(([mr, en]) => [mr, en.toLowerCase().replace(/\s+/g, "-")])
+);
+const TALUKA_SLUG_TO_MR: Record<string, string> = Object.fromEntries(
+  Object.entries(TALUKA_NAME_EN).map(([mr, en]) => [en.toLowerCase().replace(/\s+/g, "-"), mr])
+);
+const TALUKA_MR_TO_SLUG: Record<string, string> = Object.fromEntries(
+  Object.entries(TALUKA_NAME_EN).map(([mr, en]) => [mr, en.toLowerCase().replace(/\s+/g, "-")])
+);
+
 /** Return the English display name for a Marathi district, or the original if not found */
 export function districtDisplayName(marathi: string, lang: string): string {
   if (lang === "en") return DISTRICT_NAME_EN[marathi] || marathi;
@@ -469,4 +491,24 @@ export function districtDisplayName(marathi: string, lang: string): string {
 export function talukaDisplayName(marathi: string, lang: string): string {
   if (lang === "en") return TALUKA_NAME_EN[marathi] || marathi;
   return marathi;
+}
+
+/** Convert Marathi district name to URL-friendly English slug */
+export function districtToSlug(marathi: string): string {
+  return DISTRICT_MR_TO_SLUG[marathi] || marathi;
+}
+
+/** Convert URL slug back to Marathi district name */
+export function districtFromSlug(slug: string): string {
+  return DISTRICT_SLUG_TO_MR[slug.toLowerCase()] || DISTRICT_NAME_MR[slug] || slug;
+}
+
+/** Convert Marathi taluka name to URL-friendly English slug */
+export function talukaToSlug(marathi: string): string {
+  return TALUKA_MR_TO_SLUG[marathi] || marathi;
+}
+
+/** Convert URL slug back to Marathi taluka name */
+export function talukaFromSlug(slug: string): string {
+  return TALUKA_SLUG_TO_MR[slug.toLowerCase()] || TALUKA_NAME_MR[slug] || slug;
 }

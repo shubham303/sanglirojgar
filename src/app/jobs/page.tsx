@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { DISTRICTS, DISTRICT_TALUKAS } from "@/lib/constants";
-import { districtDisplayName, talukaDisplayName } from "@/lib/i18n/locations";
+import { districtDisplayName, talukaDisplayName, districtToSlug, districtFromSlug, talukaToSlug, talukaFromSlug } from "@/lib/i18n/locations";
 import { Job } from "@/lib/types";
 import { formatDateMarathi, formatLocation, formatExperience } from "@/lib/utils";
 import { trackEvent } from "@/lib/gtag";
@@ -62,8 +62,12 @@ function BrowseJobs() {
     if (search) return { type: "text" as const, query: search };
     return null;
   })();
-  const initialDistrict = searchParams.get("district") || ALL;
-  const initialTaluka = searchParams.get("taluka") || ALL;
+  const initialDistrict = searchParams.get("district")
+    ? districtFromSlug(searchParams.get("district")!)
+    : ALL;
+  const initialTaluka = searchParams.get("taluka")
+    ? talukaFromSlug(searchParams.get("taluka")!)
+    : ALL;
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [total, setTotal] = useState(0);
@@ -113,8 +117,8 @@ function BrowseJobs() {
       } else if (selection?.type === "text" && selection.query.trim()) {
         params.set("search", selection.query.trim());
       }
-      if (district !== ALL) params.set("district", district);
-      if (taluka !== ALL) params.set("taluka", taluka);
+      if (district !== ALL) params.set("district", districtToSlug(district));
+      if (taluka !== ALL) params.set("taluka", talukaToSlug(taluka));
       const qs = params.toString();
       router.replace(qs ? `/jobs?${qs}` : "/jobs", { scroll: false });
     },
