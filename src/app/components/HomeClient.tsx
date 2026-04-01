@@ -8,42 +8,42 @@ export default function HomeClient() {
 
   const cities = [
     // Featured 5 first
-    { mr: "सांगली", en: "Sangli", slug: "sangli" },
-    { mr: "कोल्हापूर", en: "Kolhapur", slug: "kolhapur" },
-    { mr: "पुणे", en: "Pune", slug: "pune" },
-    { mr: "मुंबई", en: "Mumbai", slug: "mumbai" },
-    { mr: "नागपूर", en: "Nagpur", slug: "nagpur" },
+    { mr: "सांगली", en: "Sangli", slug: "sangli", icon: "🏛️" },
+    { mr: "कोल्हापूर", en: "Kolhapur", slug: "kolhapur", icon: "⛰️" },
+    { mr: "पुणे", en: "Pune", slug: "pune", icon: "🏙️" },
+    { mr: "मुंबई", en: "Mumbai", slug: "mumbai", icon: "🌆" },
+    { mr: "नागपूर", en: "Nagpur", slug: "nagpur", icon: "🍊" },
     // Remaining districts
-    { mr: "नाशिक", en: "Nashik", slug: "nashik" },
-    { mr: "औरंगाबाद", en: "Aurangabad", slug: "aurangabad" },
-    { mr: "सोलापूर", en: "Solapur", slug: "solapur" },
-    { mr: "सातारा", en: "Satara", slug: "satara" },
-    { mr: "अहमदनगर", en: "Ahmednagar", slug: "ahmednagar" },
-    { mr: "रत्नागिरी", en: "Ratnagiri", slug: "ratnagiri" },
-    { mr: "ठाणे", en: "Thane", slug: "thane" },
-    { mr: "रायगड", en: "Raigad", slug: "raigad" },
-    { mr: "सिंधुदुर्ग", en: "Sindhudurg", slug: "sindhudurg" },
-    { mr: "पालघर", en: "Palghar", slug: "palghar" },
-    { mr: "धुळे", en: "Dhule", slug: "dhule" },
-    { mr: "जळगाव", en: "Jalgaon", slug: "jalgaon" },
-    { mr: "नंदुरबार", en: "Nandurbar", slug: "nandurbar" },
-    { mr: "अमरावती", en: "Amravati", slug: "amravati" },
-    { mr: "अकोला", en: "Akola", slug: "akola" },
-    { mr: "बुलढाणा", en: "Buldhana", slug: "buldhana" },
-    { mr: "यवतमाळ", en: "Yavatmal", slug: "yavatmal" },
-    { mr: "वाशीम", en: "Washim", slug: "washim" },
-    { mr: "वर्धा", en: "Wardha", slug: "wardha" },
-    { mr: "भंडारा", en: "Bhandara", slug: "bhandara" },
-    { mr: "गोंदिया", en: "Gondia", slug: "gondia" },
-    { mr: "चंद्रपूर", en: "Chandrapur", slug: "chandrapur" },
-    { mr: "गडचिरोली", en: "Gadchiroli", slug: "gadchiroli" },
-    { mr: "जालना", en: "Jalna", slug: "jalna" },
-    { mr: "बीड", en: "Beed", slug: "beed" },
-    { mr: "लातूर", en: "Latur", slug: "latur" },
-    { mr: "उस्मानाबाद", en: "Osmanabad", slug: "osmanabad" },
-    { mr: "नांदेड", en: "Nanded", slug: "nanded" },
-    { mr: "परभणी", en: "Parbhani", slug: "parbhani" },
-    { mr: "हिंगोली", en: "Hingoli", slug: "hingoli" },
+    { mr: "नाशिक", en: "Nashik", slug: "nashik", icon: "🍇" },
+    { mr: "औरंगाबाद", en: "Aurangabad", slug: "aurangabad", icon: "🕌" },
+    { mr: "सोलापूर", en: "Solapur", slug: "solapur", icon: "🏭" },
+    { mr: "सातारा", en: "Satara", slug: "satara", icon: "🏔️" },
+    { mr: "अहमदनगर", en: "Ahmednagar", slug: "ahmednagar", icon: "🌾" },
+    { mr: "रत्नागिरी", en: "Ratnagiri", slug: "ratnagiri", icon: "🥭" },
+    { mr: "ठाणे", en: "Thane", slug: "thane", icon: "🌊" },
+    { mr: "रायगड", en: "Raigad", slug: "raigad", icon: "🏰" },
+    { mr: "सिंधुदुर्ग", en: "Sindhudurg", slug: "sindhudurg", icon: "🏖️" },
+    { mr: "पालघर", en: "Palghar", slug: "palghar", icon: "🌴" },
+    { mr: "धुळे", en: "Dhule", slug: "dhule", icon: "🛤️" },
+    { mr: "जळगाव", en: "Jalgaon", slug: "jalgaon", icon: "🍌" },
+    { mr: "नंदुरबार", en: "Nandurbar", slug: "nandurbar", icon: "🌿" },
+    { mr: "अमरावती", en: "Amravati", slug: "amravati", icon: "🐅" },
+    { mr: "अकोला", en: "Akola", slug: "akola", icon: "🌻" },
+    { mr: "बुलढाणा", en: "Buldhana", slug: "buldhana", icon: "🌽" },
+    { mr: "यवतमाळ", en: "Yavatmal", slug: "yavatmal", icon: "🪵" },
+    { mr: "वाशीम", en: "Washim", slug: "washim", icon: "🌱" },
+    { mr: "वर्धा", en: "Wardha", slug: "wardha", icon: "🧡" },
+    { mr: "भंडारा", en: "Bhandara", slug: "bhandara", icon: "🍚" },
+    { mr: "गोंदिया", en: "Gondia", slug: "gondia", icon: "🌲" },
+    { mr: "चंद्रपूर", en: "Chandrapur", slug: "chandrapur", icon: "⛏️" },
+    { mr: "गडचिरोली", en: "Gadchiroli", slug: "gadchiroli", icon: "🌳" },
+    { mr: "जालना", en: "Jalna", slug: "jalna", icon: "🏗️" },
+    { mr: "बीड", en: "Beed", slug: "beed", icon: "🐂" },
+    { mr: "लातूर", en: "Latur", slug: "latur", icon: "💧" },
+    { mr: "उस्मानाबाद", en: "Osmanabad", slug: "osmanabad", icon: "🏯" },
+    { mr: "नांदेड", en: "Nanded", slug: "nanded", icon: "🛕" },
+    { mr: "परभणी", en: "Parbhani", slug: "parbhani", icon: "🌐" },
+    { mr: "हिंगोली", en: "Hingoli", slug: "hingoli", icon: "🪷" },
   ];
 
   const categories = [
@@ -109,18 +109,15 @@ export default function HomeClient() {
           className="flex gap-2.5 overflow-x-auto pb-2"
           style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
         >
-          {cities.map((city, i) => (
+          {cities.map((city) => (
             <Link
               key={city.slug}
               href={`/jobs?district=${city.slug}`}
-              className="shrink-0 bg-white rounded-xl px-4 py-3 flex items-center gap-2 hover:shadow-md transition-shadow"
-              style={{
-                scrollSnapAlign: "start",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                border: i < 5 ? "1.5px solid #FF6B00" : "1.5px solid transparent",
-              }}
+              className="shrink-0 bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
+              style={{ scrollSnapAlign: "start", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "80px" }}
             >
-              <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">
+              <span className="text-2xl">{city.icon}</span>
+              <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">
                 {lang === "mr" ? city.mr : city.en}
               </span>
             </Link>
