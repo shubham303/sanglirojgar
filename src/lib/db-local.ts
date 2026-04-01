@@ -218,6 +218,20 @@ export function createLocalDb(): DbClient {
           paramIdx++;
         }
 
+        // Find job_type_ids matching the search term for priority sorting
+        let jobTypeSortExpr = "";
+        if (filters.search) {
+          const searchLower = filters.search.toLowerCase();
+          const { rows: jtRows } = await pool.query(
+            "SELECT id FROM job_types WHERE LOWER(name_en) LIKE $1 OR name_mr LIKE $2",
+            [`%${searchLower}%`, `%${filters.search}%`]
+          );
+          if (jtRows.length > 0) {
+            const ids = jtRows.map((r: { id: number }) => r.id).join(",");
+            jobTypeSortExpr = `CASE WHEN j.job_type_id IN (${ids}) THEN 0 ELSE 1 END, `;
+          }
+        }
+
         const where = conditions.join(" AND ");
 
         const countResult = await pool.query(
@@ -229,7 +243,7 @@ export function createLocalDb(): DbClient {
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];
         const { rows } = await pool.query(
-          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE ${where} ORDER BY j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
+          `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE ${where} ORDER BY ${jobTypeSortExpr}j.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`,
           dataValues
         );
 

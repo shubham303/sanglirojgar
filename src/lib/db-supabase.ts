@@ -114,16 +114,25 @@ export function createSupabaseDb(): DbClient {
 
   return {
     async getActiveJobsPaginated(filters: JobFilters) {
-      let query = supabase
-        .from("jobs")
-        .select(JOBS_SELECT_WITH_CLICKS, { count: "exact" })
-        .eq("is_active", true)
-        .eq("is_deleted", false)
-        .gt("expires_at", new Date().toISOString());
+      const nowISO = new Date().toISOString();
 
+      /** Build a base query with shared filters (active, not deleted, not expired, district, taluka) */
+      function baseQuery() {
+        let q = supabase
+          .from("jobs")
+          .select(JOBS_SELECT_WITH_CLICKS, { count: "exact" })
+          .eq("is_active", true)
+          .eq("is_deleted", false)
+          .gt("expires_at", nowISO);
+
+        if (filters.district) q = q.eq("district", filters.district);
+        if (filters.taluka) q = q.eq("taluka", filters.taluka);
+        return q;
+      }
+
+      // --- job_type_id filter (existing behaviour) ---
       if (filters.job_type_id) {
-        // Search content field for both Marathi and English job type names
-        // so jobs mentioning the term in description/tags are also found
+        let query = baseQuery();
         const nameMap = await getJobTypeNameMap(supabase);
         const names = nameMap.get(filters.job_type_id);
         if (names) {
@@ -133,17 +142,137 @@ export function createSupabaseDb(): DbClient {
         } else {
           query = query.eq("job_type_id", filters.job_type_id);
         }
-      }
-      if (filters.district) {
-        query = query.eq("district", filters.district);
-      }
-      if (filters.taluka) {
-        query = query.eq("taluka", filters.taluka);
-      }
-      if (filters.search) {
-        query = query.ilike("content", `%${filters.search}%`);
+        if (filters.search) {
+          query = query.ilike("content", `%${filters.search}%`);
+        }
+        const offset = (filters.page - 1) * filters.limit;
+        query = query
+          .order("is_premium", { ascending: false })
+          .order("created_at", { ascending: false })
+          .range(offset, offset + filters.limit - 1);
+
+        const { data, error, count } = await query;
+        if (error) return { data: null, error: error.message };
+        const total = count ?? 0;
+        const labelMap = await getJobTypeLabelMap(supabase);
+        return {
+          data: {
+            jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
+            total,
+            page: filters.page,
+            limit: filters.limit,
+            hasMore: offset + (data?.length ?? 0) < total,
+          } as PaginatedJobs,
+          error: null,
+        };
       }
 
+      // --- Free-text search: prioritize exact job-type matches ---
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const nameMap = await getJobTypeNameMap(supabase);
+        const matchingIds: number[] = [];
+        for (const [id, names] of nameMap) {
+          if (names.name_en.toLowerCase().includes(searchLower) || names.name_mr.includes(filters.search)) {
+            matchingIds.push(id);
+          }
+        }
+
+        if (matchingIds.length > 0) {
+          const offset = (filters.page - 1) * filters.limit;
+
+          // Q1: jobs whose job_type matches the search term
+          const q1Count = baseQuery().in("job_type_id", matchingIds);
+          const { count: q1Total, error: q1Err } = await q1Count;
+          if (q1Err) return { data: null, error: q1Err.message };
+          const tier1Count = q1Total ?? 0;
+
+          let tier1Jobs: Record<string, unknown>[] = [];
+          let tier2Jobs: Record<string, unknown>[] = [];
+
+          if (offset < tier1Count) {
+            // Need some (or all) rows from tier 1
+            const q1 = baseQuery()
+              .in("job_type_id", matchingIds)
+              .order("is_premium", { ascending: false })
+              .order("created_at", { ascending: false })
+              .range(offset, offset + filters.limit - 1);
+            const { data: d1, error: e1 } = await q1;
+            if (e1) return { data: null, error: e1.message };
+            tier1Jobs = (d1 as Record<string, unknown>[]) ?? [];
+
+            // If tier 1 didn't fill the page, get remainder from tier 2
+            const remaining = filters.limit - tier1Jobs.length;
+            if (remaining > 0) {
+              const q2 = baseQuery()
+                .ilike("content", `%${filters.search}%`)
+                .not("job_type_id", "in", `(${matchingIds.join(",")})`)
+                .order("is_premium", { ascending: false })
+                .order("created_at", { ascending: false })
+                .range(0, remaining - 1);
+              const { data: d2, error: e2 } = await q2;
+              if (e2) return { data: null, error: e2.message };
+              tier2Jobs = (d2 as Record<string, unknown>[]) ?? [];
+            }
+          } else {
+            // Entirely in tier 2
+            const tier2Offset = offset - tier1Count;
+            const q2 = baseQuery()
+              .ilike("content", `%${filters.search}%`)
+              .not("job_type_id", "in", `(${matchingIds.join(",")})`)
+              .order("is_premium", { ascending: false })
+              .order("created_at", { ascending: false })
+              .range(tier2Offset, tier2Offset + filters.limit - 1);
+            const { data: d2, error: e2, count: c2 } = await q2;
+            if (e2) return { data: null, error: e2.message };
+            tier2Jobs = (d2 as Record<string, unknown>[]) ?? [];
+          }
+
+          // Get tier 2 total for combined count
+          const { count: q2Total } = await baseQuery()
+            .ilike("content", `%${filters.search}%`)
+            .not("job_type_id", "in", `(${matchingIds.join(",")})`);
+          const total = tier1Count + (q2Total ?? 0);
+          const allJobs = [...tier1Jobs, ...tier2Jobs];
+
+          const labelMap = await getJobTypeLabelMap(supabase);
+          return {
+            data: {
+              jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames(allJobs)),
+              total,
+              page: filters.page,
+              limit: filters.limit,
+              hasMore: offset + allJobs.length < total,
+            } as PaginatedJobs,
+            error: null,
+          };
+        }
+
+        // No job-type match — fall through to simple content search
+        let query = baseQuery().ilike("content", `%${filters.search}%`);
+        const offset = (filters.page - 1) * filters.limit;
+        query = query
+          .order("is_premium", { ascending: false })
+          .order("created_at", { ascending: false })
+          .range(offset, offset + filters.limit - 1);
+        const { data, error, count } = await query;
+        if (error) return { data: null, error: error.message };
+        const total = count ?? 0;
+        const labelMap = await getJobTypeLabelMap(supabase);
+        return {
+          data: {
+            jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
+            total,
+            page: filters.page,
+            limit: filters.limit,
+            hasMore: offset + (data?.length ?? 0) < total,
+          } as PaginatedJobs,
+          error: null,
+        };
+      }
+
+      // --- No search / no job_type_id: just list all active jobs ---
+      let query = baseQuery();
       const offset = (filters.page - 1) * filters.limit;
       query = query
         .order("is_premium", { ascending: false })
@@ -151,21 +280,19 @@ export function createSupabaseDb(): DbClient {
         .range(offset, offset + filters.limit - 1);
 
       const { data, error, count } = await query;
-
-      if (error) {
-        return { data: null, error: error.message };
-      }
-
+      if (error) return { data: null, error: error.message };
       const total = count ?? 0;
       const labelMap = await getJobTypeLabelMap(supabase);
-      const result: PaginatedJobs = {
-        jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
-        total,
-        page: filters.page,
-        limit: filters.limit,
-        hasMore: offset + (data?.length ?? 0) < total,
+      return {
+        data: {
+          jobs: addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? [])),
+          total,
+          page: filters.page,
+          limit: filters.limit,
+          hasMore: offset + (data?.length ?? 0) < total,
+        } as PaginatedJobs,
+        error: null,
       };
-      return { data: result, error: null };
     },
 
     async getAllJobsPaginated(filters: AdminJobFilters) {

@@ -63,6 +63,14 @@ export default function SmartSearchBox({ onSelect, placeholder, initialSelection
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Sync local state when parent resets selection to null
+  useEffect(() => {
+    if (initialSelection === null) {
+      setInput("");
+      setSelected(null);
+    }
+  }, [initialSelection]);
+
   // Load history on mount (client only)
   useEffect(() => { setHistory(loadHistory()); }, []);
 
