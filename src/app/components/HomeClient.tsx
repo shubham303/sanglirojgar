@@ -1,12 +1,49 @@
 "use client";
 
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
+
+const RECENT_CITIES_KEY = "mahajob_recent_cities";
+const RECENT_CATEGORIES_KEY = "mahajob_recent_categories";
+const MAX_RECENT = 5;
+
+function getRecent(key: string): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function pushRecent(key: string, id: string) {
+  const list = getRecent(key).filter((x) => x !== id);
+  list.unshift(id);
+  try {
+    localStorage.setItem(key, JSON.stringify(list.slice(0, MAX_RECENT)));
+  } catch { /* ignore */ }
+}
 
 export default function HomeClient() {
   const { t, lang } = useTranslation();
 
-  const cities = [
+  const [recentCities, setRecentCities] = useState<string[]>([]);
+  const [recentCategories, setRecentCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecentCities(getRecent(RECENT_CITIES_KEY));
+    setRecentCategories(getRecent(RECENT_CATEGORIES_KEY));
+  }, []);
+
+  const onCityClick = useCallback((slug: string) => {
+    pushRecent(RECENT_CITIES_KEY, slug);
+  }, []);
+
+  const onCategoryClick = useCallback((search: string) => {
+    pushRecent(RECENT_CATEGORIES_KEY, search);
+  }, []);
+
+  const allCities = [
     // Featured 5 first
     { mr: "सांगली", en: "Sangli", slug: "sangli", icon: "🏛️" },
     { mr: "कोल्हापूर", en: "Kolhapur", slug: "kolhapur", icon: "⛰️" },
@@ -46,7 +83,7 @@ export default function HomeClient() {
     { mr: "हिंगोली", en: "Hingoli", slug: "hingoli", icon: "🪷" },
   ];
 
-  const categories = [
+  const allCategories = [
     { mr: "ट्रान्सपोर्ट", en: "Transport", search: "driver", icon: "🚛" },
     { mr: "सेल्स", en: "Sales", search: "sales", icon: "🛒" },
     { mr: "हॉस्पिटल", en: "Hospital", search: "hospital", icon: "🏥" },
@@ -56,6 +93,24 @@ export default function HomeClient() {
     { mr: "हेल्पर", en: "Helper", search: "helper", icon: "🤝" },
     { mr: "अकाउंटंट", en: "Accountant", search: "accountant", icon: "🧾" },
   ];
+
+  const cities = useMemo(() => {
+    if (recentCities.length === 0) return allCities;
+    const recent = recentCities
+      .map((slug) => allCities.find((c) => c.slug === slug))
+      .filter(Boolean) as typeof allCities;
+    const rest = allCities.filter((c) => !recentCities.includes(c.slug));
+    return [...recent, ...rest];
+  }, [recentCities]);
+
+  const categories = useMemo(() => {
+    if (recentCategories.length === 0) return allCategories;
+    const recent = recentCategories
+      .map((s) => allCategories.find((c) => c.search === s))
+      .filter(Boolean) as typeof allCategories;
+    const rest = allCategories.filter((c) => !recentCategories.includes(c.search));
+    return [...recent, ...rest];
+  }, [recentCategories]);
 
   const testimonials = [
     { name: "राजेश पाटील", location: "सांगली", text: "महा जॉब वरून 2 दिवसात ड्रायव्हर मिळाला. खूप सोपं आहे!", accent: "#FF6B00" },
@@ -117,6 +172,7 @@ export default function HomeClient() {
               <Link
                 key={city.slug}
                 href={`/jobs?district=${city.slug}`}
+                onClick={() => onCityClick(city.slug)}
                 className="bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "80px" }}
               >
@@ -145,6 +201,7 @@ export default function HomeClient() {
               <Link
                 key={cat.search}
                 href={`/jobs?search=${encodeURIComponent(cat.search)}`}
+                onClick={() => onCategoryClick(cat.search)}
                 className="bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
                 style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "88px" }}
               >
