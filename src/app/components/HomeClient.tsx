@@ -7,19 +7,54 @@ export default function HomeClient() {
   const { t, lang } = useTranslation();
 
   const cities = [
-    { mr: "सांगली", en: "Sangli", slug: "sangli", icon: "🏛️" },
-    { mr: "कोल्हापूर", en: "Kolhapur", slug: "kolhapur", icon: "⛰️" },
-    { mr: "पुणे", en: "Pune", slug: "pune", icon: "🏙️" },
-    { mr: "मुंबई", en: "Mumbai", slug: "mumbai", icon: "🌆" },
-    { mr: "नागपूर", en: "Nagpur", slug: "nagpur", icon: "🍊" },
+    // Featured 5 first
+    { mr: "सांगली", en: "Sangli", slug: "sangli" },
+    { mr: "कोल्हापूर", en: "Kolhapur", slug: "kolhapur" },
+    { mr: "पुणे", en: "Pune", slug: "pune" },
+    { mr: "मुंबई", en: "Mumbai", slug: "mumbai" },
+    { mr: "नागपूर", en: "Nagpur", slug: "nagpur" },
+    // Remaining districts
+    { mr: "नाशिक", en: "Nashik", slug: "nashik" },
+    { mr: "औरंगाबाद", en: "Aurangabad", slug: "aurangabad" },
+    { mr: "सोलापूर", en: "Solapur", slug: "solapur" },
+    { mr: "सातारा", en: "Satara", slug: "satara" },
+    { mr: "अहमदनगर", en: "Ahmednagar", slug: "ahmednagar" },
+    { mr: "रत्नागिरी", en: "Ratnagiri", slug: "ratnagiri" },
+    { mr: "ठाणे", en: "Thane", slug: "thane" },
+    { mr: "रायगड", en: "Raigad", slug: "raigad" },
+    { mr: "सिंधुदुर्ग", en: "Sindhudurg", slug: "sindhudurg" },
+    { mr: "पालघर", en: "Palghar", slug: "palghar" },
+    { mr: "धुळे", en: "Dhule", slug: "dhule" },
+    { mr: "जळगाव", en: "Jalgaon", slug: "jalgaon" },
+    { mr: "नंदुरबार", en: "Nandurbar", slug: "nandurbar" },
+    { mr: "अमरावती", en: "Amravati", slug: "amravati" },
+    { mr: "अकोला", en: "Akola", slug: "akola" },
+    { mr: "बुलढाणा", en: "Buldhana", slug: "buldhana" },
+    { mr: "यवतमाळ", en: "Yavatmal", slug: "yavatmal" },
+    { mr: "वाशीम", en: "Washim", slug: "washim" },
+    { mr: "वर्धा", en: "Wardha", slug: "wardha" },
+    { mr: "भंडारा", en: "Bhandara", slug: "bhandara" },
+    { mr: "गोंदिया", en: "Gondia", slug: "gondia" },
+    { mr: "चंद्रपूर", en: "Chandrapur", slug: "chandrapur" },
+    { mr: "गडचिरोली", en: "Gadchiroli", slug: "gadchiroli" },
+    { mr: "जालना", en: "Jalna", slug: "jalna" },
+    { mr: "बीड", en: "Beed", slug: "beed" },
+    { mr: "लातूर", en: "Latur", slug: "latur" },
+    { mr: "उस्मानाबाद", en: "Osmanabad", slug: "osmanabad" },
+    { mr: "नांदेड", en: "Nanded", slug: "nanded" },
+    { mr: "परभणी", en: "Parbhani", slug: "parbhani" },
+    { mr: "हिंगोली", en: "Hingoli", slug: "hingoli" },
   ];
 
   const categories = [
-    { mr: "ट्रान्सपोर्ट / वाहतूक", en: "Transport", search: "driver", icon: "🚛" },
-    { mr: "सेल्स / विक्री", en: "Sales", search: "sales", icon: "🛒" },
-    { mr: "हॉस्पिटल / आरोग्य", en: "Hospital", search: "hospital", icon: "🏥" },
-    { mr: "ऑफिस / कार्यालय", en: "Office", search: "office", icon: "💼" },
+    { mr: "ट्रान्सपोर्ट", en: "Transport", search: "driver", icon: "🚛" },
+    { mr: "सेल्स", en: "Sales", search: "sales", icon: "🛒" },
+    { mr: "हॉस्पिटल", en: "Hospital", search: "hospital", icon: "🏥" },
+    { mr: "ऑफिस", en: "Office", search: "office", icon: "💼" },
     { mr: "वर्क फ्रॉम होम", en: "Work from Home", search: "work from home", icon: "🏠" },
+    { mr: "एअरपोर्ट", en: "Airport", search: "airport", icon: "✈️" },
+    { mr: "हेल्पर", en: "Helper", search: "helper", icon: "🤝" },
+    { mr: "अकाउंटंट", en: "Accountant", search: "accountant", icon: "🧾" },
   ];
 
   const testimonials = [
@@ -67,19 +102,25 @@ export default function HomeClient() {
         {t("home.browseJobsBtn")}
       </Link>
 
-      {/* City Cards */}
+      {/* City Cards — horizontal scroll */}
       <div className="w-full max-w-md mb-5">
         <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">{t("home.browseByCity")}</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
-          {cities.map((city) => (
+        <div
+          className="flex gap-2.5 overflow-x-auto pb-2"
+          style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+        >
+          {cities.map((city, i) => (
             <Link
               key={city.slug}
               href={`/jobs?district=${city.slug}`}
-              className="bg-white rounded-xl p-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
-              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+              className="shrink-0 bg-white rounded-xl px-4 py-3 flex items-center gap-2 hover:shadow-md transition-shadow"
+              style={{
+                scrollSnapAlign: "start",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                border: i < 5 ? "1.5px solid #FF6B00" : "1.5px solid transparent",
+              }}
             >
-              <span className="text-2xl">{city.icon}</span>
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">
                 {lang === "mr" ? city.mr : city.en}
               </span>
             </Link>
@@ -87,19 +128,22 @@ export default function HomeClient() {
         </div>
       </div>
 
-      {/* Category Cards */}
+      {/* Category Cards — horizontal scroll */}
       <div className="w-full max-w-md mb-5">
         <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">{t("home.browseByCategory")}</h2>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+        <div
+          className="flex gap-2.5 overflow-x-auto pb-2"
+          style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+        >
           {categories.map((cat) => (
             <Link
               key={cat.search}
               href={`/jobs?search=${encodeURIComponent(cat.search)}`}
-              className="bg-white rounded-xl p-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
-              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+              className="shrink-0 bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
+              style={{ scrollSnapAlign: "start", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "88px" }}
             >
               <span className="text-2xl">{cat.icon}</span>
-              <span className="text-xs font-semibold text-gray-800 leading-tight text-center">
+              <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">
                 {lang === "mr" ? cat.mr : cat.en}
               </span>
             </Link>
