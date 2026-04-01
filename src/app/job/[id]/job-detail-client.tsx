@@ -191,7 +191,7 @@ export default function JobDetail() {
                   {t("detail.call")} {contactPhone}
                 </a>
                 <a
-                  href={`https://wa.me/91${contactPhone}?text=${encodeURIComponent(`नमस्कार, मी mahajob.in वर तुमची ${job.job_type_display} ची जाहिरात पाहिली. मला या नोकरीबद्दल अधिक माहिती हवी आहे.\n\nhttps://www.mahajob.in/job/${id}`)}`}
+                  href={`https://wa.me/91${contactPhone}?text=${encodeURIComponent(`Hello, I found your *${job.job_type_display}* job on mahajob.in${job.employer_name ? ` (${job.employer_name})` : ''} and I am interested.\n\nPlease let me know the next steps.\n\n---\n\nनमस्कार, मला mahajob.in वर *${job.job_type_display}*${job.employer_name ? ` (${job.employer_name})` : ''} ही नोकरी दिसली आणि मला यामध्ये रस आहे.\n\nकृपया पुढील प्रक्रियेबद्दल मला कळवा.\n\nhttps://www.mahajob.in/job/${id}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => {
