@@ -4,8 +4,8 @@ export const ADMIN_PHONE = "9960739351";
 // Default contact phone shown to job seekers when employer hasn't provided a number
 export const DEFAULT_CONTACT_PHONE = "9960739251";
 
-// Job expiry
-export const JOB_EXPIRY_DAYS = 30;
+// Job expiry (default when employer doesn't provide a last date)
+export const JOB_EXPIRY_DAYS = 60;
 export const JOB_EXPIRY_MS = JOB_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
 export const GENDERS = ["पुरुष (Male)", "महिला (Female)", "दोन्ही (Both)"];

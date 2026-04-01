@@ -70,11 +70,22 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Compute expires_at: use last_date if provided, otherwise default (60 days)
+  let expiresAt: string;
+  if (jobData.last_date) {
+    // Set expiry to end of the last_date day (23:59:59 IST → UTC)
+    const d = new Date(jobData.last_date + "T23:59:59+05:30");
+    expiresAt = d.toISOString();
+  } else {
+    expiresAt = new Date(Date.now() + JOB_EXPIRY_MS).toISOString();
+  }
+
+  const { last_date: _lastDate, ...jobDataWithoutLastDate } = jobData;
   const { data, error } = await db.createJob({
-    ...jobData,
+    ...jobDataWithoutLastDate,
     is_active: true,
     is_deleted: false,
-    expires_at: new Date(Date.now() + JOB_EXPIRY_MS).toISOString(),
+    expires_at: expiresAt,
     ...(body.is_premium ? { is_premium: true } : {}),
   });
 

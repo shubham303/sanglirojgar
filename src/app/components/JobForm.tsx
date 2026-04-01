@@ -38,6 +38,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     workers_needed: "",
     gender: "both",
     tags: [] as string[],
+    last_date: "",
   });
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [loading, setLoading] = useState(mode === "edit");
@@ -77,6 +78,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             workers_needed: String(data.workers_needed || ""),
             gender: data.gender || "both",
             tags: data.tags || [],
+            last_date: data.last_date || "",
           });
           setLoading(false);
         })
@@ -100,6 +102,7 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
         job_type_id: parseInt(form.job_type_id),
         workers_needed: parseInt(form.workers_needed),
         tags: form.tags,
+        last_date: form.last_date || null,
       };
       if (mode === "create" && skipDuplicateCheck) {
         payload.skip_duplicate_check = true;
@@ -397,6 +400,17 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
             placeholder={mode === "create" ? t("form.workersPlaceholder") : undefined}
             className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
           />
+        </Field>
+
+        <Field label={t("form.lastDate")}>
+          <input
+            type="date"
+            value={form.last_date}
+            onChange={(e) => setForm({ ...form, last_date: e.target.value })}
+            min={new Date().toISOString().split("T")[0]}
+            className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-base focus:outline-none focus:border-[#FF6B00]"
+          />
+          <p className="text-xs text-gray-400 mt-1">{t("form.lastDateHint")}</p>
         </Field>
 
         {submitError && (

@@ -15,6 +15,8 @@ interface RawJobBody {
   workers_needed: string | number;
   gender?: string;
   is_scraped?: boolean | string;
+  last_date?: string | null;
+  tags?: string[];
 }
 
 interface PreparedJobData {
@@ -33,6 +35,8 @@ interface PreparedJobData {
   workers_needed: number;
   gender: string;
   is_scraped?: boolean;
+  last_date?: string | null;
+  tags?: string[];
   [key: string]: unknown;
 }
 
@@ -58,6 +62,8 @@ export function prepareJobData(body: RawJobBody): PreparedJobData {
         ? parseInt(body.workers_needed)
         : body.workers_needed,
     gender: body.gender || "both",
+    last_date: body.last_date || null,
+    tags: Array.isArray(body.tags) ? body.tags : [],
   };
 
   if (body.is_scraped !== undefined) {
