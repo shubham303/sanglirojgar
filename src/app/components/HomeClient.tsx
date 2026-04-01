@@ -4,7 +4,23 @@ import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/LanguageContext";
 
 export default function HomeClient() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+
+  const cities = [
+    { mr: "सांगली", en: "Sangli", slug: "sangli", icon: "🏛️" },
+    { mr: "कोल्हापूर", en: "Kolhapur", slug: "kolhapur", icon: "⛰️" },
+    { mr: "पुणे", en: "Pune", slug: "pune", icon: "🏙️" },
+    { mr: "मुंबई", en: "Mumbai", slug: "mumbai", icon: "🌆" },
+    { mr: "नागपूर", en: "Nagpur", slug: "nagpur", icon: "🍊" },
+  ];
+
+  const categories = [
+    { mr: "ट्रान्सपोर्ट / वाहतूक", en: "Transport", search: "driver", icon: "🚛" },
+    { mr: "सेल्स / विक्री", en: "Sales", search: "sales", icon: "🛒" },
+    { mr: "हॉस्पिटल / आरोग्य", en: "Hospital", search: "hospital", icon: "🏥" },
+    { mr: "ऑफिस / कार्यालय", en: "Office", search: "office", icon: "💼" },
+    { mr: "वर्क फ्रॉम होम", en: "Work from Home", search: "work from home", icon: "🏠" },
+  ];
 
   const testimonials = [
     { name: "राजेश पाटील", location: "सांगली", text: "महा जॉब वरून 2 दिवसात ड्रायव्हर मिळाला. खूप सोपं आहे!", accent: "#FF6B00" },
@@ -23,7 +39,7 @@ export default function HomeClient() {
   return (
     <div className="flex flex-col items-center text-center px-2">
       {/* Hero */}
-      <div className="mt-6 mb-5">
+      <div className="mt-6 mb-4">
         <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: "#FF6B00" }}>
           {t("nav.brand")}
         </h1>
@@ -32,9 +48,68 @@ export default function HomeClient() {
         </p>
       </div>
 
+      {/* Post Job CTA */}
+      <Link
+        href="/job/new"
+        className="w-full max-w-md mb-5 flex items-center justify-center gap-2 py-3.5 rounded-xl text-white font-bold text-lg transition-transform active:scale-[0.98]"
+        style={{ backgroundColor: "#FF6B00", boxShadow: "0 4px 14px rgba(255,107,0,0.35)" }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        {t("home.postJobBtn")}
+      </Link>
+
+      {/* Browse Jobs link */}
+      <Link
+        href="/jobs"
+        className="w-full max-w-md mb-6 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-base transition-colors"
+        style={{ backgroundColor: "#FFF3E6", color: "#FF6B00", border: "1.5px solid #FF6B00" }}
+      >
+        {t("home.browseJobsBtn")}
+      </Link>
+
+      {/* City Cards */}
+      <div className="w-full max-w-md mb-5">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">{t("home.browseByCity")}</h2>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+          {cities.map((city) => (
+            <Link
+              key={city.slug}
+              href={`/jobs?district=${city.slug}`}
+              className="bg-white rounded-xl p-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+            >
+              <span className="text-2xl">{city.icon}</span>
+              <span className="text-sm font-semibold text-gray-800">
+                {lang === "mr" ? city.mr : city.en}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Category Cards */}
+      <div className="w-full max-w-md mb-5">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">{t("home.browseByCategory")}</h2>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+          {categories.map((cat) => (
+            <Link
+              key={cat.search}
+              href={`/jobs?search=${encodeURIComponent(cat.search)}`}
+              className="bg-white rounded-xl p-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
+              style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
+            >
+              <span className="text-2xl">{cat.icon}</span>
+              <span className="text-xs font-semibold text-gray-800 leading-tight text-center">
+                {lang === "mr" ? cat.mr : cat.en}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
       {/* Value props */}
       <div
-        className="bg-white rounded-xl p-4 w-full max-w-md mb-6"
+        className="bg-white rounded-xl p-4 w-full max-w-md mb-5"
         style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
       >
         <p className="text-base text-gray-700 leading-relaxed">
@@ -46,32 +121,6 @@ export default function HomeClient() {
         <p className="text-sm text-gray-500 mt-2.5 font-medium">
           {t("home.noReg")}
         </p>
-      </div>
-
-      {/* Who is this for */}
-      <div className="w-full max-w-md mt-2 mb-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Link
-            href="/jobs"
-            className="bg-white rounded-xl p-4 text-left block hover:shadow-md transition-shadow"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-          >
-            <p className="font-semibold text-gray-800 text-base mb-1">{t("home.forWorkers")} →</p>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              {t("home.forWorkersDesc")}
-            </p>
-          </Link>
-          <Link
-            href="/job/new"
-            className="bg-white rounded-xl p-4 text-left block hover:shadow-md transition-shadow"
-            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
-          >
-            <p className="font-semibold text-gray-800 text-base mb-1">{t("home.forOwners")} →</p>
-            <p className="text-sm text-gray-500 leading-relaxed">
-              {t("home.forOwnersDesc")}
-            </p>
-          </Link>
-        </div>
       </div>
 
       {/* Testimonials — horizontal scroll */}

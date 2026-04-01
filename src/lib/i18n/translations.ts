@@ -37,6 +37,10 @@ export const translations: Record<Language, Record<string, string>> = {
     "home.fbFollow": "पेज फॉलो करा",
     "home.fbJoin": "ग्रुप जॉइन करा",
     "home.seoTitle": "महाराष्ट्रातील नोकऱ्या",
+    "home.postJobBtn": "मोफत जाहिरात द्या",
+    "home.browseJobsBtn": "सर्व नोकऱ्या पहा →",
+    "home.browseByCity": "शहरानुसार नोकऱ्या शोधा",
+    "home.browseByCategory": "प्रकारानुसार नोकऱ्या शोधा",
     "home.seoDesc": "सांगली, पुणे, कोल्हापूर, मुंबई, नाशिक, औरंगाबाद, सोलापूर, सातारा, नागपूर — संपूर्ण महाराष्ट्रातील नोकऱ्या एकाच ठिकाणी. सेल्समन, ड्रायव्हर, इलेक्ट्रिशियन, प्लंबर, वेल्डर, मेकॅनिक, सुतार, वेटर, स्वयंपाकी, डिलिव्हरी बॉय — सर्व प्रकारच्या नोकऱ्या.",
 
     // Jobs
@@ -245,6 +249,10 @@ export const translations: Record<Language, Record<string, string>> = {
     "home.fbFollow": "Follow Page",
     "home.fbJoin": "Join Group",
     "home.seoTitle": "Jobs in Maharashtra",
+    "home.postJobBtn": "Post a Free Job Ad",
+    "home.browseJobsBtn": "Browse All Jobs →",
+    "home.browseByCity": "Browse jobs by city",
+    "home.browseByCategory": "Browse jobs by category",
     "home.seoDesc": "Sangli, Pune, Kolhapur, Mumbai, Nashik, Aurangabad, Solapur, Satara, Nagpur — jobs across Maharashtra in one place. Salesman, driver, electrician, plumber, welder, mechanic, carpenter, waiter, cook, delivery boy — all types of jobs.",
 
     // Jobs
