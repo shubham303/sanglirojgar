@@ -102,49 +102,59 @@ export default function HomeClient() {
         {t("home.browseJobsBtn")}
       </Link>
 
-      {/* City Cards — horizontal scroll */}
+      {/* City Cards — 3-row horizontal scroll */}
       <div className="w-full max-w-md mb-5">
         <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">{t("home.browseByCity")}</h2>
         <div
-          className="flex gap-2.5 overflow-x-auto pb-2"
-          style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+          className="overflow-x-auto pb-2"
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {cities.map((city) => (
-            <Link
-              key={city.slug}
-              href={`/jobs?district=${city.slug}`}
-              className="shrink-0 bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
-              style={{ scrollSnapAlign: "start", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "80px" }}
-            >
-              <span className="text-2xl">{city.icon}</span>
-              <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">
-                {lang === "mr" ? city.mr : city.en}
-              </span>
-            </Link>
-          ))}
+          <div
+            className="grid grid-flow-col gap-2.5"
+            style={{ gridTemplateRows: "repeat(3, auto)" }}
+          >
+            {cities.map((city) => (
+              <Link
+                key={city.slug}
+                href={`/jobs?district=${city.slug}`}
+                className="bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "80px" }}
+              >
+                <span className="text-2xl">{city.icon}</span>
+                <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">
+                  {lang === "mr" ? city.mr : city.en}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Category Cards — horizontal scroll */}
+      {/* Category Cards — 2-row horizontal scroll */}
       <div className="w-full max-w-md mb-5">
         <h2 className="text-sm font-semibold text-gray-400 mb-3 text-left">{t("home.browseByCategory")}</h2>
         <div
-          className="flex gap-2.5 overflow-x-auto pb-2"
-          style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+          className="overflow-x-auto pb-2"
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {categories.map((cat) => (
-            <Link
-              key={cat.search}
-              href={`/jobs?search=${encodeURIComponent(cat.search)}`}
-              className="shrink-0 bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
-              style={{ scrollSnapAlign: "start", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "88px" }}
-            >
-              <span className="text-2xl">{cat.icon}</span>
-              <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">
-                {lang === "mr" ? cat.mr : cat.en}
-              </span>
-            </Link>
-          ))}
+          <div
+            className="grid grid-flow-col gap-2.5"
+            style={{ gridTemplateRows: "repeat(2, auto)" }}
+          >
+            {categories.map((cat) => (
+              <Link
+                key={cat.search}
+                href={`/jobs?search=${encodeURIComponent(cat.search)}`}
+                className="bg-white rounded-xl px-3 py-3 flex flex-col items-center gap-1.5 hover:shadow-md transition-shadow"
+                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.06)", minWidth: "88px" }}
+              >
+                <span className="text-2xl">{cat.icon}</span>
+                <span className="text-xs font-semibold text-gray-800 whitespace-nowrap">
+                  {lang === "mr" ? cat.mr : cat.en}
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
 
