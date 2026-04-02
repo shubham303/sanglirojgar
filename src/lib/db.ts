@@ -12,6 +12,7 @@ export interface JobFilters {
   district?: string;
   taluka?: string;
   search?: string;
+  seed?: number;
 }
 
 export interface PaginatedJobs {

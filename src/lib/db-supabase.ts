@@ -79,6 +79,58 @@ function addJobTypeDisplayToList(labelMap: Map<number, string>, rows: Job[]): Jo
   return rows.map((r) => addJobTypeDisplay(labelMap, r));
 }
 
+/** Seeded PRNG (mulberry32) — deterministic random for consistent pagination */
+function seededRandom(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
+  const result = [...arr];
+  const rng = seededRandom(seed);
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * Reorder jobs: premium first, then regular — both sorted by date descending,
+ * but within the same day jobs are shuffled for novelty.
+ */
+function reorderJobs(allJobs: Job[], seed: number): Job[] {
+  const premium: Job[] = [];
+  const regular: Job[] = [];
+  for (const job of allJobs) {
+    (job.is_premium ? premium : regular).push(job);
+  }
+  return [...shuffleWithinDays(premium, seed), ...shuffleWithinDays(regular, seed)];
+}
+
+/** Group jobs by date (YYYY-MM-DD), keep groups in date-descending order, shuffle within each group. */
+function shuffleWithinDays(jobs: Job[], seed: number): Job[] {
+  // Jobs are already sorted by created_at DESC from DB
+  const groups = new Map<string, Job[]>();
+  for (const job of jobs) {
+    const day = job.created_at.slice(0, 10); // "YYYY-MM-DD"
+    const group = groups.get(day);
+    if (group) group.push(job);
+    else groups.set(day, [job]);
+  }
+  const result: Job[] = [];
+  // Map preserves insertion order, which is date-descending from the DB query
+  for (const [, group] of groups) {
+    result.push(...shuffleWithSeed(group, seed));
+  }
+  return result;
+}
+
 /** Select string for jobs with employer name from employers table */
 const JOBS_SELECT = "*, employers(name)";
 
@@ -130,7 +182,25 @@ export function createSupabaseDb(): DbClient {
         return q;
       }
 
-      // --- job_type_id filter (existing behaviour) ---
+      /** Helper: given a list of all matching jobs, reorder + paginate in-memory */
+      function paginateReordered(allJobs: Job[], seed: number) {
+        const reordered = reorderJobs(allJobs, seed);
+        const total = reordered.length;
+        const offset = (filters.page - 1) * filters.limit;
+        const pageJobs = reordered.slice(offset, offset + filters.limit);
+        return {
+          data: {
+            jobs: pageJobs,
+            total,
+            page: filters.page,
+            limit: filters.limit,
+            hasMore: offset + pageJobs.length < total,
+          } as PaginatedJobs,
+          error: null,
+        };
+      }
+
+      // --- job_type_id filter ---
       if (filters.job_type_id) {
         let query = baseQuery();
         const nameMap = await getJobTypeNameMap(supabase);
@@ -145,6 +215,17 @@ export function createSupabaseDb(): DbClient {
         if (filters.search) {
           query = query.ilike("content", `%${filters.search}%`);
         }
+
+        if (filters.seed != null) {
+          // Fetch all matching jobs, reorder with seed, paginate in-memory
+          query = query.order("created_at", { ascending: false }).limit(1000);
+          const { data, error, count } = await query;
+          if (error) return { data: null, error: error.message };
+          const labelMap = await getJobTypeLabelMap(supabase);
+          const jobs = addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? []));
+          return paginateReordered(jobs, filters.seed);
+        }
+
         const offset = (filters.page - 1) * filters.limit;
         query = query
           .order("is_premium", { ascending: false })
@@ -176,6 +257,42 @@ export function createSupabaseDb(): DbClient {
           if (names.name_en.toLowerCase().includes(searchLower) || names.name_mr.includes(filters.search)) {
             matchingIds.push(id);
           }
+        }
+
+        if (filters.seed != null) {
+          // Fetch all matching jobs (both tiers combined), reorder, paginate in-memory
+          let allRawJobs: Record<string, unknown>[] = [];
+
+          if (matchingIds.length > 0) {
+            // Tier 1: job_type matches
+            const { data: d1, error: e1 } = await baseQuery()
+              .in("job_type_id", matchingIds)
+              .order("created_at", { ascending: false })
+              .limit(1000);
+            if (e1) return { data: null, error: e1.message };
+            allRawJobs = (d1 as Record<string, unknown>[]) ?? [];
+
+            // Tier 2: content matches (excluding tier 1 job types)
+            const { data: d2, error: e2 } = await baseQuery()
+              .ilike("content", `%${filters.search}%`)
+              .not("job_type_id", "in", `(${matchingIds.join(",")})`)
+              .order("created_at", { ascending: false })
+              .limit(1000);
+            if (e2) return { data: null, error: e2.message };
+            allRawJobs = [...allRawJobs, ...((d2 as Record<string, unknown>[]) ?? [])];
+          } else {
+            // No job-type match — simple content search
+            const { data, error } = await baseQuery()
+              .ilike("content", `%${filters.search}%`)
+              .order("created_at", { ascending: false })
+              .limit(1000);
+            if (error) return { data: null, error: error.message };
+            allRawJobs = (data as Record<string, unknown>[]) ?? [];
+          }
+
+          const labelMap = await getJobTypeLabelMap(supabase);
+          const jobs = addJobTypeDisplayToList(labelMap, resolveEmployerNames(allRawJobs));
+          return paginateReordered(jobs, filters.seed);
         }
 
         if (matchingIds.length > 0) {
@@ -272,6 +389,18 @@ export function createSupabaseDb(): DbClient {
       }
 
       // --- No search / no job_type_id: just list all active jobs ---
+      if (filters.seed != null) {
+        // Fetch all jobs, reorder with seed, paginate in-memory
+        const query = baseQuery()
+          .order("created_at", { ascending: false })
+          .limit(1000);
+        const { data, error } = await query;
+        if (error) return { data: null, error: error.message };
+        const labelMap = await getJobTypeLabelMap(supabase);
+        const jobs = addJobTypeDisplayToList(labelMap, resolveEmployerNames((data as Record<string, unknown>[]) ?? []));
+        return paginateReordered(jobs, filters.seed);
+      }
+
       let query = baseQuery();
       const offset = (filters.page - 1) * filters.limit;
       query = query

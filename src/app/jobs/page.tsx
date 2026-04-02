@@ -48,6 +48,23 @@ export default function BrowseJobsPage() {
   );
 }
 
+const SCROLL_CACHE_KEY = "jobs_list_cache";
+
+interface ScrollCache {
+  jobs: Job[];
+  total: number;
+  hasMore: boolean;
+  page: number;
+  scrollY: number;
+  filterKey: string;
+  seed: number;
+}
+
+function getFilterKey(searchParams: URLSearchParams): string {
+  const keys = ["job_type_id", "job_type_label", "search", "district", "taluka"];
+  return keys.map((k) => `${k}=${searchParams.get(k) || ""}`).join("&");
+}
+
 function BrowseJobs() {
   const { t, lang } = useTranslation();
   const searchParams = useSearchParams();
@@ -69,10 +86,21 @@ function BrowseJobs() {
     ? talukaFromSlug(searchParams.get("taluka")!)
     : ALL;
 
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [total, setTotal] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
+  // Try to restore cached state if returning from job detail
+  const cached = (() => {
+    try {
+      const raw = sessionStorage.getItem(SCROLL_CACHE_KEY);
+      if (!raw) return null;
+      const data: ScrollCache = JSON.parse(raw);
+      if (data.filterKey === getFilterKey(searchParams)) return data;
+    } catch {}
+    return null;
+  })();
+
+  const [jobs, setJobs] = useState<Job[]>(cached?.jobs ?? []);
+  const [total, setTotal] = useState(cached?.total ?? 0);
+  const [hasMore, setHasMore] = useState(cached?.hasMore ?? false);
+  const [page, setPage] = useState(cached?.page ?? 1);
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -80,6 +108,10 @@ function BrowseJobs() {
   const [openSeeker, setOpenSeeker] = useState(false);
   const [copiedJobId, setCopiedJobId] = useState<string | null>(null);
   const handleSeekerOpened = useCallback(() => setOpenSeeker(false), []);
+
+  // Random seed for consistent shuffled ordering within a session.
+  // New seed = new random order each time the page is freshly loaded.
+  const seedRef = useRef(cached?.seed ?? Math.floor(Math.random() * 2147483647));
 
   // Filter state
   const [searchSelection, setSearchSelection] = useState<SearchSelection | null>(initialSelection);
@@ -96,6 +128,7 @@ function BrowseJobs() {
       const params = new URLSearchParams();
       params.set("page", String(pageNum));
       params.set("limit", String(PAGE_LIMIT));
+      params.set("seed", String(seedRef.current));
       if (selection?.type === "job_type") params.set("job_type_id", String(selection.id));
       else if (selection?.type === "text" && selection.query.trim()) {
         params.set("search", selection.query.trim());
@@ -141,11 +174,23 @@ function BrowseJobs() {
     [t]
   );
 
-  // Initial load (uses filters from URL if present)
+  // Initial load (uses filters from URL if present, or restores from cache)
   const initialLoadDone = useRef(false);
+  const restoredScrollY = useRef(cached?.scrollY ?? 0);
   useEffect(() => {
     if (initialLoadDone.current) return;
     initialLoadDone.current = true;
+
+    // If we restored from cache, skip fetch and restore scroll position
+    if (cached) {
+      setLoading(false);
+      sessionStorage.removeItem(SCROLL_CACHE_KEY);
+      requestAnimationFrame(() => {
+        window.scrollTo(0, restoredScrollY.current);
+      });
+      return;
+    }
+
     const load = async () => {
       setLoading(true);
       setError("");
@@ -167,6 +212,7 @@ function BrowseJobs() {
 
   // SmartSearchBox fires this automatically (debounced internally)
   const handleSearchSelect = async (selection: SearchSelection | null) => {
+    seedRef.current = Math.floor(Math.random() * 2147483647);
     setSearchSelection(selection);
     setAppliedSelection(selection);
     syncFiltersToUrl(selection, appliedDistrict, appliedTaluka);
@@ -187,6 +233,7 @@ function BrowseJobs() {
 
   // Apply district/taluka filters (search button press)
   const applyFilters = async () => {
+    seedRef.current = Math.floor(Math.random() * 2147483647);
     setLoading(true);
     setError("");
     setAppliedDistrict(filterDistrict);
@@ -235,6 +282,7 @@ function BrowseJobs() {
   };
 
   const clearFilters = () => {
+    seedRef.current = Math.floor(Math.random() * 2147483647);
     setSearchSelection(null);
     setFilterDistrict(ALL);
     setFilterTaluka(ALL);
@@ -397,6 +445,20 @@ function BrowseJobs() {
             <Link
               key={job.id}
               href={`/job/${job.id}`}
+              onClick={() => {
+                try {
+                  const cache: ScrollCache = {
+                    jobs,
+                    total,
+                    hasMore,
+                    page,
+                    scrollY: window.scrollY,
+                    filterKey: getFilterKey(new URLSearchParams(window.location.search)),
+                    seed: seedRef.current,
+                  };
+                  sessionStorage.setItem(SCROLL_CACHE_KEY, JSON.stringify(cache));
+                } catch {}
+              }}
               className="block bg-white rounded-xl p-4 transition"
               style={{
                 textDecoration: "none",

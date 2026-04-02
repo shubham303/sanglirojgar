@@ -4,6 +4,51 @@ import { AdminJobFilters, DbClient, JobFilters, PaginatedJobs } from "./db";
 import { Job, JobType } from "./types";
 import { JOB_EXPIRY_DAYS } from "./constants";
 
+/** Seeded PRNG (mulberry32) — deterministic random for consistent pagination */
+function seededRandom(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleWithSeed<T>(arr: T[], seed: number): T[] {
+  const result = [...arr];
+  const rng = seededRandom(seed);
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+function reorderJobs(allJobs: Job[], seed: number): Job[] {
+  const premium: Job[] = [];
+  const regular: Job[] = [];
+  for (const job of allJobs) {
+    (job.is_premium ? premium : regular).push(job);
+  }
+  return [...shuffleWithinDays(premium, seed), ...shuffleWithinDays(regular, seed)];
+}
+
+function shuffleWithinDays(jobs: Job[], seed: number): Job[] {
+  const groups = new Map<string, Job[]>();
+  for (const job of jobs) {
+    const day = job.created_at.slice(0, 10);
+    const group = groups.get(day);
+    if (group) group.push(job);
+    else groups.set(day, [job]);
+  }
+  const result: Job[] = [];
+  for (const [, group] of groups) {
+    result.push(...shuffleWithSeed(group, seed));
+  }
+  return result;
+}
+
 let _pool: Pool | null = null;
 let _initialized = false;
 
@@ -239,6 +284,29 @@ export function createLocalDb(): DbClient {
           values
         );
         const total = parseInt(countResult.rows[0].cnt);
+
+        if (filters.seed != null) {
+          // Fetch all matching jobs, reorder with seed, paginate in-memory
+          const { rows } = await pool.query(
+            `SELECT ${JOBS_SELECT_LOCAL} FROM jobs j JOIN employers e ON j.phone = e.phone ${CLICKS_JOIN} WHERE ${where} ORDER BY ${jobTypeSortExpr}j.created_at DESC LIMIT 1000`,
+            values
+          );
+          const labelMap = await getJobTypeLabelMap();
+          const allJobs = addJobTypeDisplayToList(labelMap, rows as Job[]);
+          const reordered = reorderJobs(allJobs, filters.seed);
+          const offset = (filters.page - 1) * filters.limit;
+          const pageJobs = reordered.slice(offset, offset + filters.limit);
+          return {
+            data: {
+              jobs: pageJobs,
+              total: reordered.length,
+              page: filters.page,
+              limit: filters.limit,
+              hasMore: offset + pageJobs.length < reordered.length,
+            } as PaginatedJobs,
+            error: null,
+          };
+        }
 
         const offset = (filters.page - 1) * filters.limit;
         const dataValues = [...values, filters.limit, offset];

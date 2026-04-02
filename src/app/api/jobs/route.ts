@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
   const district = searchParams.get("district") || undefined;
   const taluka = searchParams.get("taluka") || undefined;
   const search = searchParams.get("search") || undefined;
+  const seed_raw = searchParams.get("seed");
+  const seed = seed_raw ? parseInt(seed_raw) : undefined;
 
   const { data, error } = await db.getActiveJobsPaginated({
     page,
@@ -27,6 +29,7 @@ export async function GET(request: NextRequest) {
     district,
     taluka,
     search,
+    seed,
   });
 
   if (error) {
