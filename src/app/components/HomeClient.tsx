@@ -92,6 +92,8 @@ export default function HomeClient() {
     { mr: "एअरपोर्ट", en: "Airport", search: "airport", icon: "✈️" },
     { mr: "हेल्पर", en: "Helper", search: "helper", icon: "🤝" },
     { mr: "अकाउंटंट", en: "Accountant", search: "accountant", icon: "🧾" },
+    { mr: "सिक्युरिटी", en: "Security", search: "security", icon: "🛡️" },
+    { mr: "हॉटेल", en: "Hotel", search: "hotel", icon: "🏨" },
   ];
 
   const cities = useMemo(() => {
