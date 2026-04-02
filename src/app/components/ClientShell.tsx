@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { LanguageProvider, useTranslation } from "@/lib/i18n/LanguageContext";
 import LanguageToggle from "./LanguageToggle";
 import BottomTabBar from "./BottomTabBar";
@@ -15,8 +16,8 @@ function DesktopNav() {
       style={{ position: "sticky", top: 0, zIndex: 40, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}
     >
       <div className="max-w-3xl mx-auto flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg" style={{ color: "#FF6B00" }}>
-          {t("nav.brand")}
+        <Link href="/">
+          <Image src="/logo.jpg" alt="महा जॉब" width={48} height={48} className="rounded-full" />
         </Link>
         <div className="flex items-center gap-5 text-sm font-medium">
           <Link href="/jobs" className="text-gray-600 hover:text-orange-600 transition">{t("nav.jobs")}</Link>
@@ -53,8 +54,8 @@ function MobileHeader() {
       className="md:hidden flex items-center justify-between px-4 py-2 bg-white"
       style={{ borderBottom: "1px solid #fed7aa", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
     >
-      <Link href="/" className="font-bold text-base" style={{ color: "#FF6B00" }}>
-        {t("nav.brand")}
+      <Link href="/">
+        <Image src="/logo.jpg" alt="महा जॉब" width={32} height={32} className="rounded-full" />
       </Link>
       <LanguageToggle />
     </div>

@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "महा जॉब — महाराष्ट्रातील नोकऱ्या",
     description: "नोकरी शोधा किंवा मोफत जाहिरात द्या — registration नाही, पूर्णपणे मोफत",
     url: "https://www.mahajob.in",
-    images: [{ url: "/icons/icon-512x512.png", width: 512, height: 512 }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary",
@@ -52,11 +52,20 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "महा जॉब",
+    startupImage: "/apple-touch-icon.png",
   },
-  icons: [
-    { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-    { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
-  ],
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   other: {
     "mobile-web-app-capable": "yes",
     "google-site-verification": "",
