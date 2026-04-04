@@ -38,7 +38,9 @@ export default function JobForm({ mode, jobId }: JobFormProps) {
     workers_needed: "",
     gender: "both",
     tags: [] as string[],
-    last_date: "",
+    last_date: mode === "create"
+      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+      : "",
   });
   const [errors, setErrors] = useState<JobFormErrors>({});
   const [loading, setLoading] = useState(mode === "edit");
